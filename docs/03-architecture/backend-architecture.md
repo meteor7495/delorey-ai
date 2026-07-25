@@ -58,7 +58,7 @@ Derived from docs; libraries realize documented components — they are not new 
 | Kafka | **Not MVP-required** | Introduce only if fan-out/volume outgrows MVP bus |
 | Vector DB | Tenant-scoped collections/filters | Knowledge / Database Design |
 | Object Storage | `tenants/{id}/…` | Database Design |
-| Secrets | Secrets manager + encrypted columns | Security Architecture |
+| Secrets | Secrets manager + encrypted columns | [Security Architecture](./security-architecture.md) |
 
 **Kafka rule:** Architecture names an abstract **Event Bus**, not Kafka. Do not add Kafka complexity before sync, Runtime, and isolation are proven.
 

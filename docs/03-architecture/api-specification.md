@@ -522,7 +522,7 @@ MVP may omit merchant-subscribed webhooks. Domain events remain internal (`conve
 | [Conversation Engine Design](./conversation-engine-design.md) | Inbox/widget semantics |
 | [Database Design](./database-design.md) | Field shapes |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | KB resources |
-| Security Architecture (planned) | Authn/z depth, webhook crypto |
+| [Security Architecture](./security-architecture.md) | Authn/z depth, webhook crypto |
 | Feature PRDs (planned) | Per-endpoint acceptance |
 
 ---

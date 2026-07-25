@@ -701,6 +701,7 @@ Acceptance: cross-tenant read of another tenant’s `products` / `messages` / ve
 | **Knowledge & RAG Design** | Chunk ↔ vector payload contract — see [Knowledge & RAG Design](./knowledge-rag-design.md) |
 | **DevOps** | Backup/restore of Postgres + object + vector; tenant-scoped deletes |
 | **Testing Strategy** | Isolation, idempotency, sync upsert tests |
+| **Security Architecture** | Isolation, encryption, secrets — see [Security Architecture](./security-architecture.md) |
 
 ---
 
