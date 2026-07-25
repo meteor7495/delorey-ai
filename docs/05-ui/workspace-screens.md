@@ -8,7 +8,7 @@
 | **Status** | Active — screen contracts for MVP Workspace |
 | **Last Updated** | July 25, 2026 |
 | **Parent** | [Information Architecture](./information-architecture.md) · [Frontend Architecture §9](../03-architecture/frontend-architecture.md) |
-| **Related** | [UX Foundation](./ux-foundation.md) · [Flows](./flows.md) · [Copy & Tone](./copy-tone.md) · [PRD Index](../04-prd/README.md) |
+| **Related** | [UX Foundation](./ux-foundation.md) · [Flows](./flows.md) · [Copy & Tone](./copy-tone.md) · [UI References](./ui-references.md) · [PRD Index](../04-prd/README.md) |
 
 Each screen: **Job · Layout · Must · Must not · States · PRDs**. Wireframe = layout blocks, not pixels.
 

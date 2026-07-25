@@ -40,6 +40,7 @@ docs/05-ui (this folder)
 | [workspace-screens.md](./workspace-screens.md) | Screen contracts for all MVP Workspace routes |
 | [widget-ux.md](./widget-ux.md) | Shopper Website Chat widget |
 | [copy-tone.md](./copy-tone.md) | Persian-first voice; hire-Employee framing |
+| [ui-references.md](./ui-references.md) | Market pattern map: Crisp/Tidio/Gorgias/Intercom + local FA |
 
 ---
 
