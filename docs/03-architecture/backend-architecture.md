@@ -566,7 +566,7 @@ Aligned with System Architecture implementation guidance:
 | **Knowledge & RAG Design** | `knowledge` + `index-worker` details — see [Knowledge & RAG Design](./knowledge-rag-design.md) |
 | **Conversation Engine Design** | Deepen `conversation` / `inbox` / ownership — see [Conversation Engine Design](./conversation-engine-design.md) |
 | **Frontend Architecture** | Consumes same APIs — see [Frontend Architecture](./frontend-architecture.md) |
-| **DevOps** | Process roles, HPA, queue monitoring |
+| **DevOps** | Process roles, HPA, queue monitoring — see [DevOps & Infrastructure](./devops-infrastructure.md) |
 | **Testing Strategy** | Isolation, load, AI eval |
 
 ---

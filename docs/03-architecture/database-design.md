@@ -699,7 +699,7 @@ Acceptance: cross-tenant read of another tenant’s `products` / `messages` / ve
 | **Backend Architecture** | Repository modules, RLS session vars, queue payloads — see [Backend Architecture](./backend-architecture.md) |
 | **API Specification** | DTOs shaped like these entities — see [API Specification](./api-specification.md) |
 | **Knowledge & RAG Design** | Chunk ↔ vector payload contract — see [Knowledge & RAG Design](./knowledge-rag-design.md) |
-| **DevOps** | Backup/restore of Postgres + object + vector; tenant-scoped deletes |
+| **DevOps** | Backup/restore of Postgres + object + vector; tenant-scoped deletes — see [DevOps & Infrastructure](./devops-infrastructure.md) |
 | **Testing Strategy** | Isolation, idempotency, sync upsert tests |
 | **Security Architecture** | Isolation, encryption, secrets — see [Security Architecture](./security-architecture.md) |
 

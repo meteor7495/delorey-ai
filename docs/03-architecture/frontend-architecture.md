@@ -441,7 +441,7 @@ Aligned with Backend build order and Journey:
 | **UI/UX / Design System** | Screens, wireframes, tokens — within this architecture |
 | **Feature PRDs** | Per-screen acceptance mapped to Journey |
 | **Testing Strategy** | E2E + a11y bars |
-| **DevOps** | CDN widget + Workspace app pipelines |
+| **DevOps** | CDN widget + Workspace app pipelines — see [DevOps & Infrastructure](./devops-infrastructure.md) |
 
 ---
 

@@ -364,7 +364,7 @@ Detailed AI eval / load tests belong in Testing Strategy; security tests above a
 | [AI Gateway Design](./ai-gateway-design.md) | Provider keys, abuse limits |
 | [Conversation Engine Design](./conversation-engine-design.md) | Webhook idempotency, message encryption |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | Upload safety, vector isolation |
-| DevOps & Infrastructure (planned) | WAF, TLS, secret injection, backup access control |
+| [DevOps & Infrastructure](./devops-infrastructure.md) | WAF, TLS, secret injection, backup access control |
 | Testing Strategy (planned) | Isolation + security suite |
 
 ---
