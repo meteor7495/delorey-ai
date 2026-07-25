@@ -1,0 +1,19 @@
+{
+  "name": "delorey-ai",
+  "private": true,
+  "packageManager": "pnpm@10.6.5",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm run --parallel /^dev:.*/",
+    "dev:api": "pnpm --filter @delorey/api dev",
+    "dev:workspace": "pnpm --filter @delorey/workspace dev",
+    "dev:widget": "pnpm --filter @delorey/widget dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "db:up": "docker compose up -d postgres redis",
+    "db:down": "docker compose down"
+  }
+}
