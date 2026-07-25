@@ -437,7 +437,7 @@ Aligned with Backend build order and Journey:
 
 | Document | Relationship |
 |----------|--------------|
-| **API Specification** | Contracts `api-client` implements |
+| **API Specification** | Contracts `api-client` implements — see [API Specification](./api-specification.md) |
 | **UI/UX / Design System** | Screens, wireframes, tokens — within this architecture |
 | **Feature PRDs** | Per-screen acceptance mapped to Journey |
 | **Testing Strategy** | E2E + a11y bars |

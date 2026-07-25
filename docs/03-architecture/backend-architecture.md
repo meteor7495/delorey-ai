@@ -465,7 +465,7 @@ ORM choice (Prisma / TypeORM / Drizzle) is an implementation detail; **isolation
 
 # 14. API Surface (backend ownership)
 
-Detailed contracts belong in **API Specification**. Backend owns these groups for MVP:
+Detailed contracts belong in **[API Specification](./api-specification.md)**. Backend owns these groups for MVP:
 
 | Group | Examples |
 |-------|----------|
@@ -560,7 +560,7 @@ Aligned with System Architecture implementation guidance:
 
 | Document | Relationship |
 |----------|--------------|
-| **API Specification** | HTTP/webhook contracts for modules above |
+| **API Specification** | HTTP/webhook contracts for modules above — see [API Specification](./api-specification.md) |
 | **AI Gateway Design** | Provider plugins, routing, metering internals — see [AI Gateway Design](./ai-gateway-design.md) |
 | **Context Engine Design** | `context` module retrieval plan — see [Context Engine Design](./context-engine-design.md) |
 | **Knowledge & RAG Design** | `knowledge` + `index-worker` details — see [Knowledge & RAG Design](./knowledge-rag-design.md) |

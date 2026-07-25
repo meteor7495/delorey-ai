@@ -498,7 +498,7 @@ modules/adapters/{website,telegram,bale}/
 | [Database Design](./database-design.md) | Tables |
 | [Frontend Architecture](./frontend-architecture.md) | Inbox / widget |
 | [Backend Architecture](./backend-architecture.md) | Queues / modules |
-| API Specification (planned) | HTTP/webhook contracts |
+| [API Specification](./api-specification.md) | HTTP/webhook contracts |
 
 ---
 
