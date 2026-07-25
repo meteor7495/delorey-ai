@@ -321,6 +321,8 @@ AI Employees are colleagues with tools and limits — not oracles. Their behavio
 
 | Principle | Rule |
 |-----------|------|
+| **LLMs are the last resort, not the first step** | Every request should be answered using deterministic systems (Rules, Commerce Core, Tools, Cache, Knowledge Retrieval) before invoking an LLM. The model is responsible for reasoning and natural language generation — not for data lookup, business logic, or information retrieval. |
+| **Model Independence** | DeloRey AI must never depend on a specific AI provider. Every AI capability must be routed through an internal AI Gateway that supports provider abstraction, intelligent model selection, cost optimization, fallback strategies, caching, observability, and future self-hosted models. Business logic must remain completely independent of the underlying LLM provider. |
 | **Never hallucinate confidently** | If the system lacks grounded context, it must not invent product facts, prices, stock, or policies. |
 | **Prefer “I don’t know”** | Uncertainty + escalation beats a fluent wrong answer. Merchants would rather lose a turn than lose trust. |
 | **Always use business context** | Every reply consults Context Engine outputs relevant to the turn. |
