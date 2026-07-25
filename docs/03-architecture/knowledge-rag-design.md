@@ -411,7 +411,7 @@ Dependencies: `ai-gateway` for Embed only; never provider SDKs inside Knowledge.
 | [Database Design](./database-design.md) | Tables + vector payload |
 | [Frontend Architecture](./frontend-architecture.md) | `/knowledge` UI |
 | [AI Runtime Architecture](./ai-runtime-architecture.md) | Grounded Answer / escalate on empty |
-| Conversation Engine Design (planned) | History separate from KB |
+| [Conversation Engine Design](./conversation-engine-design.md) | History separate from KB |
 
 ---
 

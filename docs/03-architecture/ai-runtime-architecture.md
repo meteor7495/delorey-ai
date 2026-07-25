@@ -795,7 +795,7 @@ Downstream docs (do not change this Runtime shape):
 - Context Engine Design  
 - AI Gateway Design  
 - Knowledge & RAG Design  
-- Conversation Engine Design  
+- [Conversation Engine Design](./conversation-engine-design.md)  
 - Cost Optimization (deep)  
 - Skill PRDs / Feature PRDs  
 

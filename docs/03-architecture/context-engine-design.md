@@ -455,7 +455,7 @@ Hallucination / groundedness evals sit in Testing Strategy; Context must expose 
 | [AI Runtime Architecture](./ai-runtime-architecture.md) | Consumer of `ContextBundle` |
 | [AI Gateway Design](./ai-gateway-design.md) | Optional compress `Complete`; embeds owned by Knowledge path |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | Index + retrieve implementation |
-| Conversation Engine Design (planned) | History/ownership deep dive |
+| [Conversation Engine Design](./conversation-engine-design.md) | History/ownership deep dive |
 | [Database Design](./database-design.md) | Tables behind readers |
 
 ---

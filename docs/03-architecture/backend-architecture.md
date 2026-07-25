@@ -564,7 +564,7 @@ Aligned with System Architecture implementation guidance:
 | **AI Gateway Design** | Provider plugins, routing, metering internals — see [AI Gateway Design](./ai-gateway-design.md) |
 | **Context Engine Design** | `context` module retrieval plan — see [Context Engine Design](./context-engine-design.md) |
 | **Knowledge & RAG Design** | `knowledge` + `index-worker` details — see [Knowledge & RAG Design](./knowledge-rag-design.md) |
-| **Conversation Engine Design** | Deepen `conversation` / `inbox` / ownership |
+| **Conversation Engine Design** | Deepen `conversation` / `inbox` / ownership — see [Conversation Engine Design](./conversation-engine-design.md) |
 | **Frontend Architecture** | Consumes same APIs — see [Frontend Architecture](./frontend-architecture.md) |
 | **DevOps** | Process roles, HPA, queue monitoring |
 | **Testing Strategy** | Isolation, load, AI eval |
