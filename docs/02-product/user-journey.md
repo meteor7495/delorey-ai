@@ -8,7 +8,7 @@
 | **Status** | Active — end-to-end journey reference for Product, Design, Engineering, Backend, Frontend, AI, and QA |
 | **Owner** | Founder / Product |
 | **Last Updated** | July 25, 2026 |
-| **Related Documents** | [Product Vision](./product-vision.md) · [Product Principles](./product-principles.md) · [Product Scope](./product-scope.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Pricing Strategy](../01-business/pricing-strategy.md) · [Go-To-Market](../01-business/go-to-market.md) · [Product Moat](../01-business/product-moat.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Vision (company)](../00-overview/vision.md) |
+| **Related Documents** | [Product Vision](./product-vision.md) · [Product Principles](./product-principles.md) · [Product Scope](./product-scope.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Pricing Strategy](../01-business/pricing-strategy.md) · [Go-To-Market](../01-business/go-to-market.md) · [Product Moat](../01-business/product-moat.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Vision (company)](../00-overview/vision.md) · [UI/UX](../05-ui/README.md) · [PRD Index](../04-prd/README.md) |
 
 **Audience:** Product, Design, Engineering (Backend / Frontend / AI), QA, and anyone explaining how a merchant moves from discovery to continuous improvement.
 

@@ -9,7 +9,7 @@
 | **Last Updated** | July 25, 2026 |
 | **Authority** | [Product Scope](../02-product/product-scope.md) capability map only |
 
-Every PRD uses [_prd-template.md](./_prd-template.md). Architecture depth lives in `docs/03-architecture/`; PRDs specify **product behavior and acceptance**, not re-architecting.
+Every PRD uses [_prd-template.md](./_prd-template.md). Architecture depth lives in `docs/03-architecture/`; PRDs specify **product behavior and acceptance**, not re-architecting. Screen/IA/copy detail lives in [docs/05-ui](../05-ui/README.md).
 
 ---
 

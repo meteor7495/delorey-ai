@@ -27,7 +27,7 @@ System Architecture / Backend Architecture
 This document
 ```
 
-Wireframes and Design System (later UI/UX docs) refine presentation; they do not expand MVP scope.
+Wireframes and Design System in [docs/05-ui](../05-ui/README.md) refine presentation; they do not expand MVP scope.
 
 ---
 
@@ -396,7 +396,7 @@ Frontend does not replace Backend metrics (escalation_rate, sync lag). It **disp
 | A11y smoke | Keyboard inbox, contrast on AI state badges |
 | Widget | Embed boot, send message against mock API, handoff state |
 
-Visual/flow detail expands in later **UI/UX** docs; architecture requires testability of Journey stages 2–11.
+Visual/flow detail lives in [docs/05-ui](../05-ui/README.md); architecture requires testability of Journey stages 2–11.
 
 ---
 
@@ -438,7 +438,7 @@ Aligned with Backend build order and Journey:
 | Document | Relationship |
 |----------|--------------|
 | **API Specification** | Contracts `api-client` implements — see [API Specification](./api-specification.md) |
-| **UI/UX / Design System** | Screens, wireframes, tokens — within this architecture |
+| **UI/UX / Design System** | Screens, wireframes, tokens — [docs/05-ui](../05-ui/README.md) |
 | **Feature PRDs** | Per-screen acceptance mapped to Journey |
 | **Testing Strategy** | E2E + a11y bars — see [Testing Strategy](./testing-strategy.md) |
 | **DevOps** | CDN widget + Workspace app pipelines — see [DevOps & Infrastructure](./devops-infrastructure.md) |
