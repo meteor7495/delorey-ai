@@ -9,7 +9,7 @@
 | **Owner** | Founder / AI Platform / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Document** | [System Architecture](./system-architecture.md) |
-| **Related Documents** | [Product Vision](../02-product/product-vision.md) · [Product Principles](../02-product/product-principles.md) · [Product Scope](../02-product/product-scope.md) · [User Journey](../02-product/user-journey.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](../01-business/product-moat.md) · [Domain-Driven Design](./domain-driven-design.md) |
+| **Related Documents** | [Product Vision](../02-product/product-vision.md) · [Product Principles](../02-product/product-principles.md) · [Product Scope](../02-product/product-scope.md) · [User Journey](../02-product/user-journey.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](../01-business/product-moat.md) · [Domain-Driven Design](./domain-driven-design.md) · [AI Gateway Design](./ai-gateway-design.md) · [Context Engine Design](./context-engine-design.md) |
 
 **Audience:** AI Platform, Backend, Frontend (Inbox / Employee settings), QA / Evaluation, DevOps (observability for turns).
 

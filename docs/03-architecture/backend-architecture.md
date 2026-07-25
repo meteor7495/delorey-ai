@@ -561,9 +561,9 @@ Aligned with System Architecture implementation guidance:
 | Document | Relationship |
 |----------|--------------|
 | **API Specification** | HTTP/webhook contracts for modules above |
-| **AI Gateway Design** | Provider plugins, routing, metering internals |
-| **Context Engine Design** | `context` module retrieval plan |
-| **Knowledge & RAG Design** | `knowledge` + `index-worker` details |
+| **AI Gateway Design** | Provider plugins, routing, metering internals — see [AI Gateway Design](./ai-gateway-design.md) |
+| **Context Engine Design** | `context` module retrieval plan — see [Context Engine Design](./context-engine-design.md) |
+| **Knowledge & RAG Design** | `knowledge` + `index-worker` details — see [Knowledge & RAG Design](./knowledge-rag-design.md) |
 | **Conversation Engine Design** | Deepen `conversation` / `inbox` / ownership |
 | **Frontend Architecture** | Consumes same APIs — see [Frontend Architecture](./frontend-architecture.md) |
 | **DevOps** | Process roles, HPA, queue monitoring |
