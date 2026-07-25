@@ -519,7 +519,7 @@ Queue depth and provider outages are first-class ops signals ([System Architectu
 | Unit | Guardrails hard stops; ownership transitions; cost route decisions |
 | Integration | Tenant isolation / IDOR; idempotent webhook → single turn; sync upsert by external id |
 | Contract | Adapter normalize/deliver; Gateway plugin interface |
-| Eval hooks | Audit refs available for groundedness / hallucination suites (Testing Strategy later) |
+| Eval hooks | Audit refs available for groundedness / hallucination suites ([Testing Strategy](./testing-strategy.md)) |
 
 Isolation tests **before** channel polish ([System Architecture](./system-architecture.md) Backend guidance).
 
@@ -567,7 +567,7 @@ Aligned with System Architecture implementation guidance:
 | **Conversation Engine Design** | Deepen `conversation` / `inbox` / ownership — see [Conversation Engine Design](./conversation-engine-design.md) |
 | **Frontend Architecture** | Consumes same APIs — see [Frontend Architecture](./frontend-architecture.md) |
 | **DevOps** | Process roles, HPA, queue monitoring — see [DevOps & Infrastructure](./devops-infrastructure.md) |
-| **Testing Strategy** | Isolation, load, AI eval |
+| **Testing Strategy** | Isolation, load, AI eval — see [Testing Strategy](./testing-strategy.md) |
 
 ---
 

@@ -370,7 +370,7 @@ Documented in ops wiki / repo — Architecture requires these scenarios:
 | [Frontend Architecture](./frontend-architecture.md) | CDN widget |
 | [Database Design](./database-design.md) | Backup/retention scopes |
 | [AI Gateway Design](./ai-gateway-design.md) | Provider health/failover |
-| Testing Strategy (planned) | Load, chaos, restore drills |
+| [Testing Strategy](./testing-strategy.md) | Load, chaos, restore drills |
 
 ---
 

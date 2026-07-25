@@ -523,6 +523,7 @@ MVP may omit merchant-subscribed webhooks. Domain events remain internal (`conve
 | [Database Design](./database-design.md) | Field shapes |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | KB resources |
 | [Security Architecture](./security-architecture.md) | Authn/z depth, webhook crypto |
+| [Testing Strategy](./testing-strategy.md) | Contract + isolation suites |
 | Feature PRDs (planned) | Per-endpoint acceptance |
 
 ---

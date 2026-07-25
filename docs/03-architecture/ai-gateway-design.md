@@ -492,7 +492,7 @@ Config via environment + secret store — no secrets in images ([System Architec
 | [AI Runtime Architecture](./ai-runtime-architecture.md) | When Complete is invoked |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | Embed usage |
 | [Context Engine Design](./context-engine-design.md) | Compression may call Gateway |
-| Testing Strategy (planned) | Shadow / hallucination eval harness |
+| [Testing Strategy](./testing-strategy.md) | Shadow / hallucination eval harness |
 | [Pricing Strategy](../01-business/pricing-strategy.md) | Meter vs merchant invoice language |
 
 ---

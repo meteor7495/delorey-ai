@@ -440,7 +440,7 @@ Aligned with Backend build order and Journey:
 | **API Specification** | Contracts `api-client` implements — see [API Specification](./api-specification.md) |
 | **UI/UX / Design System** | Screens, wireframes, tokens — within this architecture |
 | **Feature PRDs** | Per-screen acceptance mapped to Journey |
-| **Testing Strategy** | E2E + a11y bars |
+| **Testing Strategy** | E2E + a11y bars — see [Testing Strategy](./testing-strategy.md) |
 | **DevOps** | CDN widget + Workspace app pipelines — see [DevOps & Infrastructure](./devops-infrastructure.md) |
 
 ---
