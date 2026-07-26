@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import {
@@ -6,10 +11,15 @@ import {
   type EscalationReason,
   type HandoffPacket,
 } from '../platform/types';
+import { TelegramAdapterService } from '../adapters/telegram/telegram.service';
 
 @Injectable()
 export class HandoffService {
-  constructor(private readonly store: DataStore) {}
+  constructor(
+    private readonly store: DataStore,
+    @Inject(forwardRef(() => TelegramAdapterService))
+    private readonly telegram: TelegramAdapterService,
+  ) {}
 
   async buildPacket(
     tenantId: string,
@@ -121,12 +131,14 @@ export class HandoffService {
     if (conversation.ownership !== 'human_owned') {
       await this.store.setOwnership(tenantId, conversationId, 'human_owned');
     }
-    return this.store.addMessage({
+    const message = await this.store.addMessage({
       tenantId,
       conversationId,
       role: 'operator',
       content: text,
     });
+    await this.telegram.deliverOperatorReply(tenantId, conversationId, text);
+    return message;
   }
 
   private async requireTenantConversation(

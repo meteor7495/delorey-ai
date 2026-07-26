@@ -122,10 +122,41 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify({ reason: reason ?? 'operator_manual' }),
       }),
-    inboxReply: (id: string, text: string) =>
-      request(opts, `/inbox/conversations/${id}/messages`, {
+    connectTelegram: (botToken: string) =>
+      request<{
+        id: string;
+        status: string;
+        botUsername: string | null;
+        webhookUrl: string;
+        webhookSecret: string;
+        live: boolean;
+        note: string;
+      }>(opts, '/channels/telegram/connect', {
         method: 'POST',
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ botToken }),
+      }),
+    getTelegramChannel: () =>
+      request<{
+        connected: boolean;
+        status?: string;
+        botUsername?: string | null;
+        webhookUrl?: string;
+        id?: string;
+        live?: boolean;
+      }>(opts, '/channels/telegram'),
+    simulateTelegram: (body: {
+      text: string;
+      chatId?: string;
+      updateId?: number;
+    }) =>
+      request<{
+        conversationId?: string;
+        decision?: string;
+        reply?: string;
+        duplicate?: boolean;
+      }>(opts, '/channels/telegram/simulate', {
+        method: 'POST',
+        body: JSON.stringify(body),
       }),
   };
 }

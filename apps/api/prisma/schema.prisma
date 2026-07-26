@@ -122,14 +122,17 @@ model Product {
 }
 
 model ChannelBinding {
-  id             String   @id @default(uuid())
-  tenantId       String   @map("tenant_id")
-  channel        String
-  status         String
-  publicKey      String   @unique @map("public_key")
-  allowedOrigins Json     @map("allowed_origins")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  channel           String
+  status            String
+  publicKey         String   @unique @map("public_key")
+  allowedOrigins    Json     @map("allowed_origins")
+  credentialsCipher String?  @map("credentials_cipher")
+  webhookSecret     String?  @map("webhook_secret")
+  botUsername       String?  @map("bot_username")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -143,6 +146,7 @@ model Conversation {
   tenantId          String    @map("tenant_id")
   channel           String
   ownership         String    @default("ai_owned")
+  externalThreadId  String?   @map("external_thread_id")
   escalationReason  String?   @map("escalation_reason")
   escalatedAt       DateTime? @map("escalated_at")
   handoffPacket     Json?     @map("handoff_packet")
@@ -153,6 +157,7 @@ model Conversation {
   messages Message[]
   audits   AuditTurn[]
 
+  @@unique([tenantId, channel, externalThreadId])
   @@index([tenantId])
   @@index([tenantId, ownership])
   @@map("conversations")
@@ -165,11 +170,13 @@ model Message {
   role           String
   content        String
   citations      Json?
+  idempotencyKey String?  @map("idempotency_key")
   createdAt      DateTime @default(now()) @map("created_at")
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
+  @@unique([tenantId, idempotencyKey])
   @@index([tenantId, conversationId])
   @@map("messages")
 }

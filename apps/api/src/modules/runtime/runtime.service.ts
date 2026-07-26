@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { CommerceService } from '../commerce/commerce.service';
@@ -21,6 +21,7 @@ export class RuntimeService {
     private readonly store: DataStore,
     private readonly commerce: CommerceService,
     private readonly gateway: AiGatewayService,
+    @Inject(forwardRef(() => HandoffService))
     private readonly handoff: HandoffService,
   ) {}
 

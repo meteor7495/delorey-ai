@@ -86,13 +86,17 @@ export interface ChannelBinding {
   status: 'connected' | 'disconnected' | 'degraded';
   publicKey: string;
   allowedOrigins: string[];
+  credentialsCipher: string | null;
+  webhookSecret: string | null;
+  botUsername: string | null;
 }
 
 export interface Conversation {
   id: string;
   tenantId: string;
-  channel: 'website';
+  channel: 'website' | 'telegram' | 'bale';
   ownership: 'ai_owned' | 'human_owned';
+  externalThreadId: string | null;
   escalationReason: EscalationReason | null;
   escalatedAt: string | null;
   handoffPacket: HandoffPacket | null;
@@ -108,6 +112,7 @@ export interface Message {
   content: string;
   createdAt: string;
   citations?: Array<{ sku: string; title: string; price: number }>;
+  idempotencyKey?: string;
 }
 
 export interface AuditTurn {

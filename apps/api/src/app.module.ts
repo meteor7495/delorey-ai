@@ -10,6 +10,7 @@ import { WebsiteAdapterModule } from './modules/adapters/website/website.module'
 import { RuntimeModule } from './modules/runtime/runtime.module';
 import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
 import { InboxModule } from './modules/inbox/inbox.module';
+import { TelegramAdapterModule } from './modules/adapters/telegram/telegram.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -25,6 +26,7 @@ import { HealthController } from './health.controller';
     RuntimeModule,
     AiGatewayModule,
     InboxModule,
+    TelegramAdapterModule,
   ],
   controllers: [HealthController],
 })

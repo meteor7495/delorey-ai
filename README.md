@@ -63,4 +63,4 @@ See [vertical-slice-01.md](docs/06-build/vertical-slice-01.md). Invented prices 
 
 ## Next slices
 
-02 Inbox + Human Handoff — see [vertical-slice-02.md](docs/06-build/vertical-slice-02.md) · 03 Telegram · 04 Knowledge/RAG
+03 Telegram — done ([vertical-slice-03.md](docs/06-build/vertical-slice-03.md)) · **Next:** Bale adapter or Knowledge/RAG

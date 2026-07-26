@@ -309,11 +309,70 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapChannel(row) : null;
   }
 
+  async channelById(id: string): Promise<ChannelBinding | null> {
+    const row = await this.prisma.channelBinding.findUnique({ where: { id } });
+    return row ? this.mapChannel(row) : null;
+  }
+
+  async telegramChannel(tenantId: string): Promise<ChannelBinding | null> {
+    const row = await this.prisma.channelBinding.findUnique({
+      where: { tenantId_channel: { tenantId, channel: 'telegram' } },
+    });
+    return row ? this.mapChannel(row) : null;
+  }
+
+  async upsertTelegramChannel(data: {
+    tenantId: string;
+    credentialsCipher: string;
+    webhookSecret: string;
+    botUsername: string | null;
+    status: ChannelBinding['status'];
+  }): Promise<ChannelBinding> {
+    const publicKey = `tg_${data.tenantId.slice(0, 8)}_${uuid().slice(0, 6)}`;
+    const existing = await this.telegramChannel(data.tenantId);
+    if (existing) {
+      const row = await this.prisma.channelBinding.update({
+        where: { id: existing.id },
+        data: {
+          credentialsCipher: data.credentialsCipher,
+          webhookSecret: data.webhookSecret,
+          botUsername: data.botUsername,
+          status: data.status,
+        },
+      });
+      return this.mapChannel(row);
+    }
+    const row = await this.prisma.channelBinding.create({
+      data: {
+        tenantId: data.tenantId,
+        channel: 'telegram',
+        status: data.status,
+        publicKey,
+        allowedOrigins: [],
+        credentialsCipher: data.credentialsCipher,
+        webhookSecret: data.webhookSecret,
+        botUsername: data.botUsername,
+      },
+    });
+    return this.mapChannel(row);
+  }
+
+  async setChannelStatus(
+    id: string,
+    status: ChannelBinding['status'],
+  ): Promise<void> {
+    await this.prisma.channelBinding.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
   async createConversation(data: {
     id: string;
     tenantId: string;
     channel: Conversation['channel'];
     ownership: Conversation['ownership'];
+    externalThreadId?: string | null;
   }): Promise<Conversation> {
     const row = await this.prisma.conversation.create({
       data: {
@@ -321,9 +380,41 @@ export class DataStore implements OnModuleInit {
         tenantId: data.tenantId,
         channel: data.channel,
         ownership: data.ownership,
+        externalThreadId: data.externalThreadId ?? null,
       },
     });
     return this.mapConversation(row);
+  }
+
+  async findConversationByExternalThread(
+    tenantId: string,
+    channel: Conversation['channel'],
+    externalThreadId: string,
+  ): Promise<Conversation | null> {
+    const row = await this.prisma.conversation.findFirst({
+      where: { tenantId, channel, externalThreadId },
+    });
+    return row ? this.mapConversation(row) : null;
+  }
+
+  async getOrCreateExternalConversation(
+    tenantId: string,
+    channel: Conversation['channel'],
+    externalThreadId: string,
+  ): Promise<Conversation> {
+    const existing = await this.findConversationByExternalThread(
+      tenantId,
+      channel,
+      externalThreadId,
+    );
+    if (existing) return existing;
+    return this.createConversation({
+      id: uuid(),
+      tenantId,
+      channel,
+      ownership: 'ai_owned',
+      externalThreadId,
+    });
   }
 
   async getConversation(
@@ -423,21 +514,55 @@ export class DataStore implements OnModuleInit {
     });
   }
 
+  async findMessageByIdempotency(
+    tenantId: string,
+    idempotencyKey: string,
+  ): Promise<Message | null> {
+    const row = await this.prisma.message.findFirst({
+      where: { tenantId, idempotencyKey },
+    });
+    return row ? this.mapMessage(row) : null;
+  }
+
   async addMessage(
     partial: Omit<Message, 'id' | 'createdAt'> & {
       citations?: Message['citations'];
+      idempotencyKey?: string;
     },
   ): Promise<Message> {
-    const row = await this.prisma.message.create({
-      data: {
-        tenantId: partial.tenantId,
-        conversationId: partial.conversationId,
-        role: partial.role,
-        content: partial.content,
-        citations: partial.citations ?? Prisma.JsonNull,
-      },
-    });
-    return this.mapMessage(row);
+    if (partial.idempotencyKey) {
+      const existing = await this.findMessageByIdempotency(
+        partial.tenantId,
+        partial.idempotencyKey,
+      );
+      if (existing) return existing;
+    }
+    try {
+      const row = await this.prisma.message.create({
+        data: {
+          tenantId: partial.tenantId,
+          conversationId: partial.conversationId,
+          role: partial.role,
+          content: partial.content,
+          citations: partial.citations ?? Prisma.JsonNull,
+          idempotencyKey: partial.idempotencyKey ?? null,
+        },
+      });
+      return this.mapMessage(row);
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002' &&
+        partial.idempotencyKey
+      ) {
+        const existing = await this.findMessageByIdempotency(
+          partial.tenantId,
+          partial.idempotencyKey,
+        );
+        if (existing) return existing;
+      }
+      throw err;
+    }
   }
 
   async listMessages(
@@ -556,6 +681,9 @@ export class DataStore implements OnModuleInit {
     status: string;
     publicKey: string;
     allowedOrigins: Prisma.JsonValue;
+    credentialsCipher: string | null;
+    webhookSecret: string | null;
+    botUsername: string | null;
   }): ChannelBinding {
     return {
       id: row.id,
@@ -564,6 +692,9 @@ export class DataStore implements OnModuleInit {
       status: row.status as ChannelBinding['status'],
       publicKey: row.publicKey,
       allowedOrigins: row.allowedOrigins as string[],
+      credentialsCipher: row.credentialsCipher,
+      webhookSecret: row.webhookSecret,
+      botUsername: row.botUsername,
     };
   }
 
@@ -572,6 +703,7 @@ export class DataStore implements OnModuleInit {
     tenantId: string;
     channel: string;
     ownership: string;
+    externalThreadId: string | null;
     escalationReason: string | null;
     escalatedAt: Date | null;
     handoffPacket: Prisma.JsonValue | null;
@@ -583,6 +715,7 @@ export class DataStore implements OnModuleInit {
       tenantId: row.tenantId,
       channel: row.channel as Conversation['channel'],
       ownership: row.ownership as Conversation['ownership'],
+      externalThreadId: row.externalThreadId,
       escalationReason: (row.escalationReason as EscalationReason | null) ?? null,
       escalatedAt: row.escalatedAt?.toISOString() ?? null,
       handoffPacket: (row.handoffPacket as HandoffPacket | null) ?? null,
