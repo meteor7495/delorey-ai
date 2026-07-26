@@ -9,6 +9,8 @@ import { api, getToken, setToken } from '@/shared/api';
 
 const links = [
   { href: '/home', label: 'خانه' },
+  { href: '/dashboard', label: 'داشبورد' },
+  { href: '/audit', label: 'ممیزی' },
   { href: '/onboarding', label: 'شروع کار' },
   { href: '/store', label: 'فروشگاه' },
   { href: '/employee', label: 'کارمند فروش' },

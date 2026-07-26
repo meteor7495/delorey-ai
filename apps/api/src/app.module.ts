@@ -13,6 +13,8 @@ import { InboxModule } from './modules/inbox/inbox.module';
 import { TelegramAdapterModule } from './modules/adapters/telegram/telegram.module';
 import { BaleAdapterModule } from './modules/adapters/bale/bale.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { AuditModule } from './modules/audit/audit.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -24,6 +26,8 @@ import { HealthController } from './health.controller';
     EmployeeModule,
     CommerceModule,
     KnowledgeModule,
+    AnalyticsModule,
+    AuditModule,
     ConversationModule,
     WebsiteAdapterModule,
     RuntimeModule,

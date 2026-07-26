@@ -227,6 +227,9 @@ export default function InboxClient() {
                   >
                     بازگشت به AI
                   </button>
+                  <a className="btn secondary" href={`/audit?c=${selectedId}`}>
+                    ممیزی
+                  </a>
                 </div>
               </div>
 

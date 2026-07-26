@@ -255,6 +255,91 @@ export function createApiClient(opts: ApiClientOptions) {
       }),
     deleteKnowledgeDoc: (id: string) =>
       request(opts, `/knowledge/docs/${id}`, { method: 'DELETE' }),
+    analyticsSummary: (days = 7) =>
+      request<{
+        rangeDays: number;
+        empty: boolean;
+        conversations: {
+          total: number;
+          byChannel: Record<string, number>;
+          volumeByDay: Record<string, number>;
+          humanOwnedOpen: number;
+        };
+        audits: {
+          total: number;
+          decisionCounts: Record<string, number>;
+          resolvedTurns: number;
+          escalatedTurns: number;
+          assistedActions: number;
+        };
+        rates: {
+          resolutionProxy: number | null;
+          escalationRate: number | null;
+        };
+        escalationReasons: Record<string, number>;
+        syncHealth: string;
+        syncLastAt: string | null;
+        methodology: Record<string, string>;
+        gapDecisionCounts: Record<string, number>;
+      }>(opts, `/analytics/summary?days=${days}`),
+    analyticsKnowledgeGaps: (days = 7) =>
+      request<{
+        empty: boolean;
+        topics: Array<{
+          text: string;
+          decision: string;
+          conversationId: string;
+          at: string;
+        }>;
+        hrefKnowledge: string;
+        note: string;
+      }>(opts, `/analytics/knowledge-gaps?days=${days}`),
+    listAuditTurns: (query: {
+      days?: number;
+      decision?: string;
+      conversationId?: string;
+      limit?: number;
+      offset?: number;
+    } = {}) => {
+      const params = new URLSearchParams();
+      if (query.days != null) params.set('days', String(query.days));
+      if (query.decision) params.set('decision', query.decision);
+      if (query.conversationId)
+        params.set('conversationId', query.conversationId);
+      if (query.limit != null) params.set('limit', String(query.limit));
+      if (query.offset != null) params.set('offset', String(query.offset));
+      const qs = params.toString();
+      return request<{
+        total: number;
+        items: Array<{
+          id: string;
+          conversationId: string;
+          decision: string;
+          citations: unknown;
+          createdAt: string;
+        }>;
+      }>(opts, `/audit/turns${qs ? `?${qs}` : ''}`);
+    },
+    getAuditTurn: (id: string) =>
+      request<{
+        id: string;
+        conversationId: string;
+        decision: string;
+        citations: unknown;
+        createdAt: string;
+        conversation: {
+          id: string;
+          channel: string;
+          ownership: string;
+          escalationReason: string | null;
+        } | null;
+        recentMessages: Array<{
+          role: string;
+          content: string;
+          createdAt: string;
+        }>;
+        note: string;
+      }>(opts, `/audit/turns/${id}`),
   };
 }
 

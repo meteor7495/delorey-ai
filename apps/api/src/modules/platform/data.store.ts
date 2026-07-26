@@ -968,6 +968,266 @@ export class DataStore implements OnModuleInit {
     });
   }
 
+  async analyticsSummary(tenantId: string, days = 7) {
+    const since = new Date();
+    since.setDate(since.getDate() - Math.max(1, Math.min(days, 90)));
+
+    const [conversations, audits, store, escalatedNow] = await Promise.all([
+      this.prisma.conversation.findMany({
+        where: { tenantId, createdAt: { gte: since } },
+        select: {
+          id: true,
+          channel: true,
+          ownership: true,
+          escalationReason: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.auditTurn.findMany({
+        where: { tenantId, createdAt: { gte: since } },
+        select: { decision: true, conversationId: true, createdAt: true },
+      }),
+      this.getStore(tenantId),
+      this.countEscalated(tenantId),
+    ]);
+
+    const byChannel: Record<string, number> = {};
+    for (const c of conversations) {
+      byChannel[c.channel] = (byChannel[c.channel] ?? 0) + 1;
+    }
+
+    const resolvedDecisions = new Set([
+      'answer_grounded',
+      'answer_knowledge',
+      'recommend',
+      'order_lookup',
+    ]);
+    const gapDecisions = new Set([
+      'answer_empty_catalog',
+      'recommend_empty',
+      'order_lookup_not_found',
+    ]);
+
+    let resolvedTurns = 0;
+    let escalatedTurns = 0;
+    let assistedActions = 0;
+    const decisionCounts: Record<string, number> = {};
+    for (const a of audits) {
+      decisionCounts[a.decision] = (decisionCounts[a.decision] ?? 0) + 1;
+      if (resolvedDecisions.has(a.decision)) resolvedTurns += 1;
+      if (a.decision.startsWith('escalated:')) escalatedTurns += 1;
+      if (a.decision === 'recommend' || a.decision === 'order_lookup') {
+        assistedActions += 1;
+      }
+    }
+
+    const escalationReasons: Record<string, number> = {};
+    for (const c of conversations) {
+      if (c.escalationReason) {
+        escalationReasons[c.escalationReason] =
+          (escalationReasons[c.escalationReason] ?? 0) + 1;
+      }
+    }
+
+    const totalTurns = audits.length;
+    const resolutionProxy =
+      totalTurns === 0 ? null : Number((resolvedTurns / totalTurns).toFixed(3));
+    const escalationRate =
+      conversations.length === 0
+        ? null
+        : Number(
+            (
+              conversations.filter((c) => c.ownership === 'human_owned').length /
+              conversations.length
+            ).toFixed(3),
+          );
+
+    const volumeByDay: Record<string, number> = {};
+    for (const c of conversations) {
+      const day = c.createdAt.toISOString().slice(0, 10);
+      volumeByDay[day] = (volumeByDay[day] ?? 0) + 1;
+    }
+
+    return {
+      rangeDays: days,
+      since: since.toISOString(),
+      empty: conversations.length === 0 && audits.length === 0,
+      conversations: {
+        total: conversations.length,
+        byChannel,
+        volumeByDay,
+        humanOwnedOpen: escalatedNow,
+      },
+      audits: {
+        total: totalTurns,
+        decisionCounts,
+        resolvedTurns,
+        escalatedTurns,
+        assistedActions,
+      },
+      rates: {
+        resolutionProxy,
+        escalationRate,
+      },
+      escalationReasons,
+      syncHealth: store?.syncHealth ?? 'never',
+      syncLastAt: store?.lastSyncAt ?? null,
+      methodology: {
+        resolutionProxy:
+          'نسبت نوبت‌های audit با تصمیم‌های grounded/knowledge/recommend/order_lookup به کل نوبت‌ها — نه «رضایت AI».',
+        escalationRate:
+          'نسبت گفتگوهای human_owned به کل گفتگوهای بازه.',
+        assistedActions:
+          'تعداد نوبت recommend + order_lookup — انتساب فروش علّی نیست.',
+        freshness: 'محاسبه زنده از Postgres؛ تأخیر batch جداگانه نداریم.',
+      },
+      gapDecisionCounts: Object.fromEntries(
+        [...gapDecisions].map((d) => [d, decisionCounts[d] ?? 0]),
+      ),
+    };
+  }
+
+  async analyticsKnowledgeGaps(tenantId: string, days = 7, limit = 10) {
+    const since = new Date();
+    since.setDate(since.getDate() - Math.max(1, Math.min(days, 90)));
+    const gapDecisions = [
+      'answer_empty_catalog',
+      'recommend_empty',
+      'order_lookup_not_found',
+    ];
+    const audits = await this.prisma.auditTurn.findMany({
+      where: {
+        tenantId,
+        createdAt: { gte: since },
+        decision: { in: gapDecisions },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 80,
+      select: { conversationId: true, decision: true, createdAt: true },
+    });
+
+    const topics: Array<{
+      text: string;
+      decision: string;
+      conversationId: string;
+      at: string;
+    }> = [];
+
+    for (const a of audits) {
+      const shopper = await this.prisma.message.findFirst({
+        where: {
+          tenantId,
+          conversationId: a.conversationId,
+          role: 'shopper',
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (!shopper) continue;
+      topics.push({
+        text: shopper.content.slice(0, 160),
+        decision: a.decision,
+        conversationId: a.conversationId,
+        at: a.createdAt.toISOString(),
+      });
+      if (topics.length >= limit) break;
+    }
+
+    return {
+      rangeDays: days,
+      empty: topics.length === 0,
+      topics,
+      hrefKnowledge: '/knowledge',
+      note: 'موضوعات نزدیک به تصمیم‌های empty/not_found — نقطه شروع ویرایش Knowledge، نه امتیاز وانیته.',
+    };
+  }
+
+  async listAuditTurns(
+    tenantId: string,
+    opts: {
+      days?: number;
+      decision?: string;
+      conversationId?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) {
+    const days = Math.max(1, Math.min(opts.days ?? 7, 90));
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const limit = Math.max(1, Math.min(opts.limit ?? 50, 200));
+    const offset = Math.max(0, opts.offset ?? 0);
+
+    const where = {
+      tenantId,
+      createdAt: { gte: since },
+      ...(opts.conversationId
+        ? { conversationId: opts.conversationId }
+        : {}),
+      ...(opts.decision
+        ? opts.decision.endsWith('*')
+          ? { decision: { startsWith: opts.decision.slice(0, -1) } }
+          : { decision: opts.decision }
+        : {}),
+    };
+
+    const [total, rows] = await Promise.all([
+      this.prisma.auditTurn.count({ where }),
+      this.prisma.auditTurn.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+    ]);
+
+    return {
+      total,
+      limit,
+      offset,
+      rangeDays: days,
+      items: rows.map((r) => ({
+        id: r.id,
+        conversationId: r.conversationId,
+        decision: r.decision,
+        citations: r.citations,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  async getAuditTurn(tenantId: string, id: string) {
+    const row = await this.prisma.auditTurn.findFirst({
+      where: { id, tenantId },
+    });
+    if (!row) return null;
+
+    const conversation = await this.getConversation(row.conversationId);
+    const messages = await this.listMessages(tenantId, row.conversationId);
+    const recent = messages.slice(-6).map((m) => ({
+      role: m.role,
+      content: m.content.slice(0, 240),
+      createdAt: m.createdAt,
+    }));
+
+    return {
+      id: row.id,
+      conversationId: row.conversationId,
+      decision: row.decision,
+      citations: row.citations,
+      createdAt: row.createdAt.toISOString(),
+      conversation: conversation
+        ? {
+            id: conversation.id,
+            channel: conversation.channel,
+            ownership: conversation.ownership,
+            escalationReason: conversation.escalationReason,
+          }
+        : null,
+      recentMessages: recent,
+      note: 'خلاصه نوبت AI — prompt خام در MVP به نقش‌ها نشان داده نمی‌شود.',
+    };
+  }
+
   private mapUser(row: {
     id: string;
     email: string;
