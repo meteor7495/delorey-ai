@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div style={{ maxWidth: 420, margin: '10vh auto', padding: 24 }}>
       <div className="card">
         <h1 style={{ marginTop: 0 }}>DeloRey</h1>
-        <p className="muted">ورود به Workspace — کارمند فروش هوش مصنوعی</p>
+        <p className="muted">ورود به فضای کاری — کارمند فروش هوش مصنوعی</p>
         <form onSubmit={onSubmit}>
           <label>ایمیل</label>
           <input
@@ -56,7 +56,7 @@ export default function LoginPage() {
           />
           {mode === 'signup' && (
             <>
-              <label>نام Workspace</label>
+              <label>نام فضای کاری</label>
               <input
                 className="input"
                 value={workspaceName}

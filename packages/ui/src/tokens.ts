@@ -141,3 +141,72 @@ export function platformLabel(platform: string): string {
 export function channelStatusLabel(status: string): string {
   return channelStatusLabels[status] ?? status;
 }
+
+/** Runtime / audit decision codes → merchant FA */
+export const decisionLabels: Record<string, string> = {
+  answer_grounded: 'پاسخ از کاتالوگ',
+  answer_knowledge: 'پاسخ از دانش',
+  answer_empty_catalog: 'کاتالوگ خالی / بدون تطبیق',
+  recommend: 'پیشنهاد محصول',
+  recommend_empty: 'پیشنهاد بدون نتیجه',
+  recommend_skill_disabled: 'مهارت پیشنهاد غیرفعال',
+  order_lookup: 'پیگیری سفارش',
+  order_lookup_need_id: 'پیگیری — نیاز به شماره سفارش',
+  order_lookup_need_verify: 'پیگیری — نیاز به تأیید هویت',
+  order_lookup_not_found: 'پیگیری — سفارش یافت نشد',
+  order_lookup_skill_disabled: 'مهارت پیگیری سفارش غیرفعال',
+  paused_human_owned: 'متوقف — در اختیار اپراتور',
+  refuse_paused: 'رد پاسخ — کارمند متوقف',
+  released_to_ai: 'بازگشت به کارمند فروش',
+  'escalated:*': 'ارجاع به انسان (همه)',
+  'guardrail_block:*': 'مسدود توسط محدودیت (همه)',
+  'guardrail_block:refund': 'مسدود — درخواست استرداد',
+  'guardrail_block:cancel': 'مسدود — درخواست لغو',
+  'guardrail_block:discount_cap': 'مسدود — سقف تخفیف',
+  'guardrail_block:discount_cap_reply': 'مسدود — سقف تخفیف در پاسخ',
+  'guardrail_block:topic': 'مسدود — موضوع ممنوع',
+};
+
+export const adminActionLabels: Record<string, string> = {
+  'employee.update': 'به‌روزرسانی کارمند',
+  'employee.guardrails': 'به‌روزرسانی محدودیت‌ها',
+  'employee.*': 'کارمند (همه)',
+  'knowledge.create': 'ایجاد دانش',
+  'knowledge.update': 'ویرایش دانش',
+  'knowledge.delete': 'حذف دانش',
+  'knowledge.reindex': 'بازشاخص دانش',
+  'knowledge.*': 'دانش (همه)',
+  'store.mock_connect': 'اتصال دموی فروشگاه',
+  'store.*': 'فروشگاه (همه)',
+  'channel.telegram.connect': 'اتصال تلگرام',
+  'channel.bale.connect': 'اتصال بله',
+  'channel.*': 'کانال (همه)',
+};
+
+export const skillLabels: Record<string, string> = {
+  recommend: 'پیشنهاد محصول',
+  order_lookup: 'پیگیری سفارش',
+};
+
+export function decisionLabel(decision: string): string {
+  if (!decision) return '';
+  if (decisionLabels[decision]) return decisionLabels[decision];
+  if (decision.startsWith('escalated:')) {
+    const reason = decision.slice('escalated:'.length);
+    const reasonFa = escalationLabels[reason];
+    return reasonFa ? `ارجاع: ${reasonFa}` : `ارجاع: ${reason}`;
+  }
+  if (decision.startsWith('guardrail_block:')) {
+    return decisionLabels[decision] ?? `مسدود توسط محدودیت: ${decision.slice('guardrail_block:'.length)}`;
+  }
+  return decision;
+}
+
+export function adminActionLabel(action: string): string {
+  if (!action) return '';
+  return adminActionLabels[action] ?? action;
+}
+
+export function skillLabel(skill: string): string {
+  return skillLabels[skill] ?? skill;
+}

@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [status, setStatus] = useState('inactive');
-  const [tenantName, setTenantName] = useState('Workspace');
+  const [tenantName, setTenantName] = useState('فضای کاری');
 
   useEffect(() => {
     if (!getToken()) {

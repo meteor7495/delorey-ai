@@ -97,7 +97,7 @@ export default function StorePage() {
       <div className="card" style={{ marginTop: 16 }}>
         <h3>سفارش‌های همگام‌شده (دمو)</h3>
         <p className="muted" style={{ fontSize: 13 }}>
-          برای تست چت: شماره سفارش + چهار رقم آخر موبایل (فقط در Workspace دیده
+          برای تست چت: شماره سفارش + چهار رقم آخر موبایل (فقط در فضای کاری دیده
           می‌شود).
         </p>
         <ul>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { channelLabel, escalationLabel, syncHealthLabel } from '@delorey/ui';
+import { channelLabel, decisionLabel, escalationLabel, skillLabel, syncHealthLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -48,7 +48,7 @@ export default function DashboardPage() {
     <AppShell>
       <h1>داشبورد</h1>
       <p className="muted">
-        نتایج واقعی از گفتگو و audit — بدون امتیاز وانیته «خوشحالی AI»
+        نتایج واقعی از گفتگو و ممیزی — بدون امتیاز وانیته «خوشحالی AI»
       </p>
 
       <div className="row" style={{ marginBottom: 12 }}>
@@ -81,18 +81,20 @@ export default function DashboardPage() {
             {revenue.store.note}
           </p>
           <p>
-            recommend: <strong>{revenue.skills.recommendVolume}</strong>
+            {skillLabel('recommend')}:{' '}
+            <strong>{revenue.skills.recommendVolume}</strong>
             {' · '}
-            order_lookup: <strong>{revenue.skills.orderLookupVolume}</strong>
+            {skillLabel('order_lookup')}:{' '}
+            <strong>{revenue.skills.orderLookupVolume}</strong>
             {' · '}
-            گفتگوی assisted:{' '}
+            گفتگوی کمکی:{' '}
             <strong>{revenue.skills.assistedConversations}</strong>
           </p>
           <p className="muted" style={{ fontSize: 13 }}>
             {revenue.methodology.assisted}
           </p>
           <p className="muted" style={{ fontSize: 13 }}>
-            مصرف (proxy): {revenue.usage.auditTurnCount} نوبت —{' '}
+            مصرف (تقریبی): {revenue.usage.auditTurnCount} نوبت —{' '}
             {revenue.usage.note}
           </p>
           {!revenue.claims.causalLiftShown && (
@@ -172,7 +174,7 @@ export default function DashboardPage() {
           <div className="card" style={{ marginTop: 16 }}>
             <h3>اقدامات کمکی (نه فروش علّی)</h3>
             <p>
-              recommend + order_lookup:{' '}
+              پیشنهاد محصول + پیگیری سفارش:{' '}
               <strong>{summary.audits.assistedActions}</strong>
             </p>
             <p className="muted" style={{ fontSize: 13 }}>
@@ -207,7 +209,7 @@ export default function DashboardPage() {
             <ul>
               {gaps.topics.map((t, i) => (
                 <li key={`${t.conversationId}-${i}`}>
-                  <code>{t.decision}</code> — {t.text}
+                  {decisionLabel(t.decision)} — {t.text}
                 </li>
               ))}
             </ul>

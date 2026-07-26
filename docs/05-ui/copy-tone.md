@@ -137,7 +137,26 @@ API may keep eng enums internally. Anything shown to merchants in Inbox / Employ
 | Sync health | healthy / stale / failed / never | سالم / عقب‌افتاده / ناموفق / هرگز |
 | Order status | shipped / processing | ارسال‌شده / در حال آماده‌سازی |
 
-If a merchant types a custom blocked phrase (even Latin), show that phrase as-is after the FA prefix — do not invent English wrappers.
+اگر عبارت ممنوع را خودتان به لاتین بگذارید (مثل `bannedtopicxyz`)، همان عبارت بعد از پیشوند فارسی نشان داده می‌شود — این طبیعی است.
+
+# 5d. Audit / decision labels (canonical FA)
+
+API keeps eng decision/action codes. Audit UI MUST show FA labels:
+
+| Code | Label (FA) |
+|------|------------|
+| answer_grounded | پاسخ از کاتالوگ |
+| answer_knowledge | پاسخ از دانش |
+| answer_empty_catalog | کاتالوگ خالی / بدون تطبیق |
+| recommend | پیشنهاد محصول |
+| order_lookup | پیگیری سفارش |
+| escalated:* | ارجاع به انسان (همه) |
+| guardrail_block:* | مسدود توسط محدودیت (همه) |
+| employee.update | به‌روزرسانی کارمند |
+| knowledge.create | ایجاد دانش |
+| channel.telegram.connect | اتصال تلگرام |
+
+Nav: «ممیزی» نه Audit. Tab: «نوبت‌های کارمند» نه «نوبت‌های AI». Skills on dashboard: «پیشنهاد محصول» / «پیگیری سفارش» — نه eng skill ids.
 
 # 6. Shopper Widget — system copy
 

@@ -3,6 +3,14 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  adminActionLabel,
+  channelLabel,
+  decisionLabel,
+  escalationLabel,
+  messageRoleLabel,
+  ownershipLabel,
+} from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -119,7 +127,7 @@ export default function AuditClient() {
     <AppShell>
       <h1>ممیزی</h1>
       <p className="muted">
-        نوبت‌های AI و اقدامات ادمین — فقط‌افزودنی · شفافیت AI
+        نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت
       </p>
       {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
@@ -129,7 +137,7 @@ export default function AuditClient() {
           className={`btn ${tab === 'turns' ? '' : 'secondary'}`}
           onClick={() => setTab('turns')}
         >
-          نوبت‌های AI
+          نوبت‌های کارمند
         </button>
         <button
           type="button"
@@ -159,13 +167,15 @@ export default function AuditClient() {
             onChange={(e) => setDecision(e.target.value)}
           >
             <option value="">همه تصمیم‌ها</option>
-            <option value="answer_grounded">answer_grounded</option>
-            <option value="answer_knowledge">answer_knowledge</option>
-            <option value="recommend">recommend</option>
-            <option value="order_lookup">order_lookup</option>
-            <option value="escalated:*">escalated:*</option>
-            <option value="guardrail_block:*">guardrail_block:*</option>
-            <option value="answer_empty_catalog">answer_empty_catalog</option>
+            <option value="answer_grounded">{decisionLabel('answer_grounded')}</option>
+            <option value="answer_knowledge">{decisionLabel('answer_knowledge')}</option>
+            <option value="recommend">{decisionLabel('recommend')}</option>
+            <option value="order_lookup">{decisionLabel('order_lookup')}</option>
+            <option value="escalated:*">{decisionLabel('escalated:*')}</option>
+            <option value="guardrail_block:*">{decisionLabel('guardrail_block:*')}</option>
+            <option value="answer_empty_catalog">
+              {decisionLabel('answer_empty_catalog')}
+            </option>
           </select>
         ) : (
           <select
@@ -175,10 +185,10 @@ export default function AuditClient() {
             onChange={(e) => setAction(e.target.value)}
           >
             <option value="">همه اقدامات</option>
-            <option value="employee.*">employee.*</option>
-            <option value="knowledge.*">knowledge.*</option>
-            <option value="store.*">store.*</option>
-            <option value="channel.*">channel.*</option>
+            <option value="employee.*">{adminActionLabel('employee.*')}</option>
+            <option value="knowledge.*">{adminActionLabel('knowledge.*')}</option>
+            <option value="store.*">{adminActionLabel('store.*')}</option>
+            <option value="channel.*">{adminActionLabel('channel.*')}</option>
           </select>
         )}
         {conversationId && tab === 'turns' && (
@@ -232,7 +242,7 @@ export default function AuditClient() {
                 }}
               >
                 <div style={{ fontWeight: 600, fontSize: 13 }}>
-                  {item.decision}
+                  {decisionLabel(item.decision)}
                 </div>
                 <div className="muted" style={{ fontSize: 12 }} dir="ltr">
                   {new Date(item.createdAt).toLocaleString('fa-IR')} ·{' '}
@@ -259,7 +269,7 @@ export default function AuditClient() {
                 }}
               >
                 <div style={{ fontWeight: 600, fontSize: 13 }}>
-                  {item.action}
+                  {adminActionLabel(item.action)}
                 </div>
                 <div className="muted" style={{ fontSize: 12 }}>
                   {item.summary}
@@ -281,7 +291,7 @@ export default function AuditClient() {
           {tab === 'turns' && detail && (
             <>
               <p>
-                <strong>{detail.decision}</strong>
+                <strong>{decisionLabel(detail.decision)}</strong>
               </p>
               <p className="muted" style={{ fontSize: 13 }}>
                 {new Date(detail.createdAt).toLocaleString('fa-IR')}
@@ -291,10 +301,10 @@ export default function AuditClient() {
               </p>
               {detail.conversation && (
                 <p>
-                  کانال: {detail.conversation.channel} · مالکیت:{' '}
-                  {detail.conversation.ownership}
+                  کانال: {channelLabel(detail.conversation.channel)} · مالکیت:{' '}
+                  {ownershipLabel(detail.conversation.ownership)}
                   {detail.conversation.escalationReason
-                    ? ` · ${detail.conversation.escalationReason}`
+                    ? ` · ${escalationLabel(detail.conversation.escalationReason)}`
                     : ''}
                 </p>
               )}
@@ -312,7 +322,7 @@ export default function AuditClient() {
                   فقط این گفتگو
                 </Link>
               </div>
-              <h3 style={{ marginTop: 16 }}>Citations</h3>
+              <h3 style={{ marginTop: 16 }}>استنادها</h3>
               <pre
                 className="snippet"
                 style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}
@@ -331,7 +341,7 @@ export default function AuditClient() {
                       fontSize: 13,
                     }}
                   >
-                    <span className="muted">{m.role}</span>
+                    <span className="muted">{messageRoleLabel(m.role)}</span>
                     <div>{m.content}</div>
                   </div>
                 ))}
@@ -341,16 +351,16 @@ export default function AuditClient() {
           {tab === 'admin' && adminDetail && (
             <>
               <p>
-                <strong>{adminDetail.action}</strong>
+                <strong>{adminActionLabel(adminDetail.action)}</strong>
               </p>
               <p>{adminDetail.summary}</p>
               <p className="muted" style={{ fontSize: 13 }}>
                 {new Date(adminDetail.createdAt).toLocaleString('fa-IR')}
               </p>
               <p className="muted" style={{ fontSize: 13 }} dir="ltr">
-                actor: {adminDetail.actorUserId}
+                عامل: {adminDetail.actorUserId}
               </p>
-              <h3 style={{ marginTop: 16 }}>Payload</h3>
+              <h3 style={{ marginTop: 16 }}>جزئیات</h3>
               <pre
                 className="snippet"
                 style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}

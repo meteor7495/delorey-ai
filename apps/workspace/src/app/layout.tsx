@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'DeloRey Workspace',
-  description: 'AI Sales Employee control plane',
+  title: 'DeloRey — فضای کاری',
+  description: 'کنترل‌پنل کارمند فروش هوش مصنوعی',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
