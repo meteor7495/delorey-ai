@@ -163,6 +163,42 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    connectBale: (botToken: string) =>
+      request<{
+        id: string;
+        status: string;
+        botUsername: string | null;
+        webhookUrl: string;
+        webhookSecret: string;
+        live: boolean;
+        note: string;
+      }>(opts, '/channels/bale/connect', {
+        method: 'POST',
+        body: JSON.stringify({ botToken }),
+      }),
+    getBaleChannel: () =>
+      request<{
+        connected: boolean;
+        status?: string;
+        botUsername?: string | null;
+        webhookUrl?: string;
+        id?: string;
+        live?: boolean;
+      }>(opts, '/channels/bale'),
+    simulateBale: (body: {
+      text: string;
+      chatId?: string;
+      updateId?: number;
+    }) =>
+      request<{
+        conversationId?: string;
+        decision?: string;
+        reply?: string;
+        duplicate?: boolean;
+      }>(opts, '/channels/bale/simulate', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
   };
 }
 

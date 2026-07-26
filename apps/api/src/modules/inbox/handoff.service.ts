@@ -12,6 +12,7 @@ import {
   type HandoffPacket,
 } from '../platform/types';
 import { TelegramAdapterService } from '../adapters/telegram/telegram.service';
+import { BaleAdapterService } from '../adapters/bale/bale.service';
 
 @Injectable()
 export class HandoffService {
@@ -19,6 +20,8 @@ export class HandoffService {
     private readonly store: DataStore,
     @Inject(forwardRef(() => TelegramAdapterService))
     private readonly telegram: TelegramAdapterService,
+    @Inject(forwardRef(() => BaleAdapterService))
+    private readonly bale: BaleAdapterService,
   ) {}
 
   async buildPacket(
@@ -138,6 +141,7 @@ export class HandoffService {
       content: text,
     });
     await this.telegram.deliverOperatorReply(tenantId, conversationId, text);
+    await this.bale.deliverOperatorReply(tenantId, conversationId, text);
     return message;
   }
 

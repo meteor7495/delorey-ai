@@ -355,6 +355,49 @@ export class DataStore implements OnModuleInit {
     return this.mapChannel(row);
   }
 
+  async baleChannel(tenantId: string): Promise<ChannelBinding | null> {
+    const row = await this.prisma.channelBinding.findUnique({
+      where: { tenantId_channel: { tenantId, channel: 'bale' } },
+    });
+    return row ? this.mapChannel(row) : null;
+  }
+
+  async upsertBaleChannel(data: {
+    tenantId: string;
+    credentialsCipher: string;
+    webhookSecret: string;
+    botUsername: string | null;
+    status: ChannelBinding['status'];
+  }): Promise<ChannelBinding> {
+    const publicKey = `bale_${data.tenantId.slice(0, 8)}_${uuid().slice(0, 6)}`;
+    const existing = await this.baleChannel(data.tenantId);
+    if (existing) {
+      const row = await this.prisma.channelBinding.update({
+        where: { id: existing.id },
+        data: {
+          credentialsCipher: data.credentialsCipher,
+          webhookSecret: data.webhookSecret,
+          botUsername: data.botUsername,
+          status: data.status,
+        },
+      });
+      return this.mapChannel(row);
+    }
+    const row = await this.prisma.channelBinding.create({
+      data: {
+        tenantId: data.tenantId,
+        channel: 'bale',
+        status: data.status,
+        publicKey,
+        allowedOrigins: [],
+        credentialsCipher: data.credentialsCipher,
+        webhookSecret: data.webhookSecret,
+        botUsername: data.botUsername,
+      },
+    });
+    return this.mapChannel(row);
+  }
+
   async setChannelStatus(
     id: string,
     status: ChannelBinding['status'],
