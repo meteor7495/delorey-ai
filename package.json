@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm run --parallel /^dev:.*/",
+    "dev": "pnpm --parallel --filter @delorey/api --filter @delorey/workspace --filter @delorey/widget run dev",
     "dev:api": "pnpm --filter @delorey/api dev",
     "dev:workspace": "pnpm --filter @delorey/workspace dev",
     "dev:widget": "pnpm --filter @delorey/widget dev",

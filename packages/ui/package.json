@@ -4,20 +4,21 @@
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "echo \"lint: ui stub\"",
-    "build": "echo \"ui consumed via TS source in Slice 01\""
+    "build": "echo \"ui consumed via TS source\""
   },
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
-  "dependencies": {
-    "react": "^19.1.0"
-  },
   "devDependencies": {
     "@types/react": "^19.1.6",
+    "react": "^19.1.0",
     "typescript": "^5.8.3"
   }
 }
