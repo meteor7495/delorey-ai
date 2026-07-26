@@ -2,12 +2,14 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { CommerceService } from '../commerce/commerce.service';
+import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
+import type { Citation } from '../platform/types';
 
 export type TurnResult = {
   reply: string;
-  citations: Array<{ sku: string; title: string; price: number }>;
+  citations: Citation[];
   decision: string;
   ownership?: 'ai_owned' | 'human_owned';
 };
@@ -20,6 +22,7 @@ export class RuntimeService {
   constructor(
     private readonly store: DataStore,
     private readonly commerce: CommerceService,
+    private readonly knowledge: KnowledgeService,
     private readonly gateway: AiGatewayService,
     @Inject(forwardRef(() => HandoffService))
     private readonly handoff: HandoffService,
@@ -86,12 +89,29 @@ export class RuntimeService {
       };
     }
 
-    const matches = await this.commerce.searchProducts(tenantId, userText);
-    const citations = matches.slice(0, 3).map((m) => ({
-      sku: m.sku,
-      title: m.title,
-      price: m.price,
-    }));
+    const [matches, knowledgeHits] = await Promise.all([
+      this.commerce.searchProducts(tenantId, userText),
+      this.knowledge.search(tenantId, userText),
+    ]);
+
+    const citations: Citation[] = [
+      ...matches.slice(0, 3).map(
+        (m): Citation => ({
+          type: 'product',
+          sku: m.sku,
+          title: m.title,
+          price: m.price,
+        }),
+      ),
+      ...knowledgeHits.slice(0, 3).map(
+        (h): Citation => ({
+          type: 'knowledge',
+          docId: h.doc.id,
+          title: h.doc.title,
+          sourceAttribution: h.doc.sourceAttribution,
+        }),
+      ),
+    ];
 
     const contextJson = JSON.stringify({
       syncHealth,
@@ -110,29 +130,43 @@ export class RuntimeService {
         inStock: m.inStock,
         description: m.description ?? null,
       })),
+      knowledge: knowledgeHits.slice(0, 5).map((h) => ({
+        docId: h.doc.id,
+        title: h.doc.title,
+        body: h.chunk.content,
+        sourceAttribution: h.doc.sourceAttribution,
+        docType: h.doc.docType,
+      })),
     });
 
     const system = [
       'You are a DeloRey AI Sales Employee. Answer only from CONTEXT_JSON.',
-      'Never invent SKUs, prices, or stock. If missing, say you do not know.',
+      'Never invent SKUs, prices, stock, or policies. If missing, say you do not know.',
       'Prefer Persian if employee.language is fa.',
+      'When answering from knowledge, cite sourceAttribution.',
       `CONTEXT_JSON:${contextJson}`,
     ].join('\n');
 
     const completion = await this.gateway.complete({ system, user: userText });
 
+    let decision = 'answer_no_context';
+    if (matches.length && knowledgeHits.length) decision = 'answer_grounded';
+    else if (matches.length) decision = 'answer_grounded';
+    else if (knowledgeHits.length) decision = 'answer_knowledge';
+    else decision = 'answer_empty_catalog';
+
     await this.store.addAudit({
       id: uuid(),
       tenantId,
       conversationId,
-      decision: matches.length ? 'answer_grounded' : 'answer_empty_catalog',
+      decision,
       citations,
     });
 
     return {
       reply: completion.text,
       citations,
-      decision: matches.length ? 'answer_grounded' : 'answer_empty_catalog',
+      decision,
       ownership: 'ai_owned',
     };
   }

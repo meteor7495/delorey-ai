@@ -24,6 +24,8 @@ model Tenant {
   conversations    Conversation[]
   messages         Message[]
   auditTurns       AuditTurn[]
+  knowledgeDocs   KnowledgeDoc[]
+  knowledgeChunks KnowledgeChunk[]
 
   @@map("tenants")
 }
@@ -195,4 +197,41 @@ model AuditTurn {
   @@index([tenantId])
   @@index([conversationId])
   @@map("audit_turns")
+}
+
+/// Knowledge SoR — FAQ / policy_override / upload (upload body later)
+model KnowledgeDoc {
+  id                 String   @id @default(uuid())
+  tenantId           String   @map("tenant_id")
+  docType            String   @map("doc_type")
+  title              String
+  bodyText           String   @map("body_text")
+  sourceAttribution  String   @map("source_attribution")
+  status             String   @default("indexing")
+  objectKey          String?  @map("object_key")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  chunks KnowledgeChunk[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("knowledge_docs")
+}
+
+model KnowledgeChunk {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  knowledgeDocId String   @map("knowledge_doc_id")
+  ordinal        Int
+  content        String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  doc    KnowledgeDoc @relation(fields: [knowledgeDocId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([knowledgeDocId])
+  @@map("knowledge_chunks")
 }

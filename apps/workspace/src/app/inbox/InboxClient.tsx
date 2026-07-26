@@ -33,7 +33,13 @@ export default function InboxClient() {
   const [packet, setPacket] = useState<{
     reasonLabel: string;
     intentSummary: string | null;
-    citations: Array<{ sku: string; title: string; price: number }>;
+    citations: Array<{
+      type?: string;
+      sku?: string;
+      title: string;
+      price?: number;
+      sourceAttribution?: string;
+    }>;
   } | null>(null);
   const [ownership, setOwnership] = useState('ai_owned');
   const [reply, setReply] = useState('');
@@ -234,7 +240,11 @@ export default function InboxClient() {
                     <div>
                       استناد:{' '}
                       {packet.citations
-                        .map((c) => `${c.title} (${c.sku})`)
+                        .map((c) =>
+                          c.type === 'knowledge' || c.sourceAttribution
+                            ? `${c.title} (${c.sourceAttribution})`
+                            : `${c.title} (${c.sku})`,
+                        )
                         .join(' · ')}
                     </div>
                   )}

@@ -17,11 +17,20 @@ export type EscalationReason =
   | 'skill_escalate'
   | 'operator_manual';
 
+export type Citation =
+  | { type: 'product'; sku: string; title: string; price: number }
+  | {
+      type: 'knowledge';
+      docId: string;
+      title: string;
+      sourceAttribution: string;
+    };
+
 export type HandoffPacket = {
   reason: EscalationReason;
   reasonLabel: string;
   lastMessages: Array<{ role: string; content: string; createdAt: string }>;
-  citations: Array<{ sku: string; title: string; price: number }>;
+  citations: Citation[];
   intentSummary: string | null;
   createdAt: string;
 };
@@ -111,7 +120,7 @@ export interface Message {
   role: 'shopper' | 'employee' | 'system' | 'operator';
   content: string;
   createdAt: string;
-  citations?: Array<{ sku: string; title: string; price: number }>;
+  citations?: Citation[];
   idempotencyKey?: string;
 }
 
@@ -120,8 +129,29 @@ export interface AuditTurn {
   tenantId: string;
   conversationId: string;
   decision: string;
-  citations: Array<{ sku: string; title: string; price: number }>;
+  citations: Citation[];
   createdAt: string;
+}
+
+export interface KnowledgeDoc {
+  id: string;
+  tenantId: string;
+  docType: 'faq' | 'policy_override' | 'upload';
+  title: string;
+  bodyText: string;
+  sourceAttribution: string;
+  status: 'active' | 'indexing' | 'failed';
+  objectKey: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KnowledgeChunk {
+  id: string;
+  tenantId: string;
+  knowledgeDocId: string;
+  ordinal: number;
+  content: string;
 }
 
 export interface StoreConnection {

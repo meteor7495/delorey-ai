@@ -14,6 +14,7 @@ const links = [
   { href: '/employee', label: 'کارمند فروش' },
   { href: '/channels', label: 'کانال‌ها' },
   { href: '/inbox', label: 'صندوق ورودی' },
+  { href: '/knowledge', label: 'دانش' },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

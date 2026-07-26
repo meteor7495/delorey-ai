@@ -199,6 +199,52 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    listKnowledgeDocs: () =>
+      request<
+        Array<{
+          id: string;
+          docType: string;
+          title: string;
+          bodyText: string;
+          sourceAttribution: string;
+          status: string;
+          updatedAt: string;
+        }>
+      >(opts, '/knowledge/docs'),
+    getKnowledgeIndexStatus: () =>
+      request<{
+        total: number;
+        active: number;
+        indexing: number;
+        failed: number;
+        mode: string;
+        note: string;
+      }>(opts, '/knowledge/index-status'),
+    createKnowledgeDoc: (body: {
+      docType: 'faq' | 'policy_override';
+      title: string;
+      bodyText: string;
+      sourceAttribution: string;
+    }) =>
+      request(opts, '/knowledge/docs', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateKnowledgeDoc: (
+      id: string,
+      body: Partial<{
+        docType: 'faq' | 'policy_override';
+        title: string;
+        bodyText: string;
+        sourceAttribution: string;
+      }>,
+    ) =>
+      request(opts, `/knowledge/docs/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteKnowledgeDoc: (id: string) =>
+      request(opts, `/knowledge/docs/${id}`, { method: 'DELETE' }),
   };
 }
 

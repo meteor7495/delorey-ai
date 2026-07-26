@@ -10,6 +10,8 @@ import type {
   Employee,
   EscalationReason,
   HandoffPacket,
+  KnowledgeChunk,
+  KnowledgeDoc,
   Membership,
   Message,
   Product,
@@ -18,7 +20,6 @@ import type {
   Tenant,
   User,
 } from './types';
-
 type EmployeeSkills = Employee['skills'];
 
 /**
@@ -34,6 +35,13 @@ export class DataStore implements OnModuleInit {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (!existing) {
       await this.seedDemo(email);
+    } else {
+      const membership = await this.prisma.workspaceMembership.findFirst({
+        where: { userId: existing.id },
+      });
+      if (membership) {
+        await this.seedDefaultKnowledge(membership.tenantId);
+      }
     }
   }
 
@@ -157,6 +165,47 @@ export class DataStore implements OnModuleInit {
         ],
       },
     });
+
+    await this.seedDefaultKnowledge(tenantId);
+  }
+
+  async seedDefaultKnowledge(tenantId: string): Promise<void> {
+    const count = await this.prisma.knowledgeDoc.count({ where: { tenantId } });
+    if (count > 0) return;
+    const defaults: Array<{
+      docType: KnowledgeDoc['docType'];
+      title: string;
+      bodyText: string;
+      sourceAttribution: string;
+    }> = [
+      {
+        docType: 'faq',
+        title: 'شرایط بازگشت کالا',
+        bodyText:
+          'مشتری تا ۷ روز پس از تحویل می‌تواند کالا را با برچسب سالم برگرداند. هزینه ارسال بازگشت بر عهده مشتری است مگر نقص ساخت.',
+        sourceAttribution: 'سیاست فروشگاه دمو — بازگشت',
+      },
+      {
+        docType: 'policy_override',
+        title: 'هزینه ارسال',
+        bodyText:
+          'ارسال به تهران رایگان برای خرید بالای ۲ میلیون ریال؛ سایر شهرها طبق نرخ پست پیشتاز در چک‌اوت محاسبه می‌شود. پرداخت در محل (COD) برای تهران فعال است.',
+        sourceAttribution: 'سیاست فروشگاه دمو — ارسال',
+      },
+    ];
+    for (const item of defaults) {
+      const exists = await this.prisma.knowledgeDoc.findFirst({
+        where: { tenantId, title: item.title },
+      });
+      if (exists) continue;
+      await this.createKnowledgeDoc({
+        tenantId,
+        docType: item.docType,
+        title: item.title,
+        bodyText: item.bodyText,
+        sourceAttribution: item.sourceAttribution,
+      });
+    }
   }
 
   async createUser(user: Omit<User, 'createdAt'>): Promise<User> {
@@ -565,6 +614,213 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapMessage(row) : null;
   }
 
+  async listKnowledgeDocs(tenantId: string): Promise<KnowledgeDoc[]> {
+    const rows = await this.prisma.knowledgeDoc.findMany({
+      where: { tenantId },
+      orderBy: { updatedAt: 'desc' },
+    });
+    return rows.map((r) => this.mapKnowledgeDoc(r));
+  }
+
+  async getKnowledgeDoc(
+    tenantId: string,
+    id: string,
+  ): Promise<KnowledgeDoc | null> {
+    const row = await this.prisma.knowledgeDoc.findFirst({
+      where: { id, tenantId },
+    });
+    return row ? this.mapKnowledgeDoc(row) : null;
+  }
+
+  async createKnowledgeDoc(data: {
+    tenantId: string;
+    docType: KnowledgeDoc['docType'];
+    title: string;
+    bodyText: string;
+    sourceAttribution: string;
+  }): Promise<KnowledgeDoc> {
+    const row = await this.prisma.knowledgeDoc.create({
+      data: {
+        tenantId: data.tenantId,
+        docType: data.docType,
+        title: data.title,
+        bodyText: data.bodyText,
+        sourceAttribution: data.sourceAttribution,
+        status: 'indexing',
+      },
+    });
+    return this.reindexKnowledgeDoc(data.tenantId, row.id);
+  }
+
+  async updateKnowledgeDoc(
+    tenantId: string,
+    id: string,
+    data: Partial<{
+      title: string;
+      bodyText: string;
+      sourceAttribution: string;
+      docType: KnowledgeDoc['docType'];
+    }>,
+  ): Promise<KnowledgeDoc> {
+    const existing = await this.getKnowledgeDoc(tenantId, id);
+    if (!existing) throw new Error('Knowledge doc not found');
+    await this.prisma.knowledgeDoc.update({
+      where: { id },
+      data: {
+        ...(data.title != null ? { title: data.title } : {}),
+        ...(data.bodyText != null ? { bodyText: data.bodyText } : {}),
+        ...(data.sourceAttribution != null
+          ? { sourceAttribution: data.sourceAttribution }
+          : {}),
+        ...(data.docType != null ? { docType: data.docType } : {}),
+        status: 'indexing',
+      },
+    });
+    return this.reindexKnowledgeDoc(tenantId, id);
+  }
+
+  async deleteKnowledgeDoc(tenantId: string, id: string): Promise<void> {
+    await this.prisma.knowledgeDoc.deleteMany({ where: { id, tenantId } });
+  }
+
+  /** Sync keyword index worker — chunks body; status honest indexing → active/failed */
+  async reindexKnowledgeDoc(
+    tenantId: string,
+    id: string,
+  ): Promise<KnowledgeDoc> {
+    const doc = await this.prisma.knowledgeDoc.findFirst({
+      where: { id, tenantId },
+    });
+    if (!doc) throw new Error('Knowledge doc not found');
+    try {
+      await this.prisma.knowledgeChunk.deleteMany({
+        where: { knowledgeDocId: id, tenantId },
+      });
+      const parts = this.chunkText(doc.bodyText);
+      for (let i = 0; i < parts.length; i++) {
+        await this.prisma.knowledgeChunk.create({
+          data: {
+            tenantId,
+            knowledgeDocId: id,
+            ordinal: i,
+            content: parts[i]!,
+          },
+        });
+      }
+      const row = await this.prisma.knowledgeDoc.update({
+        where: { id },
+        data: { status: 'active' },
+      });
+      return this.mapKnowledgeDoc(row);
+    } catch {
+      const row = await this.prisma.knowledgeDoc.update({
+        where: { id },
+        data: { status: 'failed' },
+      });
+      return this.mapKnowledgeDoc(row);
+    }
+  }
+
+  async knowledgeIndexStatus(tenantId: string) {
+    const [active, indexing, failed, total] = await Promise.all([
+      this.prisma.knowledgeDoc.count({ where: { tenantId, status: 'active' } }),
+      this.prisma.knowledgeDoc.count({
+        where: { tenantId, status: 'indexing' },
+      }),
+      this.prisma.knowledgeDoc.count({ where: { tenantId, status: 'failed' } }),
+      this.prisma.knowledgeDoc.count({ where: { tenantId } }),
+    ]);
+    return {
+      total,
+      active,
+      indexing,
+      failed,
+      mode: 'keyword' as const,
+      note:
+        total === 0
+          ? 'هنوز سندی نیست'
+          : indexing > 0
+            ? 'در حال ایندکس — هنوز همه اسناد قابل بازیابی نیستند'
+            : failed > 0
+              ? 'برخی اسناد failed — آخرین ایندکس خوب برای بقیه سرو می‌شود'
+              : 'ایندکس keyword فعال است',
+    };
+  }
+
+  async searchKnowledge(
+    tenantId: string,
+    query: string,
+    limit = 3,
+  ): Promise<
+    Array<{
+      doc: KnowledgeDoc;
+      chunk: KnowledgeChunk;
+      score: number;
+    }>
+  > {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    const tokens = q
+      .split(/[\s,?!.;:،؟]+/)
+      .map((t) => t.trim())
+      .filter((t) => t.length >= 2);
+
+    const chunks = await this.prisma.knowledgeChunk.findMany({
+      where: {
+        tenantId,
+        doc: { status: 'active' },
+      },
+      include: { doc: true },
+      take: 200,
+    });
+
+    const scored = chunks
+      .map((c) => {
+        const hay = `${c.doc.title} ${c.content}`.toLowerCase();
+        let score = 0;
+        if (hay.includes(q)) score += 10;
+        for (const t of tokens) {
+          if (hay.includes(t)) score += 2;
+        }
+        return {
+          doc: this.mapKnowledgeDoc(c.doc),
+          chunk: {
+            id: c.id,
+            tenantId: c.tenantId,
+            knowledgeDocId: c.knowledgeDocId,
+            ordinal: c.ordinal,
+            content: c.content,
+          },
+          score,
+        };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    const seen = new Set<string>();
+    const out: typeof scored = [];
+    for (const hit of scored) {
+      if (seen.has(hit.doc.id)) continue;
+      seen.add(hit.doc.id);
+      out.push(hit);
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+
+  private chunkText(text: string): string[] {
+    const cleaned = text.trim();
+    if (!cleaned) return [''];
+    if (cleaned.length <= 500) return [cleaned];
+    const parts: string[] = [];
+    let i = 0;
+    while (i < cleaned.length) {
+      parts.push(cleaned.slice(i, i + 480));
+      i += 480;
+    }
+    return parts;
+  }
+
   async addMessage(
     partial: Omit<Message, 'id' | 'createdAt'> & {
       citations?: Message['citations'];
@@ -782,6 +1038,32 @@ export class DataStore implements OnModuleInit {
       content: row.content,
       createdAt: row.createdAt.toISOString(),
       citations: (row.citations as Message['citations']) ?? undefined,
+    };
+  }
+
+  private mapKnowledgeDoc(row: {
+    id: string;
+    tenantId: string;
+    docType: string;
+    title: string;
+    bodyText: string;
+    sourceAttribution: string;
+    status: string;
+    objectKey: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+  }): KnowledgeDoc {
+    return {
+      id: row.id,
+      tenantId: row.tenantId,
+      docType: row.docType as KnowledgeDoc['docType'],
+      title: row.title,
+      bodyText: row.bodyText,
+      sourceAttribution: row.sourceAttribution,
+      status: row.status as KnowledgeDoc['status'],
+      objectKey: row.objectKey,
+      createdAt: row.createdAt.toISOString(),
+      updatedAt: row.updatedAt.toISOString(),
     };
   }
 }
