@@ -122,6 +122,11 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify({ reason: reason ?? 'operator_manual' }),
       }),
+    inboxReply: (id: string, text: string) =>
+      request(opts, `/inbox/conversations/${id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ text }),
+      }),
     connectTelegram: (botToken: string) =>
       request<{
         id: string;
