@@ -145,7 +145,6 @@ export class DataStore implements OnModuleInit {
         status: 'connected',
         publicKey,
         allowedOrigins: [
-          'http://localhost:3000',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
         ],
@@ -153,7 +152,6 @@ export class DataStore implements OnModuleInit {
       update: {
         status: 'connected',
         allowedOrigins: [
-          'http://localhost:3000',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
         ],

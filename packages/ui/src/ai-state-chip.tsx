@@ -1,3 +1,5 @@
+'use client';
+
 import { aiColors, aiStateLabel, type AiState } from './tokens';
 import { tokens } from './tokens';
 

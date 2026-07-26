@@ -50,7 +50,7 @@ pnpm dev:workspace
 pnpm dev:widget
 ```
 
-1. Open http://localhost:3000/login  
+1. Open http://localhost:3010/login  
 2. Demo account: `demo@delorey.local` / `demo1234` (or sign up)  
 3. Workspace → **کانال‌ها** → copy `publicKey`  
 4. Open http://localhost:5173 → paste key → **شروع نشست**  
