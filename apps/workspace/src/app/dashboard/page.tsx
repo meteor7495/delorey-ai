@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { channelLabel, escalationLabel } from '@delorey/ui';
+import { channelLabel, escalationLabel, syncHealthLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -183,7 +183,7 @@ export default function DashboardPage() {
           <div className="card" style={{ marginTop: 16 }}>
             <h3>سلامت همگام‌سازی</h3>
             <p>
-              وضعیت: <strong>{summary.syncHealth}</strong>
+              وضعیت: <strong>{syncHealthLabel(String(summary.syncHealth))}</strong>
             </p>
             <p className="muted">
               آخرین همگام‌سازی: {summary.syncLastAt ?? '—'}

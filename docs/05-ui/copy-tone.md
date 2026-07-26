@@ -120,6 +120,25 @@ Ownership: `پاسخ‌گوی AI` · `در اختیار اپراتور`.
 
 Nav / CTA: همیشه «صندوق ورودی» — نه «Inbox».
 
+---
+
+# 5c. Merchant-visible system data (must be FA)
+
+API may keep eng enums internally. Anything shown to merchants in Inbox / Employee / Store MUST be Persian:
+
+| Surface | Eng (forbidden in UI) | FA |
+|---------|----------------------|-----|
+| Handoff intentSummary | `blocked topic: X` | `موضوع ممنوع: X` |
+| Handoff intentSummary | `refund mutation blocked…` | `درخواست استرداد وجه — مسدود توسط محدودیت سخت` |
+| Handoff intentSummary | `cancel mutation blocked…` | `درخواست لغو سفارش — مسدود توسط محدودیت سخت` |
+| Handoff intentSummary | `requested N% > cap M%` | `درخواست تخفیف N٪ بالاتر از سقف M٪` |
+| Handoff intentSummary | `factual question while sync unhealthy` | `پرسش واقعی در حالی که همگام‌سازی ناسالم است` |
+| Default blockedTopics | politics, gambling | سیاسی، قمار، شرط‌بندی |
+| Sync health | healthy / stale / failed / never | سالم / عقب‌افتاده / ناموفق / هرگز |
+| Order status | shipped / processing | ارسال‌شده / در حال آماده‌سازی |
+
+If a merchant types a custom blocked phrase (even Latin), show that phrase as-is after the FA prefix — do not invent English wrappers.
+
 # 6. Shopper Widget — system copy
 
 | Situation | Example |

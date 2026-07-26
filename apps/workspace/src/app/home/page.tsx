@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { channelStatusLabel, syncHealthLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -46,9 +47,9 @@ export default function HomePage() {
       {me && (
         <div className="card" style={{ marginTop: 16 }}>
           <p className="muted" style={{ margin: 0 }}>
-            همگام‌سازی: {String(me.syncHealth)} · محصولات:{' '}
+            همگام‌سازی: {syncHealthLabel(String(me.syncHealth))} · محصولات:{' '}
             {String(me.productCount)} · کانال وب:{' '}
-            {String(me.websiteChannelStatus)}
+            {channelStatusLabel(String(me.websiteChannelStatus))}
           </p>
         </div>
       )}

@@ -106,7 +106,7 @@ export default function EmployeePage() {
             checked={orderStatus}
             onChange={(e) => setOrderStatus(e.target.checked)}
           />
-          مهارت پیگیری سفارش (order_status)
+          مهارت پیگیری سفارش
         </label>
         <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
@@ -114,7 +114,7 @@ export default function EmployeePage() {
             checked={recommend}
             onChange={(e) => setRecommend(e.target.checked)}
           />
-          مهارت پیشنهاد محصول (recommend)
+          مهارت پیشنهاد محصول
         </label>
         <button className="btn" type="submit">
           ذخیره
@@ -127,10 +127,11 @@ export default function EmployeePage() {
         style={{ marginTop: 16 }}
         onSubmit={onGuardrailsSubmit}
       >
-        <h3>محدودیت‌های سخت (Guardrails)</h3>
+        <h3>محدودیت‌های سخت</h3>
         <p className="muted" style={{ fontSize: 13 }}>
           موضوع ممنوع، سقف تخفیف، و ممنوعیت استرداد/لغو — قبل از ابزار و پاسخ
-          مدل اعمال می‌شوند. خاموش کردن handoff برای اتوماسیون وانیته ممکن نیست.
+          مدل اعمال می‌شوند. خاموش کردن تحویل به انسان برای اتوماسیون نمایشی ممکن
+          نیست.
         </p>
         <label>موضوع‌های ممنوع (هر خط یک عبارت)</label>
         <textarea
@@ -138,6 +139,7 @@ export default function EmployeePage() {
           rows={4}
           value={blockedTopicsText}
           onChange={(e) => setBlockedTopicsText(e.target.value)}
+          placeholder={'سیاسی\nقمار\nشرط‌بندی'}
         />
         <label>سقف تخفیف (درصد)</label>
         <input
@@ -168,10 +170,10 @@ export default function EmployeePage() {
           استرداد وجه و لغو سفارش همیشه مسدودند (MVP) — قابل خاموش‌کردن نیست.
         </p>
         <button className="btn" type="submit">
-          ذخیره Guardrails
+          ذخیره محدودیت‌ها
         </button>
         {guardSaved && (
-          <p style={{ color: 'var(--success)' }}>Guardrails ذخیره شد.</p>
+          <p style={{ color: 'var(--success)' }}>محدودیت‌ها ذخیره شد.</p>
         )}
       </form>
     </AppShell>

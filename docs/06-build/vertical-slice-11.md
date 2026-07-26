@@ -30,7 +30,7 @@
 
 | Field | Default |
 |-------|---------|
-| `blockedTopics` | سیاسی، قمار، politics, gambling |
+| `blockedTopics` | سیاسی، قمار، شرط‌بندی (FA only — no English seed phrases) |
 | `discountCapPercent` | 10 |
 | `restrictedMutations.refund/cancel` | always blocked in MVP |
 | `escalationRules.onBlockedTopic` | true |

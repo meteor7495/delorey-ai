@@ -1,6 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  orderStatusLabel,
+  platformLabel,
+  syncHealthLabel,
+} from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -29,7 +34,7 @@ export default function StorePage() {
       setOrders(o);
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'error');
+      setError(e instanceof Error ? e.message : 'خطا');
     }
   }
 
@@ -40,7 +45,7 @@ export default function StorePage() {
   return (
     <AppShell>
       <h1>فروشگاه</h1>
-      <p className="muted">اتصال و سلامت همگام‌سازی (mock catalog + orders)</p>
+      <p className="muted">اتصال و سلامت همگام‌سازی (کاتالوگ و سفارش دمو)</p>
       {store?.syncHealth !== 'healthy' && (
         <div className="banner">
           همگام‌سازی ناسالم — قیمت/موجودی/سفارش قابل اتکا نیست.
@@ -51,8 +56,8 @@ export default function StorePage() {
         {store && (
           <>
             <p>
-              پلتفرم: {String(store.platform)} · وضعیت:{' '}
-              <strong>{String(store.syncHealth)}</strong>
+              پلتفرم: {platformLabel(String(store.platform))} · وضعیت:{' '}
+              <strong>{syncHealthLabel(String(store.syncHealth))}</strong>
             </p>
             <p className="muted">
               آخرین همگام‌سازی: {String(store.lastSyncAt ?? '—')} · تعداد محصول:{' '}
@@ -68,7 +73,7 @@ export default function StorePage() {
             await load();
           }}
         >
-          اتصال / همگام‌سازی mock
+          اتصال / همگام‌سازی دمو
         </button>
       </div>
       <div className="card" style={{ marginTop: 16 }}>
@@ -98,8 +103,8 @@ export default function StorePage() {
         <ul>
           {orders.map((o) => (
             <li key={o.orderNumber}>
-              <strong>{o.orderNumber}</strong> · {o.status}
-              {o.trackingCode ? ` · ${o.trackingCode}` : ''} · verify last4={' '}
+              <strong>{o.orderNumber}</strong> · {orderStatusLabel(o.status)}
+              {o.trackingCode ? ` · ${o.trackingCode}` : ''} · چهار رقم آخر:{' '}
               <code dir="ltr">{o.verifyHintPhoneLast4}</code>
             </li>
           ))}

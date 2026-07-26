@@ -97,3 +97,47 @@ export function messageRoleLabel(role: string): string {
 export function ownershipLabel(ownership: string): string {
   return ownershipLabels[ownership] ?? ownership;
 }
+
+export const syncHealthLabels: Record<string, string> = {
+  healthy: 'سالم',
+  stale: 'عقب‌افتاده',
+  failed: 'ناموفق',
+  never: 'هرگز',
+};
+
+export const orderStatusLabels: Record<string, string> = {
+  processing: 'در حال آماده‌سازی',
+  shipped: 'ارسال‌شده',
+  delivered: 'تحویل‌شده',
+  cancelled: 'لغو‌شده',
+  refunded: 'مسترد‌شده',
+  pending: 'در انتظار',
+};
+
+export const platformLabels: Record<string, string> = {
+  mock: 'دمو',
+  shopify: 'شاپیفای',
+  woocommerce: 'ووکامرس',
+};
+
+export const channelStatusLabels: Record<string, string> = {
+  connected: 'متصل',
+  disconnected: 'قطع',
+  degraded: 'مختل',
+};
+
+export function syncHealthLabel(health: string): string {
+  return syncHealthLabels[health] ?? health;
+}
+
+export function orderStatusLabel(status: string): string {
+  return orderStatusLabels[status] ?? status;
+}
+
+export function platformLabel(platform: string): string {
+  return platformLabels[platform] ?? platform;
+}
+
+export function channelStatusLabel(status: string): string {
+  return channelStatusLabels[status] ?? status;
+}

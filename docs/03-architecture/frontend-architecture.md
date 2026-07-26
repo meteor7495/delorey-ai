@@ -356,6 +356,7 @@ flowchart TB
 |---------|-----------------|
 | Merchant Workspace copy | Persian-first quality bar for Iran MVP; architecture may keep i18n keys |
 | Eng enums vs FA labels | API/DB keep eng codes (`website`, `customer_request`, `shopper`); Workspace maps via shared FA label helpers ([Copy & Tone](../05-ui/copy-tone.md)) — Inbox MUST NOT render raw codes |
+| Merchant-visible payloads | Handoff `intentSummary`, default blocked topics, sync/order status labels shown in Workspace MUST be Persian ([Copy & Tone §5c](../05-ui/copy-tone.md)) |
 | Shopper widget | Merchant tone/language settings from Employee config via API |
 | Full i18n productization | Beyond MVP quality criteria ([Product Scope](../02-product/product-scope.md)) |
 

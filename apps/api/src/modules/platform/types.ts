@@ -107,7 +107,7 @@ export interface EmployeeGuardrails {
 }
 
 export const DEFAULT_GUARDRAILS: EmployeeGuardrails = {
-  blockedTopics: ['سیاسی', 'قمار', 'politics', 'gambling'],
+  blockedTopics: ['سیاسی', 'قمار', 'شرط‌بندی'],
   discountCapPercent: 10,
   restrictedMutations: {
     refund: true,
@@ -126,6 +126,16 @@ export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
   const topics = Array.isArray(src.blockedTopics)
     ? src.blockedTopics.filter((t): t is string => typeof t === 'string')
     : DEFAULT_GUARDRAILS.blockedTopics;
+  // Migrate legacy English default seeds → Persian (merchant-visible data)
+  const topicAliases: Record<string, string> = {
+    politics: 'سیاسی',
+    gambling: 'قمار',
+  };
+  const normalizedTopics = [
+    ...new Set(
+      topics.map((t) => topicAliases[t.trim().toLowerCase()] ?? t.trim()),
+    ),
+  ].filter(Boolean);
   const mutations =
     src.restrictedMutations && typeof src.restrictedMutations === 'object'
       ? (src.restrictedMutations as Record<string, unknown>)
@@ -136,7 +146,9 @@ export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
       : {};
   const cap = Number(src.discountCapPercent);
   return {
-    blockedTopics: topics.length ? topics : DEFAULT_GUARDRAILS.blockedTopics,
+    blockedTopics: normalizedTopics.length
+      ? normalizedTopics
+      : DEFAULT_GUARDRAILS.blockedTopics,
     discountCapPercent: Number.isFinite(cap)
       ? Math.max(0, Math.min(100, cap))
       : DEFAULT_GUARDRAILS.discountCapPercent,

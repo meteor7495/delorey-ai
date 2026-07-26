@@ -124,7 +124,7 @@ export class RuntimeService {
         conversationId,
         'blocked_topic',
         [],
-        `blocked topic: ${blocked}`,
+        `موضوع ممنوع: ${blocked}`,
       );
       await this.audit(tenantId, conversationId, 'guardrail_block:topic', []);
       return {
@@ -142,7 +142,7 @@ export class RuntimeService {
         conversationId,
         'skill_escalate',
         [],
-        'refund mutation blocked by guardrail',
+        'درخواست استرداد وجه — مسدود توسط محدودیت سخت',
       );
       await this.audit(tenantId, conversationId, 'guardrail_block:refund', []);
       return {
@@ -163,7 +163,7 @@ export class RuntimeService {
         conversationId,
         'skill_escalate',
         [],
-        'cancel mutation blocked by guardrail',
+        'درخواست لغو سفارش — مسدود توسط محدودیت سخت',
       );
       await this.audit(tenantId, conversationId, 'guardrail_block:cancel', []);
       return {
@@ -189,7 +189,7 @@ export class RuntimeService {
         conversationId,
         'discount_cap',
         [],
-        `requested ${overCap}% > cap ${guardrails.discountCapPercent}%`,
+        `درخواست تخفیف ${overCap}٪ بالاتر از سقف ${guardrails.discountCapPercent}٪`,
       );
       await this.audit(
         tenantId,
@@ -219,7 +219,7 @@ export class RuntimeService {
         conversationId,
         'sync_unhealthy',
         [],
-        'factual question while sync unhealthy',
+        'پرسش واقعی در حالی که همگام‌سازی ناسالم است',
       );
       return {
         reply:
@@ -325,7 +325,7 @@ export class RuntimeService {
         conversationId,
         'discount_cap',
         citations,
-        `model offered ${replyOverCap}% > cap`,
+        `پیشنهاد مدل ${replyOverCap}٪ بالاتر از سقف مجاز`,
       );
       await this.audit(
         tenantId,
@@ -416,7 +416,7 @@ export class RuntimeService {
     });
 
     const result: TurnResult = {
-      reply: `پیشنهاد بر اساس کاتالوگ فروشگاه (بدون اختراع SKU):\n${lines.join('\n')}`,
+      reply: `پیشنهاد بر اساس کاتالوگ فروشگاه (بدون اختراع کد کالا):\n${lines.join('\n')}`,
       citations,
       decision: 'recommend',
     };
@@ -511,7 +511,7 @@ export class RuntimeService {
       },
     ];
     const result: TurnResult = {
-      reply: `وضعیت سفارش ${order.orderNumber} (از همگام‌سازی فروشگاه):\n• وضعیت: ${statusFa}\n• ${tracking}\nمنبع: Commerce Core · synced`,
+      reply: `وضعیت سفارش ${order.orderNumber} (از همگام‌سازی فروشگاه):\n• وضعیت: ${statusFa}\n• ${tracking}\nمنبع: هستهٔ تجارت · همگام‌شده`,
       citations,
       decision: 'order_lookup',
     };
