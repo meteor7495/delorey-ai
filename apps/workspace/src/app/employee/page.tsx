@@ -9,6 +9,7 @@ export default function EmployeePage() {
   const [tone, setTone] = useState('');
   const [status, setStatus] = useState('active');
   const [orderStatus, setOrderStatus] = useState(true);
+  const [recommend, setRecommend] = useState(true);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -16,8 +17,11 @@ export default function EmployeePage() {
       setName(String(e.name ?? ''));
       setTone(String(e.tone ?? ''));
       setStatus(String(e.status ?? 'active'));
-      const skills = e.skills as { order_status?: boolean } | undefined;
+      const skills = e.skills as
+        | { order_status?: boolean; recommend?: boolean }
+        | undefined;
       setOrderStatus(Boolean(skills?.order_status));
+      setRecommend(skills?.recommend !== false);
     });
   }, []);
 
@@ -27,7 +31,7 @@ export default function EmployeePage() {
       name,
       tone,
       status,
-      skills: { order_status: orderStatus },
+      skills: { order_status: orderStatus, recommend },
     });
     setSaved(true);
   }
@@ -66,6 +70,14 @@ export default function EmployeePage() {
             onChange={(e) => setOrderStatus(e.target.checked)}
           />
           مهارت پیگیری سفارش (order_status)
+        </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="checkbox"
+            checked={recommend}
+            onChange={(e) => setRecommend(e.target.checked)}
+          />
+          مهارت پیشنهاد محصول (recommend)
         </label>
         <button className="btn" type="submit">
           ذخیره

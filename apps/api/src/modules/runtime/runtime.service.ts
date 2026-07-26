@@ -20,6 +20,9 @@ const HUMAN_REQUEST_RE =
 const ORDER_INTENT_RE =
   /(سفارش|وضعیت سفارش|پیگیری|کجا.*(سفارش|مرسول)|رسید|tracking|order\s*(status|number)?|where.?is.?my.?order)/i;
 
+const RECOMMEND_INTENT_RE =
+  /(پیشنهاد|توصیه|چی بخر|هدیه|recommend|suggest|gift|کدام.*(بهتر|بخر)|چی.*مناسب)/i;
+
 const ORDER_NUMBER_RE = /\b(DR-?\d{3,})\b/i;
 const PHONE_LAST4_RE = /\b(\d{4})\b/;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
@@ -111,6 +114,14 @@ export class RuntimeService {
     );
     if (orderTurn) return orderTurn;
 
+    const recommendTurn = await this.tryRecommend(
+      tenantId,
+      conversationId,
+      userText,
+      employee,
+    );
+    if (recommendTurn) return recommendTurn;
+
     const [matches, knowledgeHits] = await Promise.all([
       this.commerce.searchProducts(tenantId, userText),
       this.knowledge.search(tenantId, userText),
@@ -189,6 +200,69 @@ export class RuntimeService {
       decision,
       ownership: 'ai_owned',
     };
+  }
+
+  private async tryRecommend(
+    tenantId: string,
+    conversationId: string,
+    userText: string,
+    employee: Employee | null,
+  ): Promise<TurnResult | null> {
+    const hasBudget = this.commerce.parseBudgetIrr(userText) != null;
+    const hasIntent = RECOMMEND_INTENT_RE.test(userText) || hasBudget;
+    // Category-only "کفش می‌خوام" also routes here when recommend skill on
+    const categoryAsk =
+      /(پیراهن|کیف|کفش|لینن|اسپرت).*(می‌خوام|میخوام|دارید|بده|پیدا)/i.test(
+        userText,
+      ) || /^(پیراهن|کیف|کفش)\b/i.test(userText.trim());
+
+    if (!hasIntent && !categoryAsk) return null;
+
+    if (!employee?.skills.recommend) {
+      const result: TurnResult = {
+        reply:
+          'مهارت پیشنهاد محصول برای این کارمند فعال نیست. می‌توانید نام دقیق‌تری از کاتالوگ بپرسید.',
+        citations: [],
+        decision: 'recommend_skill_disabled',
+      };
+      await this.audit(tenantId, conversationId, result.decision, []);
+      return result;
+    }
+
+    const picks = await this.commerce.recommendProducts(tenantId, userText);
+    if (picks.length === 0) {
+      const result: TurnResult = {
+        reply:
+          'با این فیلتر در کاتالوگ همگام‌شده چیزی پیدا نکردم. بودجه یا دسته را عوض کنید — محصولی اختراع نمی‌کنم.',
+        citations: [],
+        decision: 'recommend_empty',
+      };
+      await this.audit(tenantId, conversationId, result.decision, []);
+      return result;
+    }
+
+    const citations: Citation[] = picks.map((p) => ({
+      type: 'product' as const,
+      sku: p.sku,
+      title: p.title,
+      price: p.price,
+    }));
+
+    const lines = picks.map((p) => {
+      const stock = p.inStock ? 'موجود' : 'ناموجود — الان قابل سفارش نیست';
+      const why = p.inStock
+        ? 'از کاتالوگ همگام‌شده'
+        : 'در کاتالوگ هست ولی موجودی ندارد';
+      return `• ${p.title} (${p.sku}) — ${p.price.toLocaleString('fa-IR')} ${p.currency} — ${stock}\n  دلیل: ${why}`;
+    });
+
+    const result: TurnResult = {
+      reply: `پیشنهاد بر اساس کاتالوگ فروشگاه (بدون اختراع SKU):\n${lines.join('\n')}`,
+      citations,
+      decision: 'recommend',
+    };
+    await this.audit(tenantId, conversationId, result.decision, citations);
+    return result;
   }
 
   private async tryOrderLookup(

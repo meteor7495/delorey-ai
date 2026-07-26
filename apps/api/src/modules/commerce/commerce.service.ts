@@ -55,6 +55,91 @@ export class CommerceService {
     });
   }
 
+  /**
+   * Catalog-grounded recommend — never invents SKUs.
+   * Prefers in-stock; applies simple budget filter when present.
+   */
+  async recommendProducts(tenantId: string, query: string) {
+    const products = await this.store.productsForTenant(tenantId);
+    if (products.length === 0) return [];
+
+    const q = query.trim().toLowerCase();
+    const budget = this.parseBudgetIrr(q);
+
+    const categoryTokens = this.extractCategoryTokens(q);
+    let candidates = products;
+
+    if (categoryTokens.length > 0) {
+      const filtered = products.filter((p) => {
+        const hay = `${p.title} ${p.sku} ${p.description ?? ''}`.toLowerCase();
+        return categoryTokens.some((t) => hay.includes(t));
+      });
+      if (filtered.length > 0) candidates = filtered;
+    }
+
+    if (budget != null) {
+      candidates = candidates.filter((p) => p.price <= budget);
+    }
+
+    // Prefer in-stock first, keep OOS only if they matched category (labeled later)
+    const inStock = candidates.filter((p) => p.inStock);
+    const outStock = candidates.filter((p) => !p.inStock);
+
+    const preferInStockOnly =
+      /هدیه|پیشنهاد|چی بخر|recommend|gift|suggest/i.test(q) &&
+      categoryTokens.length === 0;
+
+    const ranked = preferInStockOnly
+      ? inStock
+      : [...inStock, ...outStock];
+
+    if (ranked.length === 0 && budget != null) {
+      // Budget too tight — return empty rather than invent
+      return [];
+    }
+
+    if (ranked.length === 0) {
+      return inStock.length ? inStock.slice(0, 3) : products.filter((p) => p.inStock).slice(0, 3);
+    }
+
+    return ranked.slice(0, 3);
+  }
+
+  parseBudgetIrr(query: string): number | null {
+    const q = query.toLowerCase();
+    // "زیر یک میلیون" / "بودجه ۱ میلیون"
+    if (/یک\s*میلیون|1\s*میلیون|میلیون\s*تومان|1000000|۱۰۰۰۰۰۰/.test(q)) {
+      return 1_000_000;
+    }
+    if (/دو\s*میلیون|2\s*میلیون/.test(q)) return 2_000_000;
+    if (/سه\s*میلیون|3\s*میلیون/.test(q)) return 3_000_000;
+    const m = q.match(
+      /(?:زیر|کمتر از|تا|بودجه|under|below|max)\s*([\d۰-۹,]+)\s*(هزار|میلیون)?/i,
+    );
+    if (!m) return null;
+    const raw = m[1]!.replace(/,/g, '').replace(/[۰-۹]/g, (d) =>
+      String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)),
+    );
+    let n = Number(raw);
+    if (!Number.isFinite(n)) return null;
+    if (m[2]?.includes('میلیون')) n *= 1_000_000;
+    else if (m[2]?.includes('هزار')) n *= 1_000;
+    return n;
+  }
+
+  private extractCategoryTokens(query: string): string[] {
+    const map: Array<[RegExp, string[]]> = [
+      [/پیراهن|لینن|shirt/i, ['پیراهن', 'لینن', 'shirt']],
+      [/کیف|bag/i, ['کیف', 'bag']],
+      [/کفش|shoe|اسپرت/i, ['کفش', 'اسپرت', 'shoe']],
+    ];
+    const tokens: string[] = [];
+    for (const [re, ts] of map) {
+      if (re.test(query)) tokens.push(...ts);
+    }
+    return tokens;
+  }
+
   listOrders(tenantId: string) {
     return this.store.listOrders(tenantId);
   }
