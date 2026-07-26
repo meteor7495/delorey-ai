@@ -12,4 +12,8 @@ export class AnalyticsService {
   knowledgeGaps(tenantId: string, days = 7) {
     return this.store.analyticsKnowledgeGaps(tenantId, days);
   }
+
+  revenue(tenantId: string, days = 7) {
+    return this.store.analyticsRevenue(tenantId, days);
+  }
 }

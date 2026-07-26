@@ -193,6 +193,8 @@ export class DataStore implements OnModuleInit {
         orderNumber: 'DR-1001',
         status: 'shipped',
         trackingCode: 'TRK-77881',
+        totalAmount: new Prisma.Decimal(4_500_000),
+        currency: 'IRR',
         customerPhoneLast4: '1234',
         customerEmail: 'buyer@example.com',
       },
@@ -201,6 +203,8 @@ export class DataStore implements OnModuleInit {
         orderNumber: 'DR-1002',
         status: 'processing',
         trackingCode: null as string | null,
+        totalAmount: new Prisma.Decimal(1_200_000),
+        currency: 'IRR',
         customerPhoneLast4: '5678',
         customerEmail: 'other@example.com',
       },
@@ -221,6 +225,8 @@ export class DataStore implements OnModuleInit {
         update: {
           status: item.status,
           trackingCode: item.trackingCode,
+          totalAmount: item.totalAmount,
+          currency: item.currency,
           customerPhoneLast4: item.customerPhoneLast4,
           customerEmail: item.customerEmail,
           syncedAt: new Date(),
@@ -1087,6 +1093,86 @@ export class DataStore implements OnModuleInit {
     };
   }
 
+  async analyticsRevenue(tenantId: string, days = 7) {
+    const rangeDays = Math.max(1, Math.min(days, 90));
+    const since = new Date();
+    since.setDate(since.getDate() - rangeDays);
+
+    const [orders, audits] = await Promise.all([
+      this.prisma.order.findMany({
+        where: { tenantId, syncedAt: { gte: since } },
+        select: {
+          orderNumber: true,
+          totalAmount: true,
+          currency: true,
+          syncedAt: true,
+        },
+      }),
+      this.prisma.auditTurn.findMany({
+        where: { tenantId, createdAt: { gte: since } },
+        select: { decision: true, conversationId: true },
+      }),
+    ]);
+
+    let recommendVolume = 0;
+    let orderLookupVolume = 0;
+    const assistedConversationIds = new Set<string>();
+    for (const a of audits) {
+      if (a.decision === 'recommend') {
+        recommendVolume += 1;
+        assistedConversationIds.add(a.conversationId);
+      } else if (a.decision === 'order_lookup') {
+        orderLookupVolume += 1;
+        assistedConversationIds.add(a.conversationId);
+      }
+    }
+
+    const currency = orders[0]?.currency ?? 'IRR';
+    const storeGmv = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+
+    return {
+      rangeDays,
+      since: since.toISOString(),
+      empty: orders.length === 0 && audits.length === 0,
+      skills: {
+        recommendVolume,
+        orderLookupVolume,
+        assistedActions: recommendVolume + orderLookupVolume,
+        assistedConversations: assistedConversationIds.size,
+      },
+      store: {
+        orderCount: orders.length,
+        gmv: storeGmv,
+        currency,
+        note: 'مجموع total_amount سفارش‌های همگام‌شده در بازه — واقعیت فروشگاه، نه فروش منتسب به AI.',
+      },
+      linkage: {
+        conversationToOrderLinked: 0,
+        available: false,
+        note: 'لینک deterministic گفتگو→سفارش در MVP نداریم؛ متریک‌ها جدا نمایش داده می‌شوند.',
+      },
+      usage: {
+        auditTurnCount: audits.length,
+        costMode: 'mock_proxy' as const,
+        note: 'تعداد نوبت audit به‌عنوان proxy مصرف — فاکتور provider نیست.',
+      },
+      claims: {
+        causalLiftShown: false,
+        causalLiftPercent: null as number | null,
+      },
+      methodology: {
+        assisted:
+          'گفتگوی assisted = حداقل یک نوبت recommend یا order_lookup در بازه. اثبات تبدیل فروش نیست.',
+        storeGmv:
+          'GMV = جمع total_amount سفارش‌هایی که synced_at در بازه است (Commerce sync).',
+        noCausalLift:
+          'هیچ ادعای «+X٪ فروش به‌خاطر AI» بدون آزمایش کنترل‌شده نمایش داده نمی‌شود.',
+        cost:
+          'مصرف فعلی proxy مبتنی بر audit است؛ صورتحساب مدل جداگانه است.',
+      },
+    };
+  }
+
   async analyticsKnowledgeGaps(tenantId: string, days = 7, limit = 10) {
     const since = new Date();
     since.setDate(since.getDate() - Math.max(1, Math.min(days, 90)));
@@ -1417,6 +1503,8 @@ export class DataStore implements OnModuleInit {
     orderNumber: string;
     status: string;
     trackingCode: string | null;
+    totalAmount: Prisma.Decimal;
+    currency: string;
     customerPhoneLast4: string;
     customerEmail: string | null;
     syncedAt: Date;
@@ -1428,6 +1516,8 @@ export class DataStore implements OnModuleInit {
       orderNumber: row.orderNumber,
       status: row.status,
       trackingCode: row.trackingCode,
+      totalAmount: Number(row.totalAmount),
+      currency: row.currency,
       customerPhoneLast4: row.customerPhoneLast4,
       customerEmail: row.customerEmail,
       syncedAt: row.syncedAt.toISOString(),

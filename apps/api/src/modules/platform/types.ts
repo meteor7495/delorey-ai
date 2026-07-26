@@ -38,6 +38,8 @@ export interface OrderRecord {
   orderNumber: string;
   status: string;
   trackingCode: string | null;
+  totalAmount: number;
+  currency: string;
   customerPhoneLast4: string;
   customerEmail: string | null;
   syncedAt: string;

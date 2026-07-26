@@ -245,6 +245,8 @@ model Order {
   orderNumber        String   @map("order_number")
   status             String
   trackingCode       String?  @map("tracking_code")
+  totalAmount        Decimal  @default(0) @map("total_amount") @db.Decimal(18, 2)
+  currency           String   @default("IRR")
   customerPhoneLast4 String   @map("customer_phone_last4")
   customerEmail      String?  @map("customer_email")
   syncedAt           DateTime @map("synced_at")

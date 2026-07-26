@@ -294,6 +294,39 @@ export function createApiClient(opts: ApiClientOptions) {
         hrefKnowledge: string;
         note: string;
       }>(opts, `/analytics/knowledge-gaps?days=${days}`),
+    analyticsRevenue: (days = 7) =>
+      request<{
+        rangeDays: number;
+        since: string;
+        empty: boolean;
+        skills: {
+          recommendVolume: number;
+          orderLookupVolume: number;
+          assistedActions: number;
+          assistedConversations: number;
+        };
+        store: {
+          orderCount: number;
+          gmv: number;
+          currency: string;
+          note: string;
+        };
+        linkage: {
+          conversationToOrderLinked: number;
+          available: boolean;
+          note: string;
+        };
+        usage: {
+          auditTurnCount: number;
+          costMode: string;
+          note: string;
+        };
+        claims: {
+          causalLiftShown: boolean;
+          causalLiftPercent: number | null;
+        };
+        methodology: Record<string, string>;
+      }>(opts, `/analytics/revenue?days=${days}`),
     listAuditTurns: (query: {
       days?: number;
       decision?: string;

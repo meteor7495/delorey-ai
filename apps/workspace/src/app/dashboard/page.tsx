@@ -7,21 +7,37 @@ import { api } from '@/shared/api';
 
 type Summary = Awaited<ReturnType<typeof api.analyticsSummary>>;
 type Gaps = Awaited<ReturnType<typeof api.analyticsKnowledgeGaps>>;
+type Revenue = Awaited<ReturnType<typeof api.analyticsRevenue>>;
+
+function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat('fa-IR', {
+      style: 'currency',
+      currency: currency === 'IRR' ? 'IRR' : currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${amount.toLocaleString('fa-IR')} ${currency}`;
+  }
+}
 
 export default function DashboardPage() {
   const [days, setDays] = useState(7);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [gaps, setGaps] = useState<Gaps | null>(null);
+  const [revenue, setRevenue] = useState<Revenue | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
       api.analyticsSummary(days),
       api.analyticsKnowledgeGaps(days),
+      api.analyticsRevenue(days),
     ])
-      .then(([s, g]) => {
+      .then(([s, g, r]) => {
         setSummary(s);
         setGaps(g);
+        setRevenue(r);
         setError(null);
       })
       .catch((e) => setError(String(e)));
@@ -48,6 +64,43 @@ export default function DashboardPage() {
       </div>
 
       {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+
+      {revenue && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h3>درآمد و کمک فروش (صادقانه)</h3>
+          <p>
+            GMV فروشگاه:{' '}
+            <strong>
+              {formatMoney(revenue.store.gmv, revenue.store.currency)}
+            </strong>
+            {' · '}
+            سفارش همگام: <strong>{revenue.store.orderCount}</strong>
+          </p>
+          <p className="muted" style={{ fontSize: 13 }}>
+            {revenue.store.note}
+          </p>
+          <p>
+            recommend: <strong>{revenue.skills.recommendVolume}</strong>
+            {' · '}
+            order_lookup: <strong>{revenue.skills.orderLookupVolume}</strong>
+            {' · '}
+            گفتگوی assisted:{' '}
+            <strong>{revenue.skills.assistedConversations}</strong>
+          </p>
+          <p className="muted" style={{ fontSize: 13 }}>
+            {revenue.methodology.assisted}
+          </p>
+          <p className="muted" style={{ fontSize: 13 }}>
+            مصرف (proxy): {revenue.usage.auditTurnCount} نوبت —{' '}
+            {revenue.usage.note}
+          </p>
+          {!revenue.claims.causalLiftShown && (
+            <p className="muted" style={{ fontSize: 13 }}>
+              {revenue.methodology.noCausalLift}
+            </p>
+          )}
+        </div>
+      )}
 
       {summary?.empty && (
         <div className="card">
