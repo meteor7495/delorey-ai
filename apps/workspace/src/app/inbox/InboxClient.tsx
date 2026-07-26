@@ -2,6 +2,12 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import {
+  channelLabel,
+  escalationLabel,
+  messageRoleLabel,
+  ownershipLabel,
+} from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -151,7 +157,7 @@ export default function InboxClient() {
         <div className="card" style={{ padding: 0, overflow: 'auto' }}>
           {items.length === 0 && (
             <p className="muted" style={{ padding: 16 }}>
-              هنوز گفتگویی نیست. از ویجت پیام بفرستید یا درخواست انسان کنید.
+              هنوز گفتگویی نیست. یک کانال را فعال کنید یا گفتگوی آزمایشی بسازید.
             </p>
           )}
           {items.map((item) => (
@@ -171,15 +177,15 @@ export default function InboxClient() {
               }}
             >
               <div style={{ fontWeight: 600, fontSize: 13 }}>
-                {item.channel} ·{' '}
-                {item.ownership === 'human_owned' ? 'انسان' : 'AI'}
+                {channelLabel(item.channel)} ·{' '}
+                {ownershipLabel(item.ownership)}
               </div>
               <div className="muted" style={{ fontSize: 13 }}>
                 {(item.preview ?? '—').slice(0, 80)}
               </div>
               {item.escalationReason && (
                 <div style={{ color: 'var(--danger)', fontSize: 12 }}>
-                  {item.escalationReason}
+                  {escalationLabel(item.escalationReason)}
                 </div>
               )}
             </button>
@@ -194,10 +200,7 @@ export default function InboxClient() {
             <>
               <div className="row" style={{ justifyContent: 'space-between' }}>
                 <div>
-                  <strong>وضعیت:</strong>{' '}
-                  {ownership === 'human_owned'
-                    ? 'در اختیار اپراتور'
-                    : 'پاسخ‌گوی AI'}
+                  <strong>وضعیت:</strong> {ownershipLabel(ownership)}
                   {packet && (
                     <div className="muted" style={{ fontSize: 13 }}>
                       دلیل: {packet.reasonLabel}
@@ -235,7 +238,7 @@ export default function InboxClient() {
 
               {packet && (
                 <div className="banner" style={{ marginTop: 12 }}>
-                  <strong>بسته زمینه handoff</strong>
+                  <strong>بسته زمینه تحویل</strong>
                   {packet.intentSummary && (
                     <div>خلاصه: {packet.intentSummary}</div>
                   )}
@@ -285,7 +288,7 @@ export default function InboxClient() {
                     }}
                   >
                     <div className="muted" style={{ fontSize: 11 }}>
-                      {m.role}
+                      {messageRoleLabel(m.role)}
                     </div>
                     {m.content}
                   </div>

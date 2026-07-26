@@ -117,9 +117,9 @@ export default function AuditClient() {
 
   return (
     <AppShell>
-      <h1>ممیزی (Audit)</h1>
+      <h1>ممیزی</h1>
       <p className="muted">
-        نوبت‌های AI و اقدامات ادمین — append-only · Transparent AI
+        نوبت‌های AI و اقدامات ادمین — فقط‌افزودنی · شفافیت AI
       </p>
       {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
@@ -303,7 +303,7 @@ export default function AuditClient() {
                   className="btn secondary"
                   href={`/inbox?c=${detail.conversationId}`}
                 >
-                  باز کردن Inbox
+                  باز کردن صندوق ورودی
                 </Link>
                 <Link
                   className="btn secondary"

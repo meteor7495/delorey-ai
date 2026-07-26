@@ -355,6 +355,7 @@ flowchart TB
 | Concern | Frontend stance |
 |---------|-----------------|
 | Merchant Workspace copy | Persian-first quality bar for Iran MVP; architecture may keep i18n keys |
+| Eng enums vs FA labels | API/DB keep eng codes (`website`, `customer_request`, `shopper`); Workspace maps via shared FA label helpers ([Copy & Tone](../05-ui/copy-tone.md)) — Inbox MUST NOT render raw codes |
 | Shopper widget | Merchant tone/language settings from Employee config via API |
 | Full i18n productization | Beyond MVP quality criteria ([Product Scope](../02-product/product-scope.md)) |
 

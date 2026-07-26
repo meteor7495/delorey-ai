@@ -97,8 +97,28 @@ Ownership: `پاسخ‌گوی AI` · `در اختیار اپراتور`.
 | discount_cap | بیش از سقف تخفیف |
 | sync_unhealthy | ریسک داده همگام‌سازی |
 | skill_escalate | ارجاع توسط مهارت |
+| operator_manual | ارجاع دستی اپراتور |
+
+**Rule:** Inbox list and handoff packet MUST show FA labels — never raw eng codes.
 
 ---
+
+# 5b. Inbox surface labels (canonical FA)
+
+| Code / eng key | Label (FA) |
+|----------------|------------|
+| website | وبسایت |
+| telegram | تلگرام |
+| bale | بله |
+| shopper | مشتری |
+| assistant / ai / employee | کارمند فروش |
+| operator | اپراتور |
+| system | سیستم |
+| Handoff context package | بسته زمینه تحویل |
+| Takeover | تحویل بگیر |
+| Release | بازگشت به AI |
+
+Nav / CTA: همیشه «صندوق ورودی» — نه «Inbox».
 
 # 6. Shopper Widget — system copy
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { channelLabel, escalationLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -123,7 +124,7 @@ export default function DashboardPage() {
             <ul>
               {Object.entries(summary.conversations.byChannel).map(([ch, n]) => (
                 <li key={ch}>
-                  {ch}: {n}
+                  {channelLabel(ch)}: {n}
                 </li>
               ))}
             </ul>
@@ -131,21 +132,21 @@ export default function DashboardPage() {
               {summary.methodology.escalationRate}
             </p>
             <Link className="btn secondary" href="/inbox">
-              رفتن به Inbox
+              رفتن به صندوق ورودی
             </Link>
           </div>
 
           <div className="card" style={{ marginTop: 16 }}>
             <h3>وضوحیت و ارجاع</h3>
             <p>
-              Resolution proxy:{' '}
+              شاخص وضوحیت:{' '}
               <strong>
                 {summary.rates.resolutionProxy == null
                   ? '—'
                   : `${Math.round(summary.rates.resolutionProxy * 100)}%`}
               </strong>
               {' · '}
-              Escalation rate:{' '}
+              نرخ ارجاع:{' '}
               <strong>
                 {summary.rates.escalationRate == null
                   ? '—'
@@ -162,7 +163,7 @@ export default function DashboardPage() {
               )}
               {Object.entries(summary.escalationReasons).map(([r, n]) => (
                 <li key={r}>
-                  {r}: {n}
+                  {escalationLabel(r)}: {n}
                 </li>
               ))}
             </ul>
@@ -185,7 +186,7 @@ export default function DashboardPage() {
               وضعیت: <strong>{summary.syncHealth}</strong>
             </p>
             <p className="muted">
-              آخرین sync: {summary.syncLastAt ?? '—'}
+              آخرین همگام‌سازی: {summary.syncLastAt ?? '—'}
             </p>
             <Link className="btn secondary" href="/store">
               فروشگاه
@@ -212,7 +213,7 @@ export default function DashboardPage() {
             </ul>
           )}
           <Link className="btn" href="/knowledge">
-            ویرایش Knowledge
+            ویرایش دانش
           </Link>
         </div>
       )}

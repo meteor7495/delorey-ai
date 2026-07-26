@@ -162,20 +162,20 @@ Footer note: «این تنظیمات در Runtime اعمال می‌شوند»
 **Layout (desktop):**
 
 ```
-Filters: ownership · channel
+Filters: همه · در اختیار انسان · پاسخ‌گوی AI · کانال
 ┌────────────┬──────────────────────────────┐
-│ List       │ Thread header: channel · state│
-│ rows       │ ContextPackage if escalated   │
-│            │ Messages (AI vs human)        │
-│            │ Composer (if human_owned or   │
-│            │   after Takeover)             │
-│            │ Actions: Takeover | Release   │
+│ List       │ سربرگ: کانال · وضعیت مالکیت   │
+│ rows (FA)  │ بسته زمینه تحویل (اگر ارجاع) │
+│            │ پیام‌ها (نقش‌ها به فارسی)     │
+│            │ Composer (اگر human_owned یا  │
+│            │   بعد از تحویل بگیر)          │
+│            │ اقدامات: تحویل بگیر | بازگشت  │
 └────────────┴──────────────────────────────┘
 ```
 
 Mobile: list → full-screen thread.
 
-**Must:** Reason badges; context package; authorship clarity; near-real-time escalations (poll OK).  
+**Must:** Reason badges in FA (`copy-tone` labels); context package; authorship clarity (FA role labels); near-real-time escalations (poll OK). Never show raw eng codes (`customer_request`, `website`, `shopper`) in merchant UI.  
 **Must not:** Ticket SoR; SLA engine; hide escalations.
 
 **Empty:** CTA to Channels or Test chat.

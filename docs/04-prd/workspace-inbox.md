@@ -40,11 +40,12 @@ Stages 7 test review; 9 live handoff.
 4. MUST show channel + AI state.  
 5. MUST near-real-time update for escalations (poll or SSE — eng choice).  
 6. MUST RBAC: operators can act; viewers read-only.  
-7. MUST NOT become SoR for tickets — Conversation SoR remains backend.
+7. MUST show Persian (FA) labels for channel, ownership, message roles, and escalation reasons — never raw eng enum codes in merchant UI ([Copy & Tone](../05-ui/copy-tone.md)).  
+8. MUST NOT become SoR for tickets — Conversation SoR remains backend.
 
 # 6. UX requirements
 
-Fast scan list; clear escalation reasons; mobile-usable for small teams; Persian-first copy.
+Fast scan list; clear escalation reasons (FA labels); mobile-usable for small teams; Persian-first copy. Nav/CTA say «صندوق ورودی» not «Inbox».
 
 # 7. Technical contracts
 

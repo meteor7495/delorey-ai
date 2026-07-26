@@ -133,6 +133,7 @@ Home surfaces **at most one primary CTA** for the highest-priority issue; second
 | Numbers | Prefer locale-aware formatting; keep SKUs/IDs LTR isolates when needed |
 | Density | Comfortable tap targets on mobile (≥44px interactive) |
 | Quality bar | Persian merchant copy is MVP quality criteria — not placeholder English |
+| Codes vs labels | API may keep eng enums (`website`, `customer_request`); Workspace/Inbox MUST map to FA labels from [Copy & Tone](./copy-tone.md) |
 
 ---
 
