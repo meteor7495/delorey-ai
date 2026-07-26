@@ -54,4 +54,31 @@ export class CommerceService {
       );
     });
   }
+
+  listOrders(tenantId: string) {
+    return this.store.listOrders(tenantId);
+  }
+
+  findOrderByNumber(tenantId: string, orderNumber: string) {
+    return this.store.findOrderByNumber(tenantId, orderNumber);
+  }
+
+  /**
+   * Verify shopper before revealing order details.
+   * Policy MVP: phone last-4 OR exact email match.
+   */
+  verifyOrderAccess(
+    order: {
+      customerPhoneLast4: string;
+      customerEmail: string | null;
+    },
+    proof: string,
+  ): boolean {
+    const p = proof.trim().toLowerCase();
+    if (/^\d{4}$/.test(p) && p === order.customerPhoneLast4) return true;
+    if (order.customerEmail && p === order.customerEmail.toLowerCase()) {
+      return true;
+    }
+    return false;
+  }
 }

@@ -45,6 +45,16 @@ export function createApiClient(opts: ApiClientOptions) {
     mockConnectStore: () =>
       request(opts, '/store/mock-connect', { method: 'POST', body: '{}' }),
     getProducts: () => request<unknown[]>(opts, '/catalog/products'),
+    getOrders: () =>
+      request<
+        Array<{
+          orderNumber: string;
+          status: string;
+          trackingCode: string | null;
+          syncedAt: string;
+          verifyHintPhoneLast4: string;
+        }>
+      >(opts, '/orders'),
     getWebsiteChannel: () =>
       request<{ publicKey: string; snippet: string; status: string }>(
         opts,

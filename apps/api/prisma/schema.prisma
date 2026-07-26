@@ -26,6 +26,7 @@ model Tenant {
   auditTurns       AuditTurn[]
   knowledgeDocs   KnowledgeDoc[]
   knowledgeChunks KnowledgeChunk[]
+  orders           Order[]
 
   @@map("tenants")
 }
@@ -234,4 +235,26 @@ model KnowledgeChunk {
   @@index([tenantId])
   @@index([knowledgeDocId])
   @@map("knowledge_chunks")
+}
+
+/// Commerce orders — Order Lookup Skill reads only; no chat mutations
+model Order {
+  id                 String   @id @default(uuid())
+  tenantId           String   @map("tenant_id")
+  externalId         String   @map("external_id")
+  orderNumber        String   @map("order_number")
+  status             String
+  trackingCode       String?  @map("tracking_code")
+  customerPhoneLast4 String   @map("customer_phone_last4")
+  customerEmail      String?  @map("customer_email")
+  syncedAt           DateTime @map("synced_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, orderNumber])
+  @@unique([tenantId, externalId])
+  @@index([tenantId])
+  @@map("orders")
 }

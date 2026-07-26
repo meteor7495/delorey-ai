@@ -24,7 +24,24 @@ export type Citation =
       docId: string;
       title: string;
       sourceAttribution: string;
+    }
+  | {
+      type: 'order';
+      orderNumber: string;
+      status: string;
     };
+
+export interface OrderRecord {
+  id: string;
+  tenantId: string;
+  externalId: string;
+  orderNumber: string;
+  status: string;
+  trackingCode: string | null;
+  customerPhoneLast4: string;
+  customerEmail: string | null;
+  syncedAt: string;
+}
 
 export type HandoffPacket = {
   reason: EscalationReason;

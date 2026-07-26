@@ -14,6 +14,7 @@ import type {
   KnowledgeDoc,
   Membership,
   Message,
+  OrderRecord,
   Product,
   Session,
   StoreConnection,
@@ -41,6 +42,8 @@ export class DataStore implements OnModuleInit {
       });
       if (membership) {
         await this.seedDefaultKnowledge(membership.tenantId);
+        await this.seedDefaultOrders(membership.tenantId);
+        await this.ensureOrderStatusSkill(membership.tenantId);
       }
     }
   }
@@ -80,7 +83,7 @@ export class DataStore implements OnModuleInit {
           skills: {
             product_search: true,
             recommend: true,
-            order_status: false,
+            order_status: true,
             escalate: true,
           } satisfies EmployeeSkills,
         },
@@ -167,6 +170,86 @@ export class DataStore implements OnModuleInit {
     });
 
     await this.seedDefaultKnowledge(tenantId);
+    await this.seedDefaultOrders(tenantId);
+  }
+
+  async ensureOrderStatusSkill(tenantId: string): Promise<void> {
+    const employee = await this.prisma.employee.findFirst({
+      where: { tenantId },
+    });
+    if (!employee) return;
+    const skills = employee.skills as EmployeeSkills;
+    if (skills.order_status) return;
+    await this.prisma.employee.update({
+      where: { id: employee.id },
+      data: { skills: { ...skills, order_status: true } },
+    });
+  }
+
+  async seedDefaultOrders(tenantId: string): Promise<void> {
+    const defaults = [
+      {
+        externalId: 'ext-1001',
+        orderNumber: 'DR-1001',
+        status: 'shipped',
+        trackingCode: 'TRK-77881',
+        customerPhoneLast4: '1234',
+        customerEmail: 'buyer@example.com',
+      },
+      {
+        externalId: 'ext-1002',
+        orderNumber: 'DR-1002',
+        status: 'processing',
+        trackingCode: null as string | null,
+        customerPhoneLast4: '5678',
+        customerEmail: 'other@example.com',
+      },
+    ];
+    for (const item of defaults) {
+      await this.prisma.order.upsert({
+        where: {
+          tenantId_orderNumber: {
+            tenantId,
+            orderNumber: item.orderNumber,
+          },
+        },
+        create: {
+          tenantId,
+          ...item,
+          syncedAt: new Date(),
+        },
+        update: {
+          status: item.status,
+          trackingCode: item.trackingCode,
+          customerPhoneLast4: item.customerPhoneLast4,
+          customerEmail: item.customerEmail,
+          syncedAt: new Date(),
+        },
+      });
+    }
+  }
+
+  async findOrderByNumber(
+    tenantId: string,
+    orderNumber: string,
+  ): Promise<OrderRecord | null> {
+    const row = await this.prisma.order.findUnique({
+      where: {
+        tenantId_orderNumber: {
+          tenantId,
+          orderNumber: orderNumber.toUpperCase(),
+        },
+      },
+    });
+    return row ? this.mapOrder(row) : null;
+  }
+
+  async listOrders(tenantId: string): Promise<OrderRecord[]> {
+    const rows = await this.prisma.order.findMany({
+      where: { tenantId },
+      orderBy: { orderNumber: 'asc' },
+    });
+    return rows.map((r) => this.mapOrder(r));
   }
 
   async seedDefaultKnowledge(tenantId: string): Promise<void> {
@@ -1064,6 +1147,30 @@ export class DataStore implements OnModuleInit {
       objectKey: row.objectKey,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
+    };
+  }
+
+  private mapOrder(row: {
+    id: string;
+    tenantId: string;
+    externalId: string;
+    orderNumber: string;
+    status: string;
+    trackingCode: string | null;
+    customerPhoneLast4: string;
+    customerEmail: string | null;
+    syncedAt: Date;
+  }): OrderRecord {
+    return {
+      id: row.id,
+      tenantId: row.tenantId,
+      externalId: row.externalId,
+      orderNumber: row.orderNumber,
+      status: row.status,
+      trackingCode: row.trackingCode,
+      customerPhoneLast4: row.customerPhoneLast4,
+      customerEmail: row.customerEmail,
+      syncedAt: row.syncedAt.toISOString(),
     };
   }
 }

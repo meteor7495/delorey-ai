@@ -27,4 +27,18 @@ export class CommerceController {
   websiteChannel(@CurrentAuth() auth: AuthContext) {
     return this.commerce.getWebsiteChannel(auth.tenantId);
   }
+
+  @Get('orders')
+  orders(@CurrentAuth() auth: AuthContext) {
+    return this.commerce.listOrders(auth.tenantId).then((rows) =>
+      rows.map((o) => ({
+        orderNumber: o.orderNumber,
+        status: o.status,
+        trackingCode: o.trackingCode,
+        syncedAt: o.syncedAt,
+        // Merchant-only hint for demo verification — never exposed on public chat APIs
+        verifyHintPhoneLast4: o.customerPhoneLast4,
+      })),
+    );
+  }
 }
