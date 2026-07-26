@@ -8,6 +8,24 @@ export type AiEmployeeState =
 
 export type SyncHealth = 'healthy' | 'stale' | 'failed' | 'never';
 
+export type EscalationReason =
+  | 'customer_request'
+  | 'blocked_topic'
+  | 'low_confidence'
+  | 'discount_cap'
+  | 'sync_unhealthy'
+  | 'skill_escalate'
+  | 'operator_manual';
+
+export type HandoffPacket = {
+  reason: EscalationReason;
+  reasonLabel: string;
+  lastMessages: Array<{ role: string; content: string; createdAt: string }>;
+  citations: Array<{ sku: string; title: string; price: number }>;
+  intentSummary: string | null;
+  createdAt: string;
+};
+
 export interface User {
   id: string;
   email: string;
@@ -75,14 +93,18 @@ export interface Conversation {
   tenantId: string;
   channel: 'website';
   ownership: 'ai_owned' | 'human_owned';
+  escalationReason: EscalationReason | null;
+  escalatedAt: string | null;
+  handoffPacket: HandoffPacket | null;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Message {
   id: string;
   conversationId: string;
   tenantId: string;
-  role: 'shopper' | 'employee' | 'system';
+  role: 'shopper' | 'employee' | 'system' | 'operator';
   content: string;
   createdAt: string;
   citations?: Array<{ sku: string; title: string; price: number }>;
@@ -104,3 +126,13 @@ export interface StoreConnection {
   lastSyncAt: string | null;
   failureReason: string | null;
 }
+
+export const ESCALATION_LABELS: Record<EscalationReason, string> = {
+  customer_request: 'درخواست مشتری برای انسان',
+  blocked_topic: 'موضوع محدودشده',
+  low_confidence: 'اطمینان پایین',
+  discount_cap: 'بیش از سقف تخفیف',
+  sync_unhealthy: 'ریسک داده همگام‌سازی',
+  skill_escalate: 'ارجاع توسط مهارت',
+  operator_manual: 'ارجاع دستی اپراتور',
+};

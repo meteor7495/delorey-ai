@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
   createParamDecorator,
 } from '@nestjs/common';
-import { MemoryStore } from '../platform/memory.store';
+import { DataStore } from './data.store';
 
 export type AuthContext = {
   userId: string;
@@ -15,9 +15,9 @@ export type AuthContext = {
 
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
-  constructor(private readonly store: MemoryStore) {}
+  constructor(private readonly store: DataStore) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<{
       headers: Record<string, string | undefined>;
       auth?: AuthContext;
@@ -25,11 +25,11 @@ export class SessionAuthGuard implements CanActivate {
     const header = req.headers.authorization ?? '';
     const token = header.startsWith('Bearer ') ? header.slice(7) : '';
     if (!token) throw new UnauthorizedException('Missing session');
-    const session = this.store.sessions.get(token);
+    const session = await this.store.findSession(token);
     if (!session || new Date(session.expiresAt) < new Date()) {
       throw new UnauthorizedException('Invalid session');
     }
-    const user = this.store.users.get(session.userId);
+    const user = await this.store.findUserById(session.userId);
     if (!user) throw new UnauthorizedException('User missing');
     req.auth = {
       userId: session.userId,

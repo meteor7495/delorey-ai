@@ -1,9 +1,10 @@
-import { Module, Global } from '@nestjs/common';
-import { MemoryStore } from './memory.store';
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+import { DataStore } from './data.store';
 
 @Global()
 @Module({
-  providers: [MemoryStore],
-  exports: [MemoryStore],
+  providers: [PrismaService, DataStore],
+  exports: [PrismaService, DataStore],
 })
 export class PlatformModule {}

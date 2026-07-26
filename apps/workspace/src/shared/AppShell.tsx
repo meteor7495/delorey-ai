@@ -13,6 +13,7 @@ const links = [
   { href: '/store', label: 'فروشگاه' },
   { href: '/employee', label: 'کارمند فروش' },
   { href: '/channels', label: 'کانال‌ها' },
+  { href: '/inbox', label: 'صندوق ورودی' },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

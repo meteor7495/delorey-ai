@@ -1,46 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MemoryStore } from '../platform/memory.store';
+import { DataStore } from '../platform/data.store';
 
 @Injectable()
 export class CommerceService {
-  constructor(private readonly store: MemoryStore) {}
+  constructor(private readonly store: DataStore) {}
 
-  getStore(tenantId: string) {
-    const connection = this.store.stores.get(tenantId);
+  async getStore(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
     if (!connection) throw new NotFoundException('Store not connected');
+    const products = await this.store.productsForTenant(tenantId);
     return {
       ...connection,
-      productCount: this.store.productsForTenant(tenantId).length,
+      productCount: products.length,
     };
   }
 
-  mockConnect(tenantId: string) {
-    if (!this.store.stores.get(tenantId)) {
-      this.store.provisionTenantDefaults(tenantId);
+  async mockConnect(tenantId: string) {
+    const existing = await this.store.getStore(tenantId);
+    if (!existing) {
+      await this.store.provisionTenantDefaults(tenantId);
     } else {
-      const s = this.store.stores.get(tenantId)!;
-      s.syncHealth = 'healthy';
-      s.lastSyncAt = new Date().toISOString();
-      s.failureReason = null;
-      this.store.stores.set(tenantId, s);
+      await this.store.upsertHealthyStore(tenantId);
     }
     return this.getStore(tenantId);
   }
 
-  listProducts(tenantId: string) {
+  async listProducts(tenantId: string) {
     return this.store.productsForTenant(tenantId);
   }
 
-  getWebsiteChannel(tenantId: string) {
-    const channel = this.store.websiteChannel(tenantId);
+  async getWebsiteChannel(tenantId: string) {
+    const channel = await this.store.websiteChannel(tenantId);
     if (!channel) throw new NotFoundException('Website channel missing');
     const snippet = `<script src="http://localhost:5173/embed.js" data-public-key="${channel.publicKey}" async></script>`;
     return { ...channel, snippet };
   }
 
-  searchProducts(tenantId: string, query: string) {
+  async searchProducts(tenantId: string, query: string) {
     const q = query.trim().toLowerCase();
-    const products = this.store.productsForTenant(tenantId);
+    const products = await this.store.productsForTenant(tenantId);
     if (!q) return products.slice(0, 5);
 
     const tokens = q

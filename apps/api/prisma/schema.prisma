@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Isolation root — Database Design §5.1
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  ownerUserId String   @map("owner_user_id")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  memberships      WorkspaceMembership[]
+  sessions         Session[]
+  employees        Employee[]
+  storeConnection  StoreConnection?
+  products         Product[]
+  channels         ChannelBinding[]
+  conversations    Conversation[]
+  messages         Message[]
+  auditTurns       AuditTurn[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  memberships WorkspaceMembership[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model WorkspaceMembership {
+  userId   String @map("user_id")
+  tenantId String @map("tenant_id")
+  role     String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@id([userId, tenantId])
+  @@index([tenantId])
+  @@map("workspace_memberships")
+}
+
+/// MVP: sessions in Postgres; Redis session cache is a later optimization (Database Design).
+model Session {
+  token     String   @id
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@map("sessions")
+}
+
+model Employee {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  name      String
+  tone      String
+  language  String   @default("fa")
+  status    String   @default("inactive")
+  skills    Json
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("employees")
+}
+
+model StoreConnection {
+  id            String    @id @default(uuid())
+  tenantId      String    @unique @map("tenant_id")
+  platform      String
+  syncHealth    String    @map("sync_health")
+  lastSyncAt    DateTime? @map("last_sync_at")
+  failureReason String?   @map("failure_reason")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("store_connections")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  sku         String
+  title       String
+  price       Decimal  @db.Decimal(18, 2)
+  currency    String   @default("IRR")
+  inStock     Boolean  @default(true) @map("in_stock")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, sku])
+  @@index([tenantId])
+  @@map("products")
+}
+
+model ChannelBinding {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  channel        String
+  status         String
+  publicKey      String   @unique @map("public_key")
+  allowedOrigins Json     @map("allowed_origins")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, channel])
+  @@index([tenantId])
+  @@map("channel_bindings")
+}
+
+model Conversation {
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  channel           String
+  ownership         String    @default("ai_owned")
+  escalationReason  String?   @map("escalation_reason")
+  escalatedAt       DateTime? @map("escalated_at")
+  handoffPacket     Json?     @map("handoff_packet")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  tenant   Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages Message[]
+  audits   AuditTurn[]
+
+  @@index([tenantId])
+  @@index([tenantId, ownership])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  conversationId String   @map("conversation_id")
+  role           String
+  content        String
+  citations      Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, conversationId])
+  @@map("messages")
+}
+
+model AuditTurn {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  conversationId String   @map("conversation_id")
+  decision       String
+  citations      Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([conversationId])
+  @@map("audit_turns")
+}

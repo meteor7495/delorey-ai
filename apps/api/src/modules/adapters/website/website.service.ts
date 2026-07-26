@@ -3,31 +3,32 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { MemoryStore } from '../../platform/memory.store';
+import { DataStore } from '../../platform/data.store';
 import { ConversationService } from '../../conversation/conversation.service';
 import { RuntimeService } from '../../runtime/runtime.service';
 
 @Injectable()
 export class WebsiteAdapterService {
   constructor(
-    private readonly store: MemoryStore,
+    private readonly store: DataStore,
     private readonly conversations: ConversationService,
     private readonly runtime: RuntimeService,
   ) {}
 
-  createSession(publicKey: string, origin?: string) {
-    const channel = this.store.channelByPublicKey(publicKey);
+  async createSession(publicKey: string, origin?: string) {
+    const channel = await this.store.channelByPublicKey(publicKey);
     if (!channel || channel.channel !== 'website') {
       throw new NotFoundException('Unknown public key');
     }
     this.assertOrigin(channel.allowedOrigins, origin);
-    const conversation = this.conversations.createWebsiteConversation(
+    const conversation = await this.conversations.createWebsiteConversation(
       channel.tenantId,
     );
+    const employee = await this.store.employeeForTenant(channel.tenantId);
     return {
       conversationId: conversation.id,
-      employee: this.store.employeeForTenant(channel.tenantId)?.name ?? 'کارمند فروش',
-      status: this.store.employeeForTenant(channel.tenantId)?.status ?? 'inactive',
+      employee: employee?.name ?? 'کارمند فروش',
+      status: employee?.status ?? 'inactive',
     };
   }
 
@@ -37,16 +38,16 @@ export class WebsiteAdapterService {
     text: string,
     origin?: string,
   ) {
-    const channel = this.store.channelByPublicKey(publicKey);
+    const channel = await this.store.channelByPublicKey(publicKey);
     if (!channel) throw new NotFoundException('Unknown public key');
     this.assertOrigin(channel.allowedOrigins, origin);
 
-    const conversation = this.conversations.get(conversationId);
+    const conversation = await this.conversations.get(conversationId);
     if (!conversation || conversation.tenantId !== channel.tenantId) {
       throw new ForbiddenException('Conversation tenant mismatch');
     }
 
-    this.conversations.addMessage({
+    await this.conversations.addMessage({
       conversationId,
       tenantId: channel.tenantId,
       role: 'shopper',
@@ -59,23 +60,47 @@ export class WebsiteAdapterService {
       text,
     );
 
-    const reply = this.conversations.addMessage({
+    if (turn.decision.startsWith('escalated:')) {
+      const messages = await this.conversations.listMessages(
+        channel.tenantId,
+        conversationId,
+      );
+      const last = messages[messages.length - 1]!;
+      return {
+        message: last,
+        decision: turn.decision,
+        aiState: 'awaiting_human',
+        ownership: 'human_owned' as const,
+      };
+    }
+
+    const reply = await this.conversations.addMessage({
       conversationId,
       tenantId: channel.tenantId,
-      role: 'employee',
+      role: turn.decision === 'paused_human_owned' ? 'system' : 'employee',
       content: turn.reply,
       citations: turn.citations,
     });
 
+    const employee = await this.store.employeeForTenant(channel.tenantId);
+    const ownership =
+      turn.ownership ??
+      (await this.store.getConversation(conversationId))?.ownership ??
+      'ai_owned';
+
     return {
       message: reply,
       decision: turn.decision,
-      aiState: this.store.employeeForTenant(channel.tenantId)?.status ?? 'active',
+      aiState:
+        ownership === 'human_owned'
+          ? 'awaiting_human'
+          : (employee?.status ?? 'active'),
+      ownership,
     };
   }
 
   private assertOrigin(allowed: string[], origin?: string) {
-    if (!origin) return; // local tools / curl
+    if (!origin) return;
     if (!allowed.includes(origin)) {
       throw new ForbiddenException(`Origin not allowed: ${origin}`);
     }

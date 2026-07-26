@@ -17,7 +17,7 @@ This repo is past docs-only: **Vertical Slice 01** scaffolds a runnable path fro
 ## Monorepo
 
 ```
-apps/api          NestJS — /v1 API (Slice 01: in-memory SoR)
+apps/api          NestJS — /v1 API (Postgres SoR via Prisma)
 apps/workspace    Next.js — merchant Workspace
 apps/widget       Vite — Website chat test harness
 packages/api-client
@@ -28,13 +28,17 @@ packages/ui
 
 - Node 20+
 - pnpm 10+
-- Docker optional (Postgres/Redis reserved for next persistence slice; Slice 01 API runs in-memory)
+- Docker (Postgres for SoR — required from Slice 01 persistence)
 
 ## Quick start (Slice 01)
 
 ```bash
 pnpm install
 cp .env.example .env
+
+# Postgres on host port 55432 (avoids local Postgres on 5432)
+pnpm db:up
+pnpm --filter @delorey/api prisma:migrate
 
 # terminal 1
 pnpm dev:api
@@ -59,4 +63,4 @@ See [vertical-slice-01.md](docs/06-build/vertical-slice-01.md). Invented prices 
 
 ## Next slices
 
-02 Inbox + Handoff · 03 Telegram · 04 Knowledge/RAG · Postgres swap for MemoryStore
+02 Inbox + Human Handoff — see [vertical-slice-02.md](docs/06-build/vertical-slice-02.md) · 03 Telegram · 04 Knowledge/RAG

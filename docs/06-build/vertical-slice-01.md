@@ -29,8 +29,9 @@ Demo path completable without Figma.
 ### Backend (`apps/api`)
 
 - [ ] NestJS modular monolith boots as `api` role  
+- [x] **PostgreSQL SoR** via Prisma (`DataStore`) — tenant-scoped tables for identity, employee, commerce, channels, conversations, messages, audit  
 - [ ] Modules stubbed per Backend map; **implemented for slice:** `identity`, `tenant`/`workspace`, `employee`, `commerce`, `sync` (mock), `conversation`, `adapters/website`, `runtime` (minimal), `context` (commerce-only), `ai-gateway` (provider behind interface), `cost` (allow/deny stub), `audit` (persist turn summary)  
-- [ ] Postgres + Redis via docker-compose  
+- [x] Postgres via docker-compose (host port **55432**); Redis compose reserved  
 - [ ] Tenant isolation on every query  
 - [ ] `POST /v1/public/chat/sessions` + `POST /v1/public/chat/messages`  
 - [ ] `ExecuteTurn`: Cost → Context(commerce) → optional Skill `product_search` → Guardrails stub → Gateway Complete → Audit  
@@ -56,8 +57,8 @@ Flow builder · Zendesk inbox · Instagram · Skill Marketplace · multi-brand �
 
 # 4. Suggested implementation order
 
-1. Monorepo + docker-compose (Postgres, Redis)  
-2. Auth + tenant provision + Workspace shell  
+1. Monorepo + docker-compose (Postgres on 55432, Redis reserved)  
+2. Auth + tenant provision + Workspace shell (**Postgres**)  
 3. Mock commerce seed + sync_health=healthy  
 4. Employee defaults  
 5. Website adapter + Conversation ingest  
@@ -81,6 +82,6 @@ Flow builder · Zendesk inbox · Instagram · Skill Marketplace · multi-brand �
 
 # Next slice (preview)
 
-**Slice 02:** Inbox + Human Handoff + Guardrails enforcement UI path.  
+**Slice 02:** Inbox + Human Handoff + Guardrails enforcement UI path (conversations already durable).  
 **Slice 03:** Telegram adapter.  
 **Slice 04:** Knowledge FAQ + index-worker.

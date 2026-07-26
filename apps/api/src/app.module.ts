@@ -9,6 +9,7 @@ import { ConversationModule } from './modules/conversation/conversation.module';
 import { WebsiteAdapterModule } from './modules/adapters/website/website.module';
 import { RuntimeModule } from './modules/runtime/runtime.module';
 import { AiGatewayModule } from './modules/ai-gateway/ai-gateway.module';
+import { InboxModule } from './modules/inbox/inbox.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { HealthController } from './health.controller';
     WebsiteAdapterModule,
     RuntimeModule,
     AiGatewayModule,
+    InboxModule,
   ],
   controllers: [HealthController],
 })

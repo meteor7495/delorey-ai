@@ -58,13 +58,74 @@ export function createApiClient(opts: ApiClientOptions) {
       ),
     sendChatMessage: (publicKey: string, conversationId: string, text: string) =>
       request<{
-        message: { content: string; citations?: Array<{ sku: string; title: string; price: number }> };
+        message: {
+          content: string;
+          role?: string;
+          citations?: Array<{ sku: string; title: string; price: number }>;
+        };
         decision: string;
         aiState: string;
+        ownership?: string;
       }>(opts, `/public/chat/sessions/${conversationId}/messages`, {
         method: 'POST',
         body: JSON.stringify({ text }),
         publicKey,
+      }),
+    listInbox: (ownership?: 'ai_owned' | 'human_owned') =>
+      request<
+        Array<{
+          id: string;
+          channel: string;
+          ownership: string;
+          escalationReason: string | null;
+          escalatedAt: string | null;
+          preview: string | null;
+          messageCount: number;
+          updatedAt: string;
+        }>
+      >(
+        opts,
+        `/inbox/conversations${ownership ? `?ownership=${ownership}` : ''}`,
+      ),
+    getInboxThread: (id: string) =>
+      request<{
+        conversation: {
+          id: string;
+          ownership: string;
+          escalationReason: string | null;
+          handoffPacket: {
+            reasonLabel: string;
+            lastMessages: Array<{ role: string; content: string }>;
+            citations: Array<{ sku: string; title: string; price: number }>;
+            intentSummary: string | null;
+          } | null;
+        };
+        messages: Array<{
+          id: string;
+          role: string;
+          content: string;
+          createdAt: string;
+        }>;
+      }>(opts, `/inbox/conversations/${id}`),
+    inboxTakeover: (id: string) =>
+      request(opts, `/inbox/conversations/${id}/takeover`, {
+        method: 'POST',
+        body: '{}',
+      }),
+    inboxRelease: (id: string) =>
+      request(opts, `/inbox/conversations/${id}/release`, {
+        method: 'POST',
+        body: '{}',
+      }),
+    inboxEscalate: (id: string, reason?: string) =>
+      request(opts, `/inbox/conversations/${id}/escalate`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason ?? 'operator_manual' }),
+      }),
+    inboxReply: (id: string, text: string) =>
+      request(opts, `/inbox/conversations/${id}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ text }),
       }),
   };
 }

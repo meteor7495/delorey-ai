@@ -1,29 +1,65 @@
 import { Injectable } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
-import { MemoryStore } from '../platform/memory.store';
+import { DataStore } from '../platform/data.store';
 import { CommerceService } from '../commerce/commerce.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
+import { HandoffService } from '../inbox/handoff.service';
 
 export type TurnResult = {
   reply: string;
   citations: Array<{ sku: string; title: string; price: number }>;
   decision: string;
+  ownership?: 'ai_owned' | 'human_owned';
 };
+
+const HUMAN_REQUEST_RE =
+  /(انسان|اپراتور|پشتیبان|همکار|آدم|human|agent|operator|support)/i;
 
 @Injectable()
 export class RuntimeService {
   constructor(
-    private readonly store: MemoryStore,
+    private readonly store: DataStore,
     private readonly commerce: CommerceService,
     private readonly gateway: AiGatewayService,
+    private readonly handoff: HandoffService,
   ) {}
 
-  async executeTurn(tenantId: string, conversationId: string, userText: string): Promise<TurnResult> {
-    const store = this.store.stores.get(tenantId);
-    const employee = this.store.employeeForTenant(tenantId);
-    const syncHealth = store?.syncHealth ?? 'never';
+  async executeTurn(
+    tenantId: string,
+    conversationId: string,
+    userText: string,
+  ): Promise<TurnResult> {
+    const conversation = await this.store.getConversation(conversationId);
+    if (conversation?.ownership === 'human_owned') {
+      return {
+        reply:
+          'گفتگو در اختیار همکار انسانی است؛ پاسخ به‌زودی از طرف فروشگاه ارسال می‌شود.',
+        citations: [],
+        decision: 'paused_human_owned',
+        ownership: 'human_owned',
+      };
+    }
 
-    // Cost layer stub: always need intelligence for Slice 01 chat.
+    if (HUMAN_REQUEST_RE.test(userText)) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'customer_request',
+        [],
+        userText.slice(0, 200),
+      );
+      return {
+        reply: 'یک همکار انسانی به گفتگو می‌پیوندد.',
+        citations: [],
+        decision: 'escalated:customer_request',
+        ownership: 'human_owned',
+      };
+    }
+
+    const storeConn = await this.store.getStore(tenantId);
+    const employee = await this.store.employeeForTenant(tenantId);
+    const syncHealth = storeConn?.syncHealth ?? 'never';
+
     if (employee && employee.status === 'paused') {
       return {
         reply: 'کارمند فروش فعلاً متوقف است.',
@@ -33,15 +69,23 @@ export class RuntimeService {
     }
 
     if (syncHealth !== 'healthy') {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'sync_unhealthy',
+        [],
+        'factual question while sync unhealthy',
+      );
       return {
         reply:
-          'همگام‌سازی فروشگاه سالم نیست؛ نمی‌توانم درباره قیمت یا موجودی با اطمینان جواب بدهم.',
+          'همگام‌سازی فروشگاه سالم نیست؛ شما را به همکار انسانی وصل می‌کنم.',
         citations: [],
-        decision: 'refuse_sync_unhealthy',
+        decision: 'escalated:sync_unhealthy',
+        ownership: 'human_owned',
       };
     }
 
-    const matches = this.commerce.searchProducts(tenantId, userText);
+    const matches = await this.commerce.searchProducts(tenantId, userText);
     const citations = matches.slice(0, 3).map((m) => ({
       sku: m.sku,
       title: m.title,
@@ -51,7 +95,11 @@ export class RuntimeService {
     const contextJson = JSON.stringify({
       syncHealth,
       employee: employee
-        ? { name: employee.name, tone: employee.tone, language: employee.language }
+        ? {
+            name: employee.name,
+            tone: employee.tone,
+            language: employee.language,
+          }
         : null,
       matches: matches.slice(0, 5).map((m) => ({
         sku: m.sku,
@@ -72,19 +120,19 @@ export class RuntimeService {
 
     const completion = await this.gateway.complete({ system, user: userText });
 
-    this.store.audits.push({
+    await this.store.addAudit({
       id: uuid(),
       tenantId,
       conversationId,
       decision: matches.length ? 'answer_grounded' : 'answer_empty_catalog',
       citations,
-      createdAt: new Date().toISOString(),
     });
 
     return {
       reply: completion.text,
       citations,
       decision: matches.length ? 'answer_grounded' : 'answer_empty_catalog',
+      ownership: 'ai_owned',
     };
   }
 }
