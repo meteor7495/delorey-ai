@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
+import { AuditService } from '../audit/audit.service';
 import { EmployeeService } from './employee.service';
 
 class UpdateEmployeeDto {
@@ -71,7 +72,10 @@ class UpdateGuardrailsDto {
 @Controller('employee')
 @UseGuards(SessionAuthGuard)
 export class EmployeeController {
-  constructor(private readonly employees: EmployeeService) {}
+  constructor(
+    private readonly employees: EmployeeService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get()
   get(@CurrentAuth() auth: AuthContext) {
@@ -79,15 +83,34 @@ export class EmployeeController {
   }
 
   @Put()
-  update(@CurrentAuth() auth: AuthContext, @Body() dto: UpdateEmployeeDto) {
-    return this.employees.update(auth.tenantId, dto);
+  async update(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: UpdateEmployeeDto,
+  ) {
+    const employee = await this.employees.update(auth.tenantId, dto);
+    await this.audit.recordAdmin(auth, 'employee.update', 'به‌روزرسانی کارمند', {
+      employeeId: employee.id,
+      fields: Object.keys(dto),
+    });
+    return employee;
   }
 
   @Put('guardrails')
-  updateGuardrails(
+  async updateGuardrails(
     @CurrentAuth() auth: AuthContext,
     @Body() dto: UpdateGuardrailsDto,
   ) {
-    return this.employees.updateGuardrails(auth.tenantId, dto);
+    const employee = await this.employees.updateGuardrails(auth.tenantId, dto);
+    await this.audit.recordAdmin(
+      auth,
+      'employee.guardrails',
+      'به‌روزرسانی Guardrails',
+      {
+        employeeId: employee.id,
+        discountCapPercent: employee.guardrails.discountCapPercent,
+        blockedTopicCount: employee.guardrails.blockedTopics.length,
+      },
+    );
+    return employee;
   }
 }

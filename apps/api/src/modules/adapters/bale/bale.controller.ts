@@ -10,6 +10,7 @@ import {
 import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../../platform/auth.guard';
 import type { AuthContext } from '../../platform/auth.guard';
+import { AuditService } from '../../audit/audit.service';
 import { BaleAdapterService } from './bale.service';
 import type { BaleUpdate } from './bale.client';
 
@@ -35,12 +36,28 @@ class SimulateDto {
 
 @Controller()
 export class BaleAdapterController {
-  constructor(private readonly bale: BaleAdapterService) {}
+  constructor(
+    private readonly bale: BaleAdapterService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Post('channels/bale/connect')
   @UseGuards(SessionAuthGuard)
-  connect(@CurrentAuth() auth: AuthContext, @Body() dto: ConnectBaleDto) {
-    return this.bale.connect(auth.tenantId, dto.botToken);
+  async connect(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: ConnectBaleDto,
+  ) {
+    const channel = await this.bale.connect(auth.tenantId, dto.botToken);
+    await this.audit.recordAdmin(
+      auth,
+      'channel.bale.connect',
+      'اتصال کانال Bale',
+      {
+        channelId: channel.id,
+        botUsername: channel.botUsername,
+      },
+    );
+    return channel;
   }
 
   @Get('channels/bale')

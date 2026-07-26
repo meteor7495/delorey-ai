@@ -11,6 +11,7 @@ import {
 import { IsIn, IsOptional, IsString, MinLength } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
+import { AuditService } from '../audit/audit.service';
 import { KnowledgeService } from './knowledge.service';
 
 class CreateKnowledgeDto {
@@ -54,7 +55,10 @@ class UpdateKnowledgeDto {
 @Controller('knowledge')
 @UseGuards(SessionAuthGuard)
 export class KnowledgeController {
-  constructor(private readonly knowledge: KnowledgeService) {}
+  constructor(
+    private readonly knowledge: KnowledgeService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get('docs')
   list(@CurrentAuth() auth: AuthContext) {
@@ -72,26 +76,49 @@ export class KnowledgeController {
   }
 
   @Post('docs')
-  create(@CurrentAuth() auth: AuthContext, @Body() dto: CreateKnowledgeDto) {
-    return this.knowledge.create(auth.tenantId, dto);
+  async create(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: CreateKnowledgeDto,
+  ) {
+    const doc = await this.knowledge.create(auth.tenantId, dto);
+    await this.audit.recordAdmin(auth, 'knowledge.create', `ایجاد: ${doc.title}`, {
+      docId: doc.id,
+      docType: doc.docType,
+    });
+    return doc;
   }
 
   @Patch('docs/:id')
-  update(
+  async update(
     @CurrentAuth() auth: AuthContext,
     @Param('id') id: string,
     @Body() dto: UpdateKnowledgeDto,
   ) {
-    return this.knowledge.update(auth.tenantId, id, dto);
+    const doc = await this.knowledge.update(auth.tenantId, id, dto);
+    await this.audit.recordAdmin(
+      auth,
+      'knowledge.update',
+      `ویرایش: ${doc.title}`,
+      { docId: doc.id, fields: Object.keys(dto) },
+    );
+    return doc;
   }
 
   @Delete('docs/:id')
-  remove(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
-    return this.knowledge.remove(auth.tenantId, id);
+  async remove(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    await this.knowledge.remove(auth.tenantId, id);
+    await this.audit.recordAdmin(auth, 'knowledge.delete', 'حذف سند دانش', {
+      docId: id,
+    });
+    return { ok: true };
   }
 
   @Post('docs/:id/reindex')
-  reindex(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
-    return this.knowledge.reindex(auth.tenantId, id);
+  async reindex(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    const doc = await this.knowledge.reindex(auth.tenantId, id);
+    await this.audit.recordAdmin(auth, 'knowledge.reindex', `بازشاخص: ${doc.title}`, {
+      docId: doc.id,
+    });
+    return doc;
   }
 }

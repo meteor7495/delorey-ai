@@ -24,6 +24,7 @@ model Tenant {
   conversations    Conversation[]
   messages         Message[]
   auditTurns       AuditTurn[]
+  adminAudits      AdminAuditEvent[]
   knowledgeDocs   KnowledgeDoc[]
   knowledgeChunks KnowledgeChunk[]
   orders           Order[]
@@ -199,6 +200,23 @@ model AuditTurn {
   @@index([tenantId])
   @@index([conversationId])
   @@map("audit_turns")
+}
+
+/// Append-only admin mutations (PRD-018) — never rewritten
+model AdminAuditEvent {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  actorUserId String @map("actor_user_id")
+  action    String
+  summary   String
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, action])
+  @@map("admin_audit_events")
 }
 
 /// Knowledge SoR — FAQ / policy_override / upload (upload body later)

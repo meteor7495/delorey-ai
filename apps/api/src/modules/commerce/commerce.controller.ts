@@ -1,12 +1,16 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
+import { AuditService } from '../audit/audit.service';
 import { CommerceService } from './commerce.service';
 
 @Controller()
 @UseGuards(SessionAuthGuard)
 export class CommerceController {
-  constructor(private readonly commerce: CommerceService) {}
+  constructor(
+    private readonly commerce: CommerceService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Get('store')
   store(@CurrentAuth() auth: AuthContext) {
@@ -14,8 +18,15 @@ export class CommerceController {
   }
 
   @Post('store/mock-connect')
-  mockConnect(@CurrentAuth() auth: AuthContext) {
-    return this.commerce.mockConnect(auth.tenantId);
+  async mockConnect(@CurrentAuth() auth: AuthContext) {
+    const store = await this.commerce.mockConnect(auth.tenantId);
+    await this.audit.recordAdmin(
+      auth,
+      'store.mock_connect',
+      'اتصال/همگام‌سازی mock فروشگاه',
+      { syncHealth: store.syncHealth },
+    );
+    return store;
   }
 
   @Get('catalog/products')
@@ -36,7 +47,6 @@ export class CommerceController {
         status: o.status,
         trackingCode: o.trackingCode,
         syncedAt: o.syncedAt,
-        // Merchant-only hint for demo verification — never exposed on public chat APIs
         verifyHintPhoneLast4: o.customerPhoneLast4,
       })),
     );

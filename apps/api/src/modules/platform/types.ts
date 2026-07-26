@@ -213,6 +213,16 @@ export interface AuditTurn {
   createdAt: string;
 }
 
+export interface AdminAuditEvent {
+  id: string;
+  tenantId: string;
+  actorUserId: string;
+  action: string;
+  summary: string;
+  payload: Record<string, unknown> | null;
+  createdAt: string;
+}
+
 export interface KnowledgeDoc {
   id: string;
   tenantId: string;

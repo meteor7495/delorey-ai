@@ -30,4 +30,25 @@ export class AuditController {
   get(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
     return this.audit.get(auth.tenantId, id);
   }
+
+  @Get('admin')
+  listAdmin(
+    @CurrentAuth() auth: AuthContext,
+    @Query('days') days?: string,
+    @Query('action') action?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    return this.audit.listAdmin(auth.tenantId, {
+      days: days ? Number(days) : 7,
+      action,
+      limit: limit ? Number(limit) : 50,
+      offset: offset ? Number(offset) : 0,
+    });
+  }
+
+  @Get('admin/:id')
+  getAdmin(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    return this.audit.getAdmin(auth.tenantId, id);
+  }
 }

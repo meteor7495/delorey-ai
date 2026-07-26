@@ -404,6 +404,39 @@ export function createApiClient(opts: ApiClientOptions) {
         }>;
         note: string;
       }>(opts, `/audit/turns/${id}`),
+    listAdminAudits: (query: {
+      days?: number;
+      action?: string;
+      limit?: number;
+      offset?: number;
+    } = {}) => {
+      const params = new URLSearchParams();
+      if (query.days != null) params.set('days', String(query.days));
+      if (query.action) params.set('action', query.action);
+      if (query.limit != null) params.set('limit', String(query.limit));
+      if (query.offset != null) params.set('offset', String(query.offset));
+      const qs = params.toString();
+      return request<{
+        total: number;
+        items: Array<{
+          id: string;
+          actorUserId: string;
+          action: string;
+          summary: string;
+          payload: Record<string, unknown> | null;
+          createdAt: string;
+        }>;
+      }>(opts, `/audit/admin${qs ? `?${qs}` : ''}`);
+    },
+    getAdminAudit: (id: string) =>
+      request<{
+        id: string;
+        actorUserId: string;
+        action: string;
+        summary: string;
+        payload: Record<string, unknown> | null;
+        createdAt: string;
+      }>(opts, `/audit/admin/${id}`),
   };
 }
 

@@ -4,6 +4,7 @@ import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { PrismaService } from './prisma.service';
 import type {
+  AdminAuditEvent,
   AuditTurn,
   ChannelBinding,
   Conversation,
@@ -998,6 +999,113 @@ export class DataStore implements OnModuleInit {
         citations: turn.citations,
       },
     });
+  }
+
+  async addAdminAudit(event: {
+    tenantId: string;
+    actorUserId: string;
+    action: string;
+    summary: string;
+    payload?: Record<string, unknown> | null;
+  }): Promise<AdminAuditEvent> {
+    const row = await this.prisma.adminAuditEvent.create({
+      data: {
+        tenantId: event.tenantId,
+        actorUserId: event.actorUserId,
+        action: event.action,
+        summary: event.summary,
+        payload:
+          event.payload == null
+            ? Prisma.JsonNull
+            : (event.payload as Prisma.InputJsonValue),
+      },
+    });
+    return this.mapAdminAudit(row);
+  }
+
+  async listAdminAudits(
+    tenantId: string,
+    opts: {
+      days?: number;
+      action?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) {
+    const days = Math.max(1, Math.min(opts.days ?? 7, 90));
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    const limit = Math.max(1, Math.min(opts.limit ?? 50, 200));
+    const offset = Math.max(0, opts.offset ?? 0);
+
+    const where = {
+      tenantId,
+      createdAt: { gte: since },
+      ...(opts.action
+        ? opts.action.endsWith('*')
+          ? { action: { startsWith: opts.action.slice(0, -1) } }
+          : { action: opts.action }
+        : {}),
+    };
+
+    const [total, rows] = await Promise.all([
+      this.prisma.adminAuditEvent.count({ where }),
+      this.prisma.adminAuditEvent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+    ]);
+
+    return {
+      total,
+      limit,
+      offset,
+      rangeDays: days,
+      items: rows.map((r: {
+        id: string;
+        tenantId: string;
+        actorUserId: string;
+        action: string;
+        summary: string;
+        payload: Prisma.JsonValue | null;
+        createdAt: Date;
+      }) => this.mapAdminAudit(r)),
+    };
+  }
+
+  async getAdminAudit(
+    tenantId: string,
+    id: string,
+  ): Promise<AdminAuditEvent | null> {
+    const row = await this.prisma.adminAuditEvent.findFirst({
+      where: { id, tenantId },
+    });
+    return row ? this.mapAdminAudit(row) : null;
+  }
+
+  private mapAdminAudit(row: {
+    id: string;
+    tenantId: string;
+    actorUserId: string;
+    action: string;
+    summary: string;
+    payload: Prisma.JsonValue | null;
+    createdAt: Date;
+  }): AdminAuditEvent {
+    return {
+      id: row.id,
+      tenantId: row.tenantId,
+      actorUserId: row.actorUserId,
+      action: row.action,
+      summary: row.summary,
+      payload:
+        row.payload && typeof row.payload === 'object' && !Array.isArray(row.payload)
+          ? (row.payload as Record<string, unknown>)
+          : null,
+      createdAt: row.createdAt.toISOString(),
+    };
   }
 
   async analyticsSummary(tenantId: string, days = 7) {

@@ -2,6 +2,7 @@ import { Body, Controller, Get, Headers, Param, Post, UseGuards } from '@nestjs/
 import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../../platform/auth.guard';
 import type { AuthContext } from '../../platform/auth.guard';
+import { AuditService } from '../../audit/audit.service';
 import { TelegramAdapterService } from './telegram.service';
 import type { TelegramUpdate } from './telegram.client';
 
@@ -27,12 +28,28 @@ class SimulateDto {
 
 @Controller()
 export class TelegramAdapterController {
-  constructor(private readonly telegram: TelegramAdapterService) {}
+  constructor(
+    private readonly telegram: TelegramAdapterService,
+    private readonly audit: AuditService,
+  ) {}
 
   @Post('channels/telegram/connect')
   @UseGuards(SessionAuthGuard)
-  connect(@CurrentAuth() auth: AuthContext, @Body() dto: ConnectTelegramDto) {
-    return this.telegram.connect(auth.tenantId, dto.botToken);
+  async connect(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: ConnectTelegramDto,
+  ) {
+    const channel = await this.telegram.connect(auth.tenantId, dto.botToken);
+    await this.audit.recordAdmin(
+      auth,
+      'channel.telegram.connect',
+      'اتصال کانال Telegram',
+      {
+        channelId: channel.id,
+        botUsername: channel.botUsername,
+      },
+    );
+    return channel;
   }
 
   @Get('channels/telegram')
