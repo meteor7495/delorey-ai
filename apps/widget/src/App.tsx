@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { createApiClient } from '@delorey/api-client';
+import { aiStateLabel } from '@delorey/ui';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3001';
 
@@ -34,7 +35,11 @@ export function App() {
         },
       ]);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'session failed');
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'نشست شروع نشد. کلید عمومی را بررسی کنید و دوباره تلاش کنید.',
+      );
     } finally {
       setBusy(false);
     }
@@ -60,7 +65,11 @@ export function App() {
         { role: 'employee', content: res.message.content },
       ]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'send failed');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'الان گفتگو در دسترس نیست. کمی بعد دوباره تلاش کنید.',
+      );
     } finally {
       setBusy(false);
     }
@@ -68,27 +77,31 @@ export function App() {
 
   return (
     <div className="page">
-      <h1>DeloRey Widget (Slice 01)</h1>
+      <h1>ویجت گفتگو DeloRey</h1>
       <p className="muted">
-        Public key را از Workspace → کانال‌ها کپی کنید. دمو پس از login معمولاً با{' '}
-        <code>pk_live_</code> + ۸ کاراکتر اول tenant شروع می‌شود؛ از UI کانال‌ها دقیق بردارید.
+        کلید عمومی را از فضای کاری → کانال‌ها کپی کنید. پس از ورود، معمولاً با{' '}
+        <code dir="ltr">pk_live_</code> + ۸ کاراکتر اول tenant ساخته می‌شود؛ از
+        صفحهٔ کانال‌ها دقیق بردارید.
       </p>
       <div className="composer" style={{ marginBottom: 12 }}>
         <input
           value={publicKey}
           onChange={(e) => setPublicKey(e.target.value)}
-          placeholder="pk_live_..."
+          placeholder="کلید عمومی (pk_live_…)"
           dir="ltr"
+          aria-label="کلید عمومی"
         />
         <button type="button" onClick={startSession} disabled={busy}>
-          شروع نشست
+          {busy && !conversationId ? 'در حال اتصال…' : 'شروع گفتگو'}
         </button>
       </div>
       {error && <p style={{ color: '#f97066' }}>{error}</p>}
       <div className="panel">
         <div className="header">
           <strong>{employeeName}</strong>
-          <span className="muted">{aiState}</span>
+          <span className="muted">
+            {busy ? 'در حال نوشتن…' : aiStateLabel(aiState)}
+          </span>
         </div>
         <div className="messages">
           {messages.map((m, i) => (
@@ -101,8 +114,9 @@ export function App() {
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="پیام شما..."
+            placeholder="پیام شما…"
             disabled={!conversationId || busy}
+            aria-label="پیام"
           />
           <button type="submit" disabled={!conversationId || busy}>
             ارسال

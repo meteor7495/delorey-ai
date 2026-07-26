@@ -1,6 +1,10 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import {
+  knowledgeDocTypeLabel,
+  knowledgeStatusLabel,
+} from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -75,12 +79,12 @@ export default function KnowledgePage() {
           bodyText,
           sourceAttribution,
         });
-        setMessage('FAQ ذخیره و ایندکس شد');
+        setMessage('پرسش متداول ذخیره و ایندکس شد');
       }
       resetForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'save failed');
+      setError(err instanceof Error ? err.message : 'ذخیره نشد. دوباره تلاش کنید.');
     }
   }
 
@@ -88,21 +92,22 @@ export default function KnowledgePage() {
     <AppShell>
       <h1>دانش فروشگاه</h1>
       <p className="muted">
-        FAQ و سیاست‌ها با attribution — ایندکس keyword (Slice 05)
+        پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای
       </p>
 
       {index && (
         <div className="banner" style={{ marginBottom: 16 }}>
           <strong>وضعیت ایندکس:</strong> {index.note}
           <div className="muted" style={{ fontSize: 13 }}>
-            mode={index.mode} · active={index.active} · indexing={index.indexing}{' '}
-            · failed={index.failed}
+            حالت: {index.mode === 'keyword' ? 'کلیدواژه' : index.mode} · فعال:{' '}
+            {index.active} · در حال ایندکس: {index.indexing} · ناموفق:{' '}
+            {index.failed}
           </div>
         </div>
       )}
 
       <div className="card">
-        <h3>{editingId ? 'ویرایش سند' : 'افزودن FAQ / سیاست'}</h3>
+        <h3>{editingId ? 'ویرایش سند' : 'افزودن پرسش متداول / سیاست'}</h3>
         <form onSubmit={onSubmit}>
           <label>نوع</label>
           <select
@@ -112,8 +117,8 @@ export default function KnowledgePage() {
               setDocType(e.target.value as 'faq' | 'policy_override')
             }
           >
-            <option value="faq">FAQ</option>
-            <option value="policy_override">سیاست / override</option>
+            <option value="faq">پرسش متداول</option>
+            <option value="policy_override">سیاست / بازنویسی</option>
           </select>
           <label>عنوان</label>
           <input
@@ -130,7 +135,7 @@ export default function KnowledgePage() {
             onChange={(e) => setBodyText(e.target.value)}
             required
           />
-          <label>منبع (source attribution)</label>
+          <label>منبع</label>
           <input
             className="input"
             value={sourceAttribution}
@@ -157,7 +162,7 @@ export default function KnowledgePage() {
       <div className="card" style={{ marginTop: 16 }}>
         <h3>اسناد</h3>
         {docs.length === 0 && (
-          <p className="muted">سندی نیست — دمو معمولاً دو FAQ پیش‌فرض دارد.</p>
+          <p className="muted">سندی نیست — دمو معمولاً دو پرسش متداول پیش‌فرض دارد.</p>
         )}
         {docs.map((d) => (
           <div
@@ -171,7 +176,8 @@ export default function KnowledgePage() {
               <strong>
                 {d.title}{' '}
                 <span className="muted" style={{ fontWeight: 400 }}>
-                  ({d.docType} · {d.status})
+                  ({knowledgeDocTypeLabel(d.docType)} ·{' '}
+                  {knowledgeStatusLabel(d.status)})
                 </span>
               </strong>
               <div className="row">

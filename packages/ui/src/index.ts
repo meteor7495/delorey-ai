@@ -25,6 +25,10 @@ export {
   decisionLabel,
   adminActionLabel,
   skillLabel,
+  knowledgeDocTypeLabels,
+  knowledgeStatusLabels,
+  knowledgeDocTypeLabel,
+  knowledgeStatusLabel,
   type AiState,
 } from './tokens';
 export { AiStateChip } from './ai-state-chip';

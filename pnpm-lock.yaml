@@ -74,6 +74,9 @@ importers:
       '@delorey/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@delorey/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       react:
         specifier: ^19.1.0
         version: 19.2.8

@@ -165,8 +165,12 @@ Nav: «ممیزی» نه Audit. Tab: «نوبت‌های کارمند» نه «�
 | Typing | «در حال نوشتن…» |
 | Handoff | «یک همکار انسانی به گفتگو می‌پیوندد.» |
 | Unsure / refuse | «الان اطلاعات مطمئنی ندارم؛ شما را به همکار انسانی وصل می‌کنم.» |
-| Offline | «الان گفتگو در دسترس نیست. کمی بعد دوباره تلاش کنید.» |
+| Offline / send fail | «الان گفتگو در دسترس نیست. کمی بعد دوباره تلاش کنید.» |
+| Session fail | «نشست شروع نشد. کلید عمومی را بررسی کنید و دوباره تلاش کنید.» |
 | Verify order | Ask only what Runtime/Skill requires — e.g. «لطفاً شماره سفارش را وارد کنید.» |
+| AI state chip | Use canonical FA from §4 — never raw `inactive` / `active` |
+
+Widget chrome (dev harness): title «ویجت گفتگو DeloRey»; CTA «شروع گفتگو» / «ارسال». Merchant setup copy refers to «فضای کاری → کانال‌ها» and «کلید عمومی» — not Public key / Workspace.
 
 **Employee replies** (generated): tone/language from Employee settings — still must not invent catalog facts (Runtime). Widget must not “improve” answers with local copy that adds prices.
 

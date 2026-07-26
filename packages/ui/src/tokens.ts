@@ -210,3 +210,23 @@ export function adminActionLabel(action: string): string {
 export function skillLabel(skill: string): string {
   return skillLabels[skill] ?? skill;
 }
+
+export const knowledgeDocTypeLabels: Record<string, string> = {
+  faq: 'پرسش متداول',
+  policy_override: 'سیاست / بازنویسی',
+  upload: 'بارگذاری',
+};
+
+export const knowledgeStatusLabels: Record<string, string> = {
+  active: 'فعال',
+  indexing: 'در حال ایندکس',
+  failed: 'ناموفق',
+};
+
+export function knowledgeDocTypeLabel(type: string): string {
+  return knowledgeDocTypeLabels[type] ?? type;
+}
+
+export function knowledgeStatusLabel(status: string): string {
+  return knowledgeStatusLabels[status] ?? status;
+}

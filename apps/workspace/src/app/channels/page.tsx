@@ -1,6 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import {
+  aiStateLabel,
+  channelStatusLabel,
+  decisionLabel,
+} from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 
@@ -51,11 +56,15 @@ export default function ChannelsPage() {
         tgToken || '0000000000:DEV_MOCK_TOKEN_SLICE03_LOCAL',
       );
       setMessage(
-        `تلگرام متصل شد @${res.botUsername ?? 'bot'} · webhook: ${res.webhookUrl}`,
+        `تلگرام متصل شد @${res.botUsername ?? 'bot'} · وب‌هوک آماده است`,
       );
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'connect failed');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'اتصال تلگرام برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.',
+      );
     }
   }
 
@@ -67,12 +76,14 @@ export default function ChannelsPage() {
       const res = await api.connectBale(
         baleToken || '0000000000:DEV_MOCK_TOKEN_SLICE04_BALE',
       );
-      setMessage(
-        `بله متصل شد @${res.botUsername ?? 'bot'} · webhook: ${res.webhookUrl}`,
-      );
+      setMessage(`بله متصل شد @${res.botUsername ?? 'bot'} · وب‌هوک آماده است`);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'connect failed');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'اتصال بله برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.',
+      );
     }
   }
 
@@ -83,11 +94,13 @@ export default function ChannelsPage() {
       const res = await api.simulateTelegram({ text: tgSimText });
       setMessage(
         res.duplicate
-          ? 'Telegram: duplicate update نادیده گرفته شد'
-          : `Telegram → ${res.decision}: ${res.reply?.slice(0, 120)}`,
+          ? 'تلگرام: به‌روزرسانی تکراری نادیده گرفته شد'
+          : `تلگرام → ${decisionLabel(String(res.decision))}: ${res.reply?.slice(0, 120)}`,
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'simulate failed');
+      setError(
+        err instanceof Error ? err.message : 'شبیه‌سازی تلگرام ناموفق بود.',
+      );
     }
   }
 
@@ -98,35 +111,43 @@ export default function ChannelsPage() {
       const res = await api.simulateBale({ text: baleSimText });
       setMessage(
         res.duplicate
-          ? 'Bale: duplicate update نادیده گرفته شد'
-          : `Bale → ${res.decision}: ${res.reply?.slice(0, 120)}`,
+          ? 'بله: به‌روزرسانی تکراری نادیده گرفته شد'
+          : `بله → ${decisionLabel(String(res.decision))}: ${res.reply?.slice(0, 120)}`,
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'simulate failed');
+      setError(
+        err instanceof Error ? err.message : 'شبیه‌سازی بله ناموفق بود.',
+      );
     }
   }
 
   return (
     <AppShell>
       <h1>کانال‌ها</h1>
-      <p className="muted">Website · Telegram · Bale — یک مغز (Runtime)</p>
+      <p className="muted">وبسایت · تلگرام · بله — یک مغز (Runtime)</p>
 
       <div className="card">
-        <h3>Website Chat</h3>
+        <h3>گفتگوی وبسایت</h3>
         <p>
-          وضعیت: <strong>{website?.status ?? '...'}</strong>
+          وضعیت:{' '}
+          <strong>
+            {website ? aiStateLabel(website.status) : '…'}
+          </strong>
         </p>
-        <p className="muted">Public key: {website?.publicKey}</p>
+        <p className="muted">
+          کلید عمومی:{' '}
+          <code dir="ltr">{website?.publicKey ?? '—'}</code>
+        </p>
         <pre className="snippet">{website?.snippet}</pre>
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h3>Telegram</h3>
+        <h3>تلگرام</h3>
         <p>
           وضعیت:{' '}
           <strong>
             {telegram?.connected
-              ? `${telegram.status} (@${telegram.botUsername ?? '—'})`
+              ? `${channelStatusLabel(String(telegram.status))} (@${telegram.botUsername ?? '—'})`
               : 'متصل نیست'}
           </strong>
         </p>
@@ -137,18 +158,18 @@ export default function ChannelsPage() {
         )}
         <p className="muted">
           {telegram?.live
-            ? 'TELEGRAM_LIVE=1 — ارسال واقعی'
-            : 'حالت mock — برای تست محلی از Simulate استفاده کنید'}
+            ? 'ارسال واقعی فعال است'
+            : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
         </p>
 
         <form onSubmit={onConnectTelegram}>
-          <label>Bot token</label>
+          <label>توکن ربات</label>
           <input
             className="input"
             dir="ltr"
             value={tgToken}
             onChange={(e) => setTgToken(e.target.value)}
-            placeholder="123456:ABC... یا خالی برای mock token"
+            placeholder="123456:ABC… یا خالی برای توکن آزمایشی"
           />
           <button className="btn" type="submit">
             اتصال تلگرام
@@ -157,7 +178,7 @@ export default function ChannelsPage() {
 
         {telegram?.connected && (
           <form onSubmit={onSimulateTelegram} style={{ marginTop: 16 }}>
-            <label>Simulate inbound (محلی)</label>
+            <label>شبیه‌سازی پیام ورودی (محلی)</label>
             <input
               className="input"
               value={tgSimText}
@@ -171,12 +192,12 @@ export default function ChannelsPage() {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h3>Bale</h3>
+        <h3>بله</h3>
         <p>
           وضعیت:{' '}
           <strong>
             {bale?.connected
-              ? `${bale.status} (@${bale.botUsername ?? '—'})`
+              ? `${channelStatusLabel(String(bale.status))} (@${bale.botUsername ?? '—'})`
               : 'متصل نیست'}
           </strong>
         </p>
@@ -187,18 +208,18 @@ export default function ChannelsPage() {
         )}
         <p className="muted">
           {bale?.live
-            ? 'BALE_LIVE=1 — ارسال واقعی (tapi.bale.ai)'
-            : 'حالت mock — برای تست محلی از Simulate استفاده کنید'}
+            ? 'ارسال واقعی فعال است'
+            : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
         </p>
 
         <form onSubmit={onConnectBale}>
-          <label>Bot token</label>
+          <label>توکن ربات</label>
           <input
             className="input"
             dir="ltr"
             value={baleToken}
             onChange={(e) => setBaleToken(e.target.value)}
-            placeholder="توکن بله · خالی برای mock"
+            placeholder="توکن بله · خالی برای آزمایشی"
           />
           <button className="btn" type="submit">
             اتصال بله
@@ -207,7 +228,7 @@ export default function ChannelsPage() {
 
         {bale?.connected && (
           <form onSubmit={onSimulateBale} style={{ marginTop: 16 }}>
-            <label>Simulate inbound (محلی)</label>
+            <label>شبیه‌سازی پیام ورودی (محلی)</label>
             <input
               className="input"
               value={baleSimText}
