@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
@@ -63,9 +63,9 @@ export default function AuditClient() {
 
   return (
     <AppShell>
-      <h1>Ù…Ù…ÛŒØ²ÛŒ (Audit)</h1>
+      <h1>ممیزی (Audit)</h1>
       <p className="muted">
-        Ù†ÙˆØ¨Øªâ€ŒÙ‡Ø§ÛŒ AI Ø¨Ù‡â€ŒØµÙˆØ±Øª append-only â€” Ø¨Ø¯ÙˆÙ† prompt Ø®Ø§Ù… Â· Transparent AI
+        نوبت‌های AI به صورت append-only — بدون prompt خام · Transparent AI
       </p>
       {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
@@ -77,7 +77,7 @@ export default function AuditClient() {
             className={`btn ${days === d ? '' : 'secondary'}`}
             onClick={() => setDays(d)}
           >
-            {d} Ø±ÙˆØ²
+            {d} روز
           </button>
         ))}
         <select
@@ -86,7 +86,7 @@ export default function AuditClient() {
           value={decision}
           onChange={(e) => setDecision(e.target.value)}
         >
-          <option value="">Ù‡Ù…Ù‡ ØªØµÙ…ÛŒÙ…â€ŒÙ‡Ø§</option>
+          <option value="">همه تصمیم‌ها</option>
           <option value="answer_grounded">answer_grounded</option>
           <option value="answer_knowledge">answer_knowledge</option>
           <option value="recommend">recommend</option>
@@ -96,8 +96,8 @@ export default function AuditClient() {
         </select>
         {conversationId && (
           <span className="muted" style={{ fontSize: 13 }}>
-            ÙÛŒÙ„ØªØ± Ú¯ÙØªÚ¯Ùˆ: <code dir="ltr">{conversationId.slice(0, 8)}â€¦</code>{' '}
-            <Link href="/audit">Ø­Ø°Ù</Link>
+            فیلتر گفتگو: <code dir="ltr">{conversationId.slice(0, 8)}…</code>{' '}
+            <Link href="/audit">حذف</Link>
           </span>
         )}
       </div>
@@ -109,13 +109,16 @@ export default function AuditClient() {
           gap: 16,
         }}
       >
-        <div className="card" style={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}>
+        <div
+          className="card"
+          style={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}
+        >
           <div style={{ padding: 12 }} className="muted">
-            {total} Ù†ÙˆØ¨Øª
+            {total} نوبت
           </div>
           {items.length === 0 && (
             <p className="muted" style={{ padding: 16 }}>
-              Ù…Ù…ÛŒØ²ÛŒâ€ŒØ§ÛŒ Ø¯Ø± Ø§ÛŒÙ† ÙÛŒÙ„ØªØ± Ù†ÛŒØ³Øª.
+              ممیزی‌ای در این فیلتر نیست.
             </p>
           )}
           {items.map((item) => (
@@ -136,7 +139,7 @@ export default function AuditClient() {
             >
               <div style={{ fontWeight: 600, fontSize: 13 }}>{item.decision}</div>
               <div className="muted" style={{ fontSize: 12 }} dir="ltr">
-                {new Date(item.createdAt).toLocaleString('fa-IR')} Â·{' '}
+                {new Date(item.createdAt).toLocaleString('fa-IR')} ·{' '}
                 {item.conversationId.slice(0, 8)}
               </div>
             </button>
@@ -145,7 +148,7 @@ export default function AuditClient() {
 
         <div className="card">
           {!detail && (
-            <p className="muted">ÛŒÚ© Ù†ÙˆØ¨Øª Ø±Ø§ Ø§Ø² Ù„ÛŒØ³Øª Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†ÛŒØ¯.</p>
+            <p className="muted">یک نوبت را از لیست انتخاب کنید.</p>
           )}
           {detail && (
             <>
@@ -160,10 +163,10 @@ export default function AuditClient() {
               </p>
               {detail.conversation && (
                 <p>
-                  Ú©Ø§Ù†Ø§Ù„: {detail.conversation.channel} Â· Ù…Ø§Ù„Ú©ÛŒØª:{' '}
+                  کانال: {detail.conversation.channel} · مالکیت:{' '}
                   {detail.conversation.ownership}
                   {detail.conversation.escalationReason
-                    ? ` Â· ${detail.conversation.escalationReason}`
+                    ? ` · ${detail.conversation.escalationReason}`
                     : ''}
                 </p>
               )}
@@ -172,13 +175,13 @@ export default function AuditClient() {
                   className="btn secondary"
                   href={`/inbox?c=${detail.conversationId}`}
                 >
-                  Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Inbox
+                  باز کردن Inbox
                 </Link>
                 <Link
                   className="btn secondary"
                   href={`/audit?c=${detail.conversationId}`}
                 >
-                  ÙÙ‚Ø· Ø§ÛŒÙ† Ú¯ÙØªÚ¯Ùˆ
+                  فقط این گفتگو
                 </Link>
               </div>
               <h3 style={{ marginTop: 16 }}>Citations</h3>
@@ -188,7 +191,7 @@ export default function AuditClient() {
               >
                 {JSON.stringify(detail.citations, null, 2)}
               </pre>
-              <h3>Ù¾ÛŒØ§Ù…â€ŒÙ‡Ø§ÛŒ Ø§Ø®ÛŒØ±</h3>
+              <h3>پیام‌های اخیر</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {detail.recentMessages.map((m, i) => (
                   <div
@@ -212,4 +215,3 @@ export default function AuditClient() {
     </AppShell>
   );
 }
-
