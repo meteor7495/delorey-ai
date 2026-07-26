@@ -8,6 +8,7 @@ import type {
   ChannelBinding,
   Conversation,
   Employee,
+  EmployeeGuardrails,
   EscalationReason,
   HandoffPacket,
   KnowledgeChunk,
@@ -21,6 +22,7 @@ import type {
   Tenant,
   User,
 } from './types';
+import { DEFAULT_GUARDRAILS, normalizeGuardrails } from './types';
 type EmployeeSkills = Employee['skills'];
 
 /**
@@ -86,6 +88,14 @@ export class DataStore implements OnModuleInit {
             order_status: true,
             escalate: true,
           } satisfies EmployeeSkills,
+          guardrails: DEFAULT_GUARDRAILS as unknown as Prisma.InputJsonValue,
+        },
+      });
+    } else if (existingEmployee.guardrails == null) {
+      await this.prisma.employee.update({
+        where: { id: existingEmployee.id },
+        data: {
+          guardrails: DEFAULT_GUARDRAILS as unknown as Prisma.InputJsonValue,
         },
       });
     }
@@ -426,6 +436,22 @@ export class DataStore implements OnModuleInit {
         language: patch.language ?? current.language,
         status: patch.status ?? current.status,
         skills,
+      },
+    });
+    return this.mapEmployee(row);
+  }
+
+  async updateEmployeeGuardrails(
+    tenantId: string,
+    guardrails: EmployeeGuardrails,
+  ): Promise<Employee | null> {
+    const current = await this.employeeForTenant(tenantId);
+    if (!current) return null;
+    const normalized = normalizeGuardrails(guardrails);
+    const row = await this.prisma.employee.update({
+      where: { id: current.id },
+      data: {
+        guardrails: normalized as unknown as Prisma.InputJsonValue,
       },
     });
     return this.mapEmployee(row);
@@ -1388,6 +1414,7 @@ export class DataStore implements OnModuleInit {
     language: string;
     status: string;
     skills: Prisma.JsonValue;
+    guardrails?: Prisma.JsonValue | null;
   }): Employee {
     return {
       id: row.id,
@@ -1397,6 +1424,7 @@ export class DataStore implements OnModuleInit {
       language: row.language,
       status: row.status as Employee['status'],
       skills: row.skills as EmployeeSkills,
+      guardrails: normalizeGuardrails(row.guardrails),
     };
   }
 

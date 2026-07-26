@@ -15,5 +15,6 @@ Active implementation slices for DeloRey AI MVP.
 | 08 — Basic Analytics | [vertical-slice-08.md](./vertical-slice-08.md) | Done |
 | 09 — Audit Logs | [vertical-slice-09.md](./vertical-slice-09.md) | Done |
 | 10 — Revenue (honest) | [vertical-slice-10.md](./vertical-slice-10.md) | Done |
+| 11 — Guardrails | [vertical-slice-11.md](./vertical-slice-11.md) | Done |
 
 Authority remains Product Scope → Journey → Architecture → PRDs → UI. Slices do not expand MVP scope.

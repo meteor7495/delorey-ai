@@ -74,15 +74,16 @@ model Session {
 }
 
 model Employee {
-  id        String   @id @default(uuid())
-  tenantId  String   @map("tenant_id")
-  name      String
-  tone      String
-  language  String   @default("fa")
-  status    String   @default("inactive")
-  skills    Json
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  name       String
+  tone       String
+  language   String   @default("fa")
+  status     String   @default("inactive")
+  skills     Json
+  guardrails Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 

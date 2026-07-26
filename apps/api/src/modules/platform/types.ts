@@ -92,6 +92,66 @@ export interface Product {
   description?: string;
 }
 
+export interface EmployeeGuardrails {
+  blockedTopics: string[];
+  discountCapPercent: number;
+  restrictedMutations: {
+    refund: boolean;
+    cancel: boolean;
+  };
+  escalationRules: {
+    onBlockedTopic: boolean;
+    onCustomerRequest: boolean;
+    onDiscountAboveCap: boolean;
+  };
+}
+
+export const DEFAULT_GUARDRAILS: EmployeeGuardrails = {
+  blockedTopics: ['سیاسی', 'قمار', 'politics', 'gambling'],
+  discountCapPercent: 10,
+  restrictedMutations: {
+    refund: true,
+    cancel: true,
+  },
+  escalationRules: {
+    onBlockedTopic: true,
+    onCustomerRequest: true,
+    onDiscountAboveCap: true,
+  },
+};
+
+export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
+  const src =
+    raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const topics = Array.isArray(src.blockedTopics)
+    ? src.blockedTopics.filter((t): t is string => typeof t === 'string')
+    : DEFAULT_GUARDRAILS.blockedTopics;
+  const mutations =
+    src.restrictedMutations && typeof src.restrictedMutations === 'object'
+      ? (src.restrictedMutations as Record<string, unknown>)
+      : {};
+  const rules =
+    src.escalationRules && typeof src.escalationRules === 'object'
+      ? (src.escalationRules as Record<string, unknown>)
+      : {};
+  const cap = Number(src.discountCapPercent);
+  return {
+    blockedTopics: topics.length ? topics : DEFAULT_GUARDRAILS.blockedTopics,
+    discountCapPercent: Number.isFinite(cap)
+      ? Math.max(0, Math.min(100, cap))
+      : DEFAULT_GUARDRAILS.discountCapPercent,
+    restrictedMutations: {
+      refund: mutations.refund !== false,
+      cancel: mutations.cancel !== false,
+    },
+    escalationRules: {
+      onBlockedTopic: rules.onBlockedTopic !== false,
+      onCustomerRequest: rules.onCustomerRequest !== false,
+      onDiscountAboveCap: rules.onDiscountAboveCap !== false,
+    },
+  };
+}
+
 export interface Employee {
   id: string;
   tenantId: string;
@@ -105,6 +165,7 @@ export interface Employee {
     order_status: boolean;
     escalate: boolean;
   };
+  guardrails: EmployeeGuardrails;
 }
 
 export interface ChannelBinding {

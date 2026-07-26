@@ -5,7 +5,8 @@ import { CommerceService } from '../commerce/commerce.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
-import type { Citation, Employee } from '../platform/types';
+import type { Citation, Employee, EmployeeGuardrails } from '../platform/types';
+import { DEFAULT_GUARDRAILS } from '../platform/types';
 
 export type TurnResult = {
   reply: string;
@@ -23,6 +24,11 @@ const ORDER_INTENT_RE =
 const RECOMMEND_INTENT_RE =
   /(پیشنهاد|توصیه|چی بخر|هدیه|recommend|suggest|gift|کدام.*(بهتر|بخر)|چی.*مناسب)/i;
 
+const REFUND_RE =
+  /(استرداد|بازگشت\s*وجه|پس\s*بگیر|refund|money\s*back)/i;
+const CANCEL_ORDER_RE =
+  /(لغو\s*سفارش|کنسل\s*سفارش|cancel\s*(my\s*)?order|order\s*cancel)/i;
+
 const ORDER_NUMBER_RE = /\b(DR-?\d{3,})\b/i;
 const PHONE_LAST4_RE = /\b(\d{4})\b/;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
@@ -33,6 +39,31 @@ const STATUS_FA: Record<string, string> = {
   delivered: 'تحویل‌شده',
   cancelled: 'لغو‌شده',
 };
+
+function extractDiscountPercents(text: string): number[] {
+  const found: number[] = [];
+  const re =
+    /(\d{1,3})\s*%|%\s*(\d{1,3})|(\d{1,3})\s*درصد|تخفیف\s*(\d{1,3})/gi;
+  for (const m of text.matchAll(re)) {
+    const n = Number(m[1] ?? m[2] ?? m[3] ?? m[4]);
+    if (Number.isFinite(n) && n > 0 && n <= 100) found.push(n);
+  }
+  return found;
+}
+
+function matchesBlockedTopic(
+  text: string,
+  topics: string[],
+): string | null {
+  const lower = text.toLowerCase();
+  for (const topic of topics) {
+    const t = topic.trim();
+    // Avoid accidental single-char / empty matches from bad config
+    if (t.length < 2) continue;
+    if (lower.includes(t.toLowerCase())) return t;
+  }
+  return null;
+}
 
 @Injectable()
 export class RuntimeService {
@@ -61,7 +92,16 @@ export class RuntimeService {
       };
     }
 
-    if (HUMAN_REQUEST_RE.test(userText)) {
+    const storeConn = await this.store.getStore(tenantId);
+    const employee = await this.store.employeeForTenant(tenantId);
+    const guardrails: EmployeeGuardrails =
+      employee?.guardrails ?? DEFAULT_GUARDRAILS;
+    const syncHealth = storeConn?.syncHealth ?? 'never';
+
+    if (
+      HUMAN_REQUEST_RE.test(userText) &&
+      guardrails.escalationRules.onCustomerRequest
+    ) {
       await this.handoff.escalate(
         tenantId,
         conversationId,
@@ -77,9 +117,93 @@ export class RuntimeService {
       };
     }
 
-    const storeConn = await this.store.getStore(tenantId);
-    const employee = await this.store.employeeForTenant(tenantId);
-    const syncHealth = storeConn?.syncHealth ?? 'never';
+    const blocked = matchesBlockedTopic(userText, guardrails.blockedTopics);
+    if (blocked && guardrails.escalationRules.onBlockedTopic) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'blocked_topic',
+        [],
+        `blocked topic: ${blocked}`,
+      );
+      await this.audit(tenantId, conversationId, 'guardrail_block:topic', []);
+      return {
+        reply:
+          'این موضوع خارج از محدوده مجاز کارمند فروش است؛ شما را به همکار انسانی وصل می‌کنم.',
+        citations: [],
+        decision: 'escalated:blocked_topic',
+        ownership: 'human_owned',
+      };
+    }
+
+    if (guardrails.restrictedMutations.refund && REFUND_RE.test(userText)) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'skill_escalate',
+        [],
+        'refund mutation blocked by guardrail',
+      );
+      await this.audit(tenantId, conversationId, 'guardrail_block:refund', []);
+      return {
+        reply:
+          'استرداد وجه توسط AI انجام نمی‌شود (محدودیت سخت). درخواست شما به همکار انسانی ارجاع شد.',
+        citations: [],
+        decision: 'guardrail_block:refund',
+        ownership: 'human_owned',
+      };
+    }
+
+    if (
+      guardrails.restrictedMutations.cancel &&
+      CANCEL_ORDER_RE.test(userText)
+    ) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'skill_escalate',
+        [],
+        'cancel mutation blocked by guardrail',
+      );
+      await this.audit(tenantId, conversationId, 'guardrail_block:cancel', []);
+      return {
+        reply:
+          'لغو سفارش توسط AI انجام نمی‌شود (محدودیت سخت). درخواست شما به همکار انسانی ارجاع شد.',
+        citations: [],
+        decision: 'guardrail_block:cancel',
+        ownership: 'human_owned',
+      };
+    }
+
+    const requestedDiscounts = extractDiscountPercents(userText);
+    const overCap = requestedDiscounts.find(
+      (p) => p > guardrails.discountCapPercent,
+    );
+    if (
+      overCap != null &&
+      guardrails.escalationRules.onDiscountAboveCap &&
+      /(تخفیف|discount|٪|%)/i.test(userText)
+    ) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'discount_cap',
+        [],
+        `requested ${overCap}% > cap ${guardrails.discountCapPercent}%`,
+      );
+      await this.audit(
+        tenantId,
+        conversationId,
+        'guardrail_block:discount_cap',
+        [],
+      );
+      return {
+        reply: `درخواست تخفیف ${overCap}٪ بالاتر از سقف مجاز فروشگاه (${guardrails.discountCapPercent}٪) است و بدون تأیید انسان اعمال نمی‌شود. شما را به همکار انسانی وصل می‌کنم.`,
+        citations: [],
+        decision: 'escalated:discount_cap',
+        ownership: 'human_owned',
+      };
+    }
 
     if (employee && employee.status === 'paused') {
       return {
@@ -155,6 +279,11 @@ export class RuntimeService {
             language: employee.language,
           }
         : null,
+      guardrails: {
+        blockedTopics: guardrails.blockedTopics,
+        discountCapPercent: guardrails.discountCapPercent,
+        restrictedMutations: guardrails.restrictedMutations,
+      },
       matches: matches.slice(0, 5).map((m) => ({
         sku: m.sku,
         title: m.title,
@@ -177,10 +306,40 @@ export class RuntimeService {
       'Never invent SKUs, prices, stock, policies, or order status.',
       'Prefer Persian if employee.language is fa.',
       'When answering from knowledge, cite sourceAttribution.',
+      `Never offer discounts above ${guardrails.discountCapPercent}%. Never process refunds or order cancellations.`,
       `CONTEXT_JSON:${contextJson}`,
     ].join('\n');
 
     const completion = await this.gateway.complete({ system, user: userText });
+
+    const replyDiscounts = extractDiscountPercents(completion.text);
+    const replyOverCap = replyDiscounts.find(
+      (p) => p > guardrails.discountCapPercent,
+    );
+    if (
+      replyOverCap != null &&
+      guardrails.escalationRules.onDiscountAboveCap
+    ) {
+      await this.handoff.escalate(
+        tenantId,
+        conversationId,
+        'discount_cap',
+        citations,
+        `model offered ${replyOverCap}% > cap`,
+      );
+      await this.audit(
+        tenantId,
+        conversationId,
+        'guardrail_block:discount_cap_reply',
+        citations,
+      );
+      return {
+        reply: `پاسخ مدل شامل تخفیف بالاتر از سقف (${guardrails.discountCapPercent}٪) بود و اعمال نشد. همکار انسانی پیگیری می‌کند.`,
+        citations,
+        decision: 'escalated:discount_cap',
+        ownership: 'human_owned',
+      };
+    }
 
     let decision = 'answer_empty_catalog';
     if (matches.length) decision = 'answer_grounded';

@@ -38,9 +38,40 @@ export function createApiClient(opts: ApiClientOptions) {
         body: JSON.stringify(body),
       }),
     workspaceMe: () => request<Record<string, unknown>>(opts, '/workspace/me'),
-    getEmployee: () => request<Record<string, unknown>>(opts, '/employee'),
+    getEmployee: () =>
+      request<{
+        id: string;
+        name: string;
+        tone: string;
+        language: string;
+        status: string;
+        skills: Record<string, boolean>;
+        guardrails: {
+          blockedTopics: string[];
+          discountCapPercent: number;
+          restrictedMutations: { refund: boolean; cancel: boolean };
+          escalationRules: {
+            onBlockedTopic: boolean;
+            onCustomerRequest: boolean;
+            onDiscountAboveCap: boolean;
+          };
+        };
+      }>(opts, '/employee'),
     updateEmployee: (body: Record<string, unknown>) =>
       request(opts, '/employee', { method: 'PUT', body: JSON.stringify(body) }),
+    updateEmployeeGuardrails: (body: {
+      blockedTopics?: string[];
+      discountCapPercent?: number;
+      escalationRules?: {
+        onBlockedTopic?: boolean;
+        onCustomerRequest?: boolean;
+        onDiscountAboveCap?: boolean;
+      };
+    }) =>
+      request(opts, '/employee/guardrails', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
     getStore: () => request<Record<string, unknown>>(opts, '/store'),
     mockConnectStore: () =>
       request(opts, '/store/mock-connect', { method: 'POST', body: '{}' }),

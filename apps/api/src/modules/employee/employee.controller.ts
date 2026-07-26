@@ -1,5 +1,14 @@
 import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
-import { IsIn, IsObject, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsIn,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
 import { EmployeeService } from './employee.service';
@@ -31,6 +40,34 @@ class UpdateEmployeeDto {
   };
 }
 
+class UpdateGuardrailsDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  blockedTopics?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(100)
+  discountCapPercent?: number;
+
+  @IsOptional()
+  @IsObject()
+  restrictedMutations?: {
+    refund?: boolean;
+    cancel?: boolean;
+  };
+
+  @IsOptional()
+  @IsObject()
+  escalationRules?: {
+    onBlockedTopic?: boolean;
+    onCustomerRequest?: boolean;
+    onDiscountAboveCap?: boolean;
+  };
+}
+
 @Controller('employee')
 @UseGuards(SessionAuthGuard)
 export class EmployeeController {
@@ -44,5 +81,13 @@ export class EmployeeController {
   @Put()
   update(@CurrentAuth() auth: AuthContext, @Body() dto: UpdateEmployeeDto) {
     return this.employees.update(auth.tenantId, dto);
+  }
+
+  @Put('guardrails')
+  updateGuardrails(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: UpdateGuardrailsDto,
+  ) {
+    return this.employees.updateGuardrails(auth.tenantId, dto);
   }
 }
