@@ -30,7 +30,7 @@
 
 # Out of this slice
 
-BullMQ webhook debounce workers · variants as first-class rows · WooCommerce · multi-store.
+BullMQ fair tenant limiter · variants as first-class rows · multi-store.
 
 ---
 

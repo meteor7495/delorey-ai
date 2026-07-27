@@ -28,7 +28,7 @@
 
 # Out of this slice
 
-Redis/`batch.sync` fair tenant limiter · multi-instance debounce store · inventory-level webhooks · WooCommerce.
+Redis fair tenant limiter · multi-instance debounce store · inventory-level webhooks.
 
 ---
 

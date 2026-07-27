@@ -14,6 +14,7 @@ import { TelegramAdapterModule } from './modules/adapters/telegram/telegram.modu
 import { BaleAdapterModule } from './modules/adapters/bale/bale.module';
 import { ShopifyAdapterModule } from './modules/adapters/shopify/shopify.module';
 import { WooCommerceAdapterModule } from './modules/adapters/woocommerce/woocommerce.module';
+import { InstagramSpikeModule } from './modules/adapters/instagram/instagram.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -41,6 +42,7 @@ import { HealthController } from './health.controller';
     BaleAdapterModule,
     ShopifyAdapterModule,
     WooCommerceAdapterModule,
+    InstagramSpikeModule,
   ],
   controllers: [HealthController],
 })

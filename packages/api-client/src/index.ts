@@ -91,16 +91,34 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    connectWooCommerce: (body: {
+      siteUrl: string;
+      consumerKey: string;
+      consumerSecret: string;
+    }) =>
+      request<Record<string, unknown>>(opts, '/store/woocommerce/connect', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
     syncStore: () =>
       request<Record<string, unknown>>(opts, '/store/sync', {
         method: 'POST',
         body: '{}',
       }),
+    registerStoreWebhooks: () =>
+      request<{
+        webhookUrl: string;
+        results: Array<{ topic: string; id: number | null; error?: string }>;
+      } | null>(opts, '/store/webhooks/register', {
+        method: 'POST',
+        body: '{}',
+      }),
+    /** @deprecated use registerStoreWebhooks */
     registerShopifyWebhooks: () =>
       request<{
         webhookUrl: string;
         results: Array<{ topic: string; id: number | null; error?: string }>;
-      } | null>(opts, '/store/shopify/webhooks/register', {
+      } | null>(opts, '/store/webhooks/register', {
         method: 'POST',
         body: '{}',
       }),

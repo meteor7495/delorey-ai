@@ -26,9 +26,15 @@ export default function StoreClient() {
   const [webhooksReady, setWebhooksReady] = useState(false);
   const [shopDomain, setShopDomain] = useState('');
   const [accessToken, setAccessToken] = useState('');
+  const [wooSiteUrl, setWooSiteUrl] = useState('');
+  const [wooKey, setWooKey] = useState('');
+  const [wooSecret, setWooSecret] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const isLivePlatform =
+    store?.platform === 'shopify' || store?.platform === 'woocommerce';
 
   async function load() {
     try {
@@ -47,7 +53,12 @@ export default function StoreClient() {
       setOrders(o);
       setOauthReady(Boolean(st.oauthReady));
       setWebhooksReady(Boolean(st.webhooksReady));
-      if (s?.shopDomain) setShopDomain(String(s.shopDomain));
+      if (s?.platform === 'shopify' && s.shopDomain) {
+        setShopDomain(String(s.shopDomain));
+      }
+      if (s?.platform === 'woocommerce' && s.shopDomain) {
+        setWooSiteUrl(String(s.shopDomain));
+      }
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'خطا');
@@ -57,7 +68,7 @@ export default function StoreClient() {
   useEffect(() => {
     load();
     if (search.get('shopify') === 'connected') {
-      setMessage('Shopify متصل و همگام شد.');
+      setMessage('Shopify متصل شد — همگام‌سازی را تازه کنید.');
     }
   }, [search]);
 
@@ -106,21 +117,48 @@ export default function StoreClient() {
     }
   }
 
+  async function onWooConnect(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      await api.connectWooCommerce({
+        siteUrl: wooSiteUrl.trim(),
+        consumerKey: wooKey.trim(),
+        consumerSecret: wooSecret.trim(),
+      });
+      setWooKey('');
+      setWooSecret('');
+      setMessage(
+        'WooCommerce متصل شد — همگام‌سازی در صف است؛ چند ثانیه بعد تازه کنید.',
+      );
+      await load();
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'اتصال WooCommerce برقرار نشد. آدرس و کلیدها را بررسی کنید.',
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <AppShell>
       <h1>فروشگاه</h1>
       <p className="muted">
-        اتصال Shopify یا دمو — سلامت همگام‌سازی کاتالوگ و سفارش
+        اتصال Shopify یا WooCommerce یا دمو — سلامت همگام‌سازی کاتالوگ و سفارش
       </p>
       {store && String(store.syncHealth) !== 'healthy' ? (
         <div className="banner">
           همگام‌سازی ناسالم
-          {store.failureReason
-            ? ` — ${String(store.failureReason)}`
-            : ''}{' '}
-          — قیمت/موجودی/سفارش قابل اتکا نیست.
+          {store.failureReason ? ` — ${String(store.failureReason)}` : ''} —
+          قیمت/موجودی/سفارش قابل اتکا نیست.
         </div>
-      ) : null}      {message && <p style={{ color: 'var(--success)' }}>{message}</p>}
+      ) : null}
+      {message && <p style={{ color: 'var(--success)' }}>{message}</p>}
       {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
 
       <div className="card">
@@ -142,7 +180,7 @@ export default function StoreClient() {
           <p className="muted">هنوز فروشگاهی متصل نیست.</p>
         )}
 
-        {store?.platform === 'shopify' && Boolean(store.hasCredentials) ? (
+        {isLivePlatform && Boolean(store?.hasCredentials) ? (
           <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
             <button
               className="btn"
@@ -180,7 +218,7 @@ export default function StoreClient() {
                 setBusy(true);
                 setError(null);
                 try {
-                  const res = await api.registerShopifyWebhooks();
+                  const res = await api.registerStoreWebhooks();
                   setMessage(
                     res?.webhookUrl
                       ? `Webhook ثبت شد: ${res.webhookUrl}`
@@ -200,22 +238,31 @@ export default function StoreClient() {
             >
               ثبت مجدد Webhookها
             </button>
+            <button
+              className="btn secondary"
+              type="button"
+              disabled={busy}
+              onClick={() => load()}
+            >
+              تازه‌سازی
+            </button>
           </div>
         ) : null}
-        {store?.platform === 'shopify' && store.webhookUrl ? (
+        {isLivePlatform && store?.webhookUrl ? (
           <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
             آدرس webhook:{' '}
             <code dir="ltr">{String(store.webhookUrl)}</code>
-            {!webhooksReady
+            {store.platform === 'shopify' && !webhooksReady
               ? ' — برای تأیید HMAC مقدار SHOPIFY_API_SECRET را ست کنید.'
               : ''}
           </p>
-        ) : null}      </div>
+        ) : null}
+      </div>
 
       <div className="card" style={{ marginTop: 16 }}>
         <h3>اتصال Shopify</h3>
         <p className="muted" style={{ fontSize: 13 }}>
-          مسیر اصلی MVP: دامنه فروشگاه + توکن Admin API (Custom app). اگر{' '}
+          مسیر اصلی: دامنه + توکن Admin API. اگر{' '}
           <code dir="ltr">SHOPIFY_API_KEY</code> تنظیم باشد، OAuth هم فعال است.
         </p>
         <form onSubmit={onShopifyToken}>
@@ -240,7 +287,7 @@ export default function StoreClient() {
           />
           <div className="row">
             <button className="btn" type="submit" disabled={busy}>
-              اتصال با توکن
+              اتصال Shopify
             </button>
             {oauthReady && (
               <button
@@ -257,7 +304,48 @@ export default function StoreClient() {
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <h3>دمو (بدون Shopify)</h3>
+        <h3>اتصال WooCommerce</h3>
+        <p className="muted" style={{ fontSize: 13 }}>
+          مسیر معادل MVP: آدرس سایت + Consumer Key/Secret از WooCommerce →
+          REST API.
+        </p>
+        <form onSubmit={onWooConnect}>
+          <label>آدرس سایت</label>
+          <input
+            className="input"
+            dir="ltr"
+            value={wooSiteUrl}
+            onChange={(e) => setWooSiteUrl(e.target.value)}
+            placeholder="https://mystore.example"
+            required
+          />
+          <label>Consumer Key</label>
+          <input
+            className="input"
+            dir="ltr"
+            value={wooKey}
+            onChange={(e) => setWooKey(e.target.value)}
+            placeholder="ck_…"
+            required
+          />
+          <label>Consumer Secret</label>
+          <input
+            className="input"
+            dir="ltr"
+            type="password"
+            value={wooSecret}
+            onChange={(e) => setWooSecret(e.target.value)}
+            placeholder="cs_…"
+            required
+          />
+          <button className="btn" type="submit" disabled={busy}>
+            اتصال WooCommerce
+          </button>
+        </form>
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <h3>دمو (بدون فروشگاه واقعی)</h3>
         <p className="muted" style={{ fontSize: 13 }}>
           کاتالوگ و سفارش آزمایشی برای تست Runtime — جایگزین اتصال واقعی نیست.
         </p>

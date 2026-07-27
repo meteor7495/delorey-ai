@@ -10,6 +10,7 @@
 | **Primary source** | [Official API docs](https://boxapi.ir/docs/instagram/instagram-official-api/) |
 | **DeloRey phase** | Growth (Instagram is **out of MVP**) |
 | **Decision** | **GO with limitations** — spike / vendor validation only |
+| **Spike code** | `apps/api/src/modules/adapters/instagram/` (gated by `BOXAPI_SPIKE_ENABLED`) |
 
 ---
 
@@ -44,8 +45,18 @@ This evaluation tests **the provider**, not DeloRey AI, and not LLM quality.
 | 12 | [Cost Analysis](./12-cost-analysis.md) | Merchant scale cost model |
 | 13 | [Go / No-Go Decision](./13-go-no-go-decision.md) | Scorecard + verdict |
 | 14 | [Testing Checklist](./14-testing-checklist.md) | Full QA matrix |
+| 15 | [Spike Runbook](./15-spike-runbook.md) | How to run the lab harness in `apps/api` |
 
-## Executive verdict (preview)
+## Spike harness (code)
+
+Evaluation spike lives at `apps/api/src/modules/adapters/instagram/`.
+
+- Gated by `BOXAPI_SPIKE_ENABLED=1`
+- Live HTTP only when `BOXAPI_LIVE=1`
+- Captures webhooks in memory; **does not** call Runtime
+
+See [15-spike-runbook.md](./15-spike-runbook.md).
+
 
 **GO with limitations** for a **time-boxed spike** (7-day trial + paid single-page validation).
 
