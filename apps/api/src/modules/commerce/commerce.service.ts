@@ -9,9 +9,16 @@ export class CommerceService {
     const connection = await this.store.getStore(tenantId);
     if (!connection) throw new NotFoundException('Store not connected');
     const products = await this.store.productsForTenant(tenantId);
+    const apiBase = (
+      process.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
+    ).replace(/\/$/, '');
     return {
       ...connection,
       productCount: products.length,
+      webhookUrl:
+        connection.platform === 'shopify'
+          ? `${apiBase}/v1/webhooks/store/${connection.id}`
+          : null,
     };
   }
 

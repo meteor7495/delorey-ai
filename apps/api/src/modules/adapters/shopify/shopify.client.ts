@@ -180,3 +180,123 @@ export function stripHtml(html: string | null | undefined): string | null {
   const text = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
   return text || null;
 }
+
+export function variantExternalId(productId: number | string, variantId: number | string) {
+  return `${productId}:${variantId}`;
+}
+
+export function normalizeShopifyProduct(
+  p: ShopifyProduct,
+  currency: string,
+): Array<{
+  externalId: string;
+  sku: string;
+  title: string;
+  price: number;
+  currency: string;
+  inStock: boolean;
+  description: string | null;
+}> {
+  const variants = p.variants?.length
+    ? p.variants
+    : [
+        {
+          id: p.id,
+          sku: null,
+          price: '0',
+          inventory_quantity: 0,
+          inventory_management: null,
+        },
+      ];
+  return variants.map((v) => {
+    const sku = (v.sku && v.sku.trim()) || `SHP-${p.id}-${v.id}`;
+    const managed = Boolean(v.inventory_management);
+    const inStock = managed ? (v.inventory_quantity ?? 0) > 0 : true;
+    return {
+      externalId: variantExternalId(p.id, v.id),
+      sku: sku.slice(0, 64),
+      title: p.title.slice(0, 200),
+      price: Number(v.price) || 0,
+      currency,
+      inStock,
+      description: stripHtml(p.body_html),
+    };
+  });
+}
+
+export function normalizeShopifyOrderRecord(
+  o: ShopifyOrder,
+  fallbackCurrency: string,
+) {
+  return {
+    externalId: String(o.id),
+    orderNumber: normalizeOrderNumber(o.name),
+    status: mapShopifyOrderStatus(o),
+    trackingCode:
+      o.fulfillments?.find((f) => f.tracking_number)?.tracking_number ?? null,
+    totalAmount: Number(o.total_price) || 0,
+    currency: o.currency || fallbackCurrency,
+    customerPhoneLast4: phoneLast4FromShopify(o),
+    customerEmail: o.email,
+  };
+}
+
+const WEBHOOK_TOPICS = [
+  'products/create',
+  'products/update',
+  'products/delete',
+  'orders/create',
+  'orders/updated',
+  'app/uninstalled',
+] as const;
+
+export async function registerShopifyWebhooks(
+  shopDomain: string,
+  accessToken: string,
+  callbackBaseUrl: string,
+): Promise<{ topic: string; id: number | null; error?: string }[]> {
+  const domain = normalizeShopifyShopInput(shopDomain);
+  const results: { topic: string; id: number | null; error?: string }[] = [];
+  for (const topic of WEBHOOK_TOPICS) {
+    const address = `${callbackBaseUrl.replace(/\/$/, '')}`;
+    try {
+      const res = await fetch(
+        `https://${domain}/admin/api/${API_VERSION}/webhooks.json`,
+        {
+          method: 'POST',
+          headers: {
+            'X-Shopify-Access-Token': accessToken,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+          body: JSON.stringify({
+            webhook: { topic, address, format: 'json' },
+          }),
+        },
+      );
+      if (res.status === 422) {
+        // Likely already registered — treat as ok
+        results.push({ topic, id: null });
+        continue;
+      }
+      if (!res.ok) {
+        const body = await res.text().catch(() => '');
+        results.push({
+          topic,
+          id: null,
+          error: `${res.status}: ${body.slice(0, 120)}`,
+        });
+        continue;
+      }
+      const data = (await res.json()) as { webhook?: { id: number } };
+      results.push({ topic, id: data.webhook?.id ?? null });
+    } catch (e) {
+      results.push({
+        topic,
+        id: null,
+        error: e instanceof Error ? e.message : 'register failed',
+      });
+    }
+  }
+  return results;
+}

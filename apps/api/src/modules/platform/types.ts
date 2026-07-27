@@ -258,6 +258,7 @@ export interface KnowledgeChunk {
 }
 
 export interface StoreConnection {
+  id: string;
   tenantId: string;
   platform: 'mock' | 'shopify' | 'woocommerce';
   shopDomain: string | null;

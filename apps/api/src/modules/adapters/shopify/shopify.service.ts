@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { DataStore } from '../../platform/data.store';
@@ -11,14 +12,19 @@ import {
   fetchShopifyOrders,
   fetchShopifyProducts,
   fetchShopifyShop,
-  mapShopifyOrderStatus,
-  normalizeOrderNumber,
+  normalizeShopifyOrderRecord,
+  normalizeShopifyProduct,
   normalizeShopifyShopInput,
-  phoneLast4FromShopify,
-  stripHtml,
+  registerShopifyWebhooks,
+  type ShopifyOrder,
+  type ShopifyProduct,
 } from './shopify.client';
 
 type CredPayload = { accessToken: string };
+
+/** In-process webhook idempotency (MVP debounce — not Redis yet). */
+const seenWebhookIds = new Map<string, number>();
+const WEBHOOK_ID_TTL_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class ShopifyAdapterService {
@@ -39,19 +45,35 @@ export class ShopifyAdapterService {
     );
   }
 
+  private webhookSecret(): string | null {
+    return process.env.SHOPIFY_API_SECRET?.trim() || null;
+  }
+
+  private publicApiBase(): string {
+    return (
+      process.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
+    ).replace(/\/$/, '');
+  }
+
   oauthStatus() {
     return {
       oauthReady: this.oauthConfigured(),
+      webhooksReady: Boolean(this.webhookSecret()),
       scopes:
         process.env.SHOPIFY_SCOPES ??
         'read_products,read_orders,read_inventory',
     };
   }
 
-  /**
-   * Custom app / Admin API token path (local + Partner without full OAuth).
-   */
-  async connectWithToken(tenantId: string, shopDomainRaw: string, accessToken: string) {
+  webhookUrlFor(connectionId: string): string {
+    return `${this.publicApiBase()}/v1/webhooks/store/${connectionId}`;
+  }
+
+  async connectWithToken(
+    tenantId: string,
+    shopDomainRaw: string,
+    accessToken: string,
+  ) {
     const shopDomain = normalizeShopifyShopInput(shopDomainRaw);
     if (!accessToken.trim()) {
       throw new BadRequestException('توکن دسترسی Shopify لازم است.');
@@ -59,7 +81,9 @@ export class ShopifyAdapterService {
     try {
       const shop = await fetchShopifyShop(shopDomain, accessToken.trim());
       const cipher = encryptSecret(
-        JSON.stringify({ accessToken: accessToken.trim() } satisfies CredPayload),
+        JSON.stringify({
+          accessToken: accessToken.trim(),
+        } satisfies CredPayload),
         this.credentialsKey(),
       );
       await this.store.upsertShopifyConnection({
@@ -71,8 +95,11 @@ export class ShopifyAdapterService {
         failureReason: null,
         lastSyncAt: null,
       });
-      return this.syncNow(tenantId);
+      const result = await this.syncNow(tenantId);
+      await this.ensureWebhooks(tenantId);
+      return result;
     } catch (e) {
+      if (e instanceof BadRequestException) throw e;
       const reason =
         e instanceof Error ? e.message : 'اتصال Shopify ناموفق بود';
       await this.store.upsertShopifyConnection({
@@ -100,9 +127,7 @@ export class ShopifyAdapterService {
       );
     }
     const shop = normalizeShopifyShopInput(shopDomainRaw);
-    const apiBase =
-      process.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
-    const redirectUri = `${apiBase.replace(/\/$/, '')}/v1/oauth/store/callback`;
+    const redirectUri = `${this.publicApiBase()}/v1/oauth/store/callback`;
     const scopes =
       process.env.SHOPIFY_SCOPES ??
       'read_products,read_orders,read_inventory';
@@ -157,23 +182,9 @@ export class ShopifyAdapterService {
     if (!connection || connection.platform !== 'shopify') {
       throw new BadRequestException('فروشگاه Shopify متصل نیست.');
     }
-    const cipher = await this.store.getStoreCredentialsCipher(tenantId);
-    if (!cipher) {
-      throw new BadRequestException('اعتبارنامه Shopify موجود نیست.');
-    }
-    let accessToken: string;
-    try {
-      const parsed = JSON.parse(decryptSecret(cipher, this.credentialsKey())) as CredPayload;
-      accessToken = parsed.accessToken;
-    } catch {
-      await this.store.markStoreSyncResult(tenantId, {
-        syncHealth: 'failed',
-        failureReason: 'رمزگشایی اعتبارنامه ناموفق',
-      });
-      throw new BadRequestException('رمزگشایی اعتبارنامه ناموفق بود.');
-    }
-
+    const accessToken = await this.decryptAccessToken(tenantId);
     const shopDomain = connection.shopDomain!;
+    const cipher = await this.store.getStoreCredentialsCipher(tenantId);
     try {
       const [shop, productsRaw, ordersRaw] = await Promise.all([
         fetchShopifyShop(shopDomain, accessToken),
@@ -182,68 +193,23 @@ export class ShopifyAdapterService {
       ]);
 
       const currency = shop.currency || 'IRR';
-      const products = productsRaw.flatMap((p) => {
-        const variants = p.variants?.length
-          ? p.variants
-          : [
-              {
-                id: p.id,
-                sku: null,
-                price: '0',
-                inventory_quantity: 0,
-                inventory_management: null,
-              },
-            ];
-        return variants.map((v) => {
-          const sku =
-            (v.sku && v.sku.trim()) ||
-            `SHP-${p.id}-${v.id}`;
-          const managed = Boolean(v.inventory_management);
-          const inStock = managed
-            ? (v.inventory_quantity ?? 0) > 0
-            : true;
-          return {
-            externalId: String(v.id),
-            sku: sku.slice(0, 64),
-            title:
-              variants.length > 1
-                ? `${p.title}`.slice(0, 200)
-                : p.title.slice(0, 200),
-            price: Number(v.price) || 0,
-            currency,
-            inStock,
-            description: stripHtml(p.body_html),
-          };
-        });
-      });
+      const products = productsRaw.flatMap((p) =>
+        normalizeShopifyProduct(p, currency),
+      );
 
-      // Dedupe SKUs (Shopify can have empty/dupe SKUs)
       const seen = new Set<string>();
       const uniqueProducts = products.filter((p) => {
-        let sku = p.sku;
-        if (seen.has(sku)) {
-          sku = `${p.sku}-${p.externalId}`;
-          p.sku = sku.slice(0, 64);
+        if (seen.has(p.sku)) {
+          p.sku = `${p.sku}-${p.externalId}`.slice(0, 64);
         }
         if (seen.has(p.sku)) return false;
         seen.add(p.sku);
         return true;
       });
 
-      const orders = ordersRaw.map((o) => ({
-        externalId: String(o.id),
-        orderNumber: normalizeOrderNumber(o.name),
-        status: mapShopifyOrderStatus(o),
-        trackingCode:
-          o.fulfillments?.find((f) => f.tracking_number)?.tracking_number ??
-          null,
-        totalAmount: Number(o.total_price) || 0,
-        currency: o.currency || currency,
-        customerPhoneLast4: phoneLast4FromShopify(o),
-        customerEmail: o.email,
-      }));
-
-      // Dedupe order numbers
+      const orders = ordersRaw.map((o) =>
+        normalizeShopifyOrderRecord(o, currency),
+      );
       const orderSeen = new Set<string>();
       const uniqueOrders = orders.filter((o) => {
         if (orderSeen.has(o.orderNumber)) return false;
@@ -267,7 +233,7 @@ export class ShopifyAdapterService {
         tenantId,
         shopDomain: shop.myshopify_domain || shopDomain,
         externalShopId: String(shop.id),
-        credentialsCipher: cipher,
+        credentialsCipher: cipher!,
         syncHealth,
         failureReason,
         lastSyncAt: new Date(),
@@ -278,6 +244,7 @@ export class ShopifyAdapterService {
         ...store!,
         productCount,
         orderCount,
+        webhookUrl: this.webhookUrlFor(store!.id),
       };
     } catch (e) {
       const reason = e instanceof Error ? e.message : 'همگام‌سازی ناموفق';
@@ -289,6 +256,172 @@ export class ShopifyAdapterService {
         `همگام‌سازی Shopify ناموفق: ${reason.slice(0, 160)}`,
       );
     }
+  }
+
+  async ensureWebhooks(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection?.id || connection.platform !== 'shopify') return null;
+    const accessToken = await this.decryptAccessToken(tenantId);
+    const address = this.webhookUrlFor(connection.id);
+    const results = await registerShopifyWebhooks(
+      connection.shopDomain!,
+      accessToken,
+      address,
+    );
+    return { webhookUrl: address, results };
+  }
+
+  async handleWebhook(input: {
+    connectionId: string;
+    topic: string | undefined;
+    hmac: string | undefined;
+    webhookId: string | undefined;
+    shopDomain: string | undefined;
+    rawBody: Buffer;
+  }) {
+    this.assertWebhookHmac(input.rawBody, input.hmac);
+
+    if (input.webhookId && this.isDuplicateWebhook(input.webhookId)) {
+      return { ok: true, duplicate: true };
+    }
+
+    const connection = await this.store.getStoreById(input.connectionId);
+    if (!connection || connection.platform !== 'shopify') {
+      throw new BadRequestException('اتصال فروشگاه یافت نشد.');
+    }
+    if (
+      input.shopDomain &&
+      connection.shopDomain &&
+      normalizeShopifyShopInput(input.shopDomain) !==
+        normalizeShopifyShopInput(connection.shopDomain)
+    ) {
+      throw new UnauthorizedException('دامنه فروشگاه با اتصال هم‌خوان نیست.');
+    }
+
+    const topic = (input.topic ?? '').toLowerCase();
+    let payload: unknown = {};
+    try {
+      payload = JSON.parse(input.rawBody.toString('utf8'));
+    } catch {
+      throw new BadRequestException('بدنه webhook نامعتبر است.');
+    }
+
+    if (topic === 'app/uninstalled') {
+      await this.store.markStoreSyncResult(connection.tenantId, {
+        syncHealth: 'failed',
+        failureReason: 'اپ Shopify حذف نصب شد — اتصال نامعتبر',
+      });
+      return { ok: true, topic, action: 'uninstalled' };
+    }
+
+    if (topic === 'products/delete') {
+      const productId = String((payload as { id?: number }).id ?? '');
+      if (productId) {
+        await this.store.deleteProductsByProductExternalPrefix(
+          connection.tenantId,
+          productId,
+        );
+      }
+      await this.touchHealthy(connection.tenantId);
+      return { ok: true, topic, action: 'product_deleted' };
+    }
+
+    if (topic === 'products/create' || topic === 'products/update') {
+      const product = payload as ShopifyProduct;
+      const currency =
+        (await this.guessCurrency(connection.tenantId)) || 'IRR';
+      const rows = normalizeShopifyProduct(product, currency);
+      for (const row of rows) {
+        await this.store.upsertSyncedProduct(connection.tenantId, row);
+      }
+      await this.touchHealthy(connection.tenantId);
+      return {
+        ok: true,
+        topic,
+        action: 'product_upserted',
+        variants: rows.length,
+      };
+    }
+
+    if (topic === 'orders/create' || topic === 'orders/updated') {
+      const order = payload as ShopifyOrder;
+      const currency =
+        order.currency ||
+        (await this.guessCurrency(connection.tenantId)) ||
+        'IRR';
+      await this.store.upsertSyncedOrder(
+        connection.tenantId,
+        normalizeShopifyOrderRecord(order, currency),
+      );
+      await this.touchHealthy(connection.tenantId);
+      return { ok: true, topic, action: 'order_upserted' };
+    }
+
+    return { ok: true, topic, action: 'ignored' };
+  }
+
+  private async touchHealthy(tenantId: string) {
+    const count = await this.store.countProducts(tenantId);
+    await this.store.markStoreSyncResult(tenantId, {
+      syncHealth: count === 0 ? 'failed' : 'healthy',
+      failureReason:
+        count === 0 ? 'کاتالوگ خالی پس از به‌روزرسانی webhook' : null,
+      lastSyncAt: new Date(),
+    });
+  }
+
+  private async guessCurrency(tenantId: string): Promise<string | null> {
+    const products = await this.store.productsForTenant(tenantId);
+    return products[0]?.currency ?? null;
+  }
+
+  private async decryptAccessToken(tenantId: string): Promise<string> {
+    const cipher = await this.store.getStoreCredentialsCipher(tenantId);
+    if (!cipher) {
+      throw new BadRequestException('اعتبارنامه Shopify موجود نیست.');
+    }
+    try {
+      const parsed = JSON.parse(
+        decryptSecret(cipher, this.credentialsKey()),
+      ) as CredPayload;
+      return parsed.accessToken;
+    } catch {
+      await this.store.markStoreSyncResult(tenantId, {
+        syncHealth: 'failed',
+        failureReason: 'رمزگشایی اعتبارنامه ناموفق',
+      });
+      throw new BadRequestException('رمزگشایی اعتبارنامه ناموفق بود.');
+    }
+  }
+
+  private assertWebhookHmac(rawBody: Buffer, hmacHeader: string | undefined) {
+    const secret = this.webhookSecret();
+    const relaxed = process.env.SHOPIFY_WEBHOOK_RELAXED === '1';
+    if (!secret) {
+      if (relaxed) return;
+      throw new ServiceUnavailableException(
+        'تأیید webhook نیاز به SHOPIFY_API_SECRET دارد (یا SHOPIFY_WEBHOOK_RELAXED=1 برای توسعه محلی).',
+      );
+    }
+    if (!hmacHeader) {
+      throw new UnauthorizedException('HMAC webhook موجود نیست.');
+    }
+    const digest = createHmac('sha256', secret).update(rawBody).digest('base64');
+    const a = Buffer.from(digest);
+    const b = Buffer.from(hmacHeader);
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      throw new UnauthorizedException('HMAC webhook نامعتبر است.');
+    }
+  }
+
+  private isDuplicateWebhook(webhookId: string): boolean {
+    const now = Date.now();
+    for (const [id, ts] of seenWebhookIds) {
+      if (now - ts > WEBHOOK_ID_TTL_MS) seenWebhookIds.delete(id);
+    }
+    if (seenWebhookIds.has(webhookId)) return true;
+    seenWebhookIds.set(webhookId, now);
+    return false;
   }
 
   private signState(payload: { tenantId: string; shop: string; ts: number }) {

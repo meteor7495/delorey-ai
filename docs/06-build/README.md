@@ -18,5 +18,6 @@ Active implementation slices for DeloRey AI MVP.
 | 11 — Guardrails | [vertical-slice-11.md](./vertical-slice-11.md) | Done |
 | 12 — Admin Audit | [vertical-slice-12.md](./vertical-slice-12.md) | Done |
 | 13 — Shopify Connect | [vertical-slice-13.md](./vertical-slice-13.md) | Done |
+| 14 — Shopify Webhooks | [vertical-slice-14.md](./vertical-slice-14.md) | Done |
 
 Authority remains Product Scope → Journey → Architecture → PRDs → UI. Slices do not expand MVP scope.

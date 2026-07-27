@@ -23,6 +23,7 @@ export default function StoreClient() {
     }>
   >([]);
   const [oauthReady, setOauthReady] = useState(false);
+  const [webhooksReady, setWebhooksReady] = useState(false);
   const [shopDomain, setShopDomain] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -35,12 +36,17 @@ export default function StoreClient() {
         api.getStore().catch(() => null),
         api.getProducts().catch(() => []),
         api.getOrders().catch(() => []),
-        api.getShopifyStatus().catch(() => ({ oauthReady: false, scopes: '' })),
+        api.getShopifyStatus().catch(() => ({
+          oauthReady: false,
+          webhooksReady: false,
+          scopes: '',
+        })),
       ]);
       setStore(s);
       setProducts(p);
       setOrders(o);
       setOauthReady(Boolean(st.oauthReady));
+      setWebhooksReady(Boolean(st.webhooksReady));
       if (s?.shopDomain) setShopDomain(String(s.shopDomain));
       setError(null);
     } catch (e) {
@@ -135,28 +141,69 @@ export default function StoreClient() {
         )}
 
         {store?.platform === 'shopify' && Boolean(store.hasCredentials) ? (
-          <button
-            className="btn"
-            type="button"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              setError(null);
-              try {
-                await api.syncStore();
-                setMessage('همگام‌سازی مجدد انجام شد.');
-                await load();
-              } catch (err) {
-                setError(
-                  err instanceof Error ? err.message : 'همگام‌سازی ناموفق بود.',
-                );
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            همگام‌سازی مجدد
-          </button>
+          <div className="row" style={{ flexWrap: 'wrap', gap: 8 }}>
+            <button
+              className="btn"
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError(null);
+                try {
+                  await api.syncStore();
+                  setMessage('همگام‌سازی مجدد انجام شد.');
+                  await load();
+                } catch (err) {
+                  setError(
+                    err instanceof Error
+                      ? err.message
+                      : 'همگام‌سازی ناموفق بود.',
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              همگام‌سازی مجدد
+            </button>
+            <button
+              className="btn secondary"
+              type="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError(null);
+                try {
+                  const res = await api.registerShopifyWebhooks();
+                  setMessage(
+                    res?.webhookUrl
+                      ? `Webhook ثبت شد: ${res.webhookUrl}`
+                      : 'ثبت webhook انجام شد.',
+                  );
+                  await load();
+                } catch (err) {
+                  setError(
+                    err instanceof Error
+                      ? err.message
+                      : 'ثبت webhook ناموفق بود.',
+                  );
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              ثبت مجدد Webhookها
+            </button>
+          </div>
+        ) : null}
+        {store?.platform === 'shopify' && store.webhookUrl ? (
+          <p className="muted" style={{ fontSize: 13, marginTop: 12 }}>
+            آدرس webhook:{' '}
+            <code dir="ltr">{String(store.webhookUrl)}</code>
+            {!webhooksReady
+              ? ' — برای تأیید HMAC مقدار SHOPIFY_API_SECRET را ست کنید.'
+              : ''}
+          </p>
         ) : null}      </div>
 
       <div className="card" style={{ marginTop: 16 }}>

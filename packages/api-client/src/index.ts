@@ -76,10 +76,11 @@ export function createApiClient(opts: ApiClientOptions) {
     mockConnectStore: () =>
       request(opts, '/store/mock-connect', { method: 'POST', body: '{}' }),
     getShopifyStatus: () =>
-      request<{ oauthReady: boolean; scopes: string }>(
-        opts,
-        '/store/shopify/status',
-      ),
+      request<{
+        oauthReady: boolean;
+        webhooksReady: boolean;
+        scopes: string;
+      }>(opts, '/store/shopify/status'),
     connectShopify: (body: { shopDomain: string; accessToken: string }) =>
       request<Record<string, unknown>>(opts, '/store/shopify/connect', {
         method: 'POST',
@@ -92,6 +93,14 @@ export function createApiClient(opts: ApiClientOptions) {
       }),
     syncStore: () =>
       request<Record<string, unknown>>(opts, '/store/sync', {
+        method: 'POST',
+        body: '{}',
+      }),
+    registerShopifyWebhooks: () =>
+      request<{
+        webhookUrl: string;
+        results: Array<{ topic: string; id: number | null; error?: string }>;
+      } | null>(opts, '/store/shopify/webhooks/register', {
         method: 'POST',
         body: '{}',
       }),

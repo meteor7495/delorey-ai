@@ -388,6 +388,20 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapStore(row) : null;
   }
 
+  async getStoreById(id: string): Promise<StoreConnection | null> {
+    const row = await this.prisma.storeConnection.findUnique({ where: { id } });
+    return row ? this.mapStore(row) : null;
+  }
+
+  async getStoreByShopDomain(
+    shopDomain: string,
+  ): Promise<StoreConnection | null> {
+    const row = await this.prisma.storeConnection.findFirst({
+      where: { shopDomain, platform: 'shopify' },
+    });
+    return row ? this.mapStore(row) : null;
+  }
+
   async upsertHealthyStore(tenantId: string): Promise<StoreConnection> {
     const row = await this.prisma.storeConnection.upsert({
       where: { tenantId },
@@ -533,6 +547,147 @@ export class DataStore implements OnModuleInit {
       })),
     });
     return orders.length;
+  }
+
+  async upsertSyncedProduct(
+    tenantId: string,
+    product: {
+      externalId: string;
+      sku: string;
+      title: string;
+      price: number;
+      currency: string;
+      inStock: boolean;
+      description: string | null;
+    },
+  ): Promise<void> {
+    const existing = await this.prisma.product.findFirst({
+      where: { tenantId, externalId: product.externalId },
+    });
+    if (existing) {
+      await this.prisma.product.update({
+        where: { id: existing.id },
+        data: {
+          sku: product.sku,
+          title: product.title,
+          price: new Prisma.Decimal(product.price),
+          currency: product.currency,
+          inStock: product.inStock,
+          description: product.description,
+        },
+      });
+      return;
+    }
+    const skuTaken = await this.prisma.product.findUnique({
+      where: { tenantId_sku: { tenantId, sku: product.sku } },
+    });
+    const sku = skuTaken
+      ? `${product.sku}-${product.externalId}`.slice(0, 64)
+      : product.sku;
+    await this.prisma.product.create({
+      data: {
+        tenantId,
+        externalId: product.externalId,
+        sku,
+        title: product.title,
+        price: new Prisma.Decimal(product.price),
+        currency: product.currency,
+        inStock: product.inStock,
+        description: product.description,
+      },
+    });
+  }
+
+  async deleteProductsByProductExternalPrefix(
+    tenantId: string,
+    productId: string,
+  ): Promise<number> {
+    const result = await this.prisma.product.deleteMany({
+      where: {
+        tenantId,
+        OR: [
+          { externalId: { startsWith: `${productId}:` } },
+          { sku: { startsWith: `SHP-${productId}-` } },
+        ],
+      },
+    });
+    return result.count;
+  }
+
+  async upsertSyncedOrder(
+    tenantId: string,
+    order: {
+      externalId: string;
+      orderNumber: string;
+      status: string;
+      trackingCode: string | null;
+      totalAmount: number;
+      currency: string;
+      customerPhoneLast4: string;
+      customerEmail: string | null;
+    },
+  ): Promise<void> {
+    const now = new Date();
+    const byExternal = await this.prisma.order.findUnique({
+      where: {
+        tenantId_externalId: { tenantId, externalId: order.externalId },
+      },
+    });
+    if (byExternal) {
+      await this.prisma.order.update({
+        where: { id: byExternal.id },
+        data: {
+          orderNumber: order.orderNumber,
+          status: order.status,
+          trackingCode: order.trackingCode,
+          totalAmount: new Prisma.Decimal(order.totalAmount),
+          currency: order.currency,
+          customerPhoneLast4: order.customerPhoneLast4,
+          customerEmail: order.customerEmail,
+          syncedAt: now,
+        },
+      });
+      return;
+    }
+    const byNumber = await this.prisma.order.findUnique({
+      where: {
+        tenantId_orderNumber: { tenantId, orderNumber: order.orderNumber },
+      },
+    });
+    if (byNumber) {
+      await this.prisma.order.update({
+        where: { id: byNumber.id },
+        data: {
+          externalId: order.externalId,
+          status: order.status,
+          trackingCode: order.trackingCode,
+          totalAmount: new Prisma.Decimal(order.totalAmount),
+          currency: order.currency,
+          customerPhoneLast4: order.customerPhoneLast4,
+          customerEmail: order.customerEmail,
+          syncedAt: now,
+        },
+      });
+      return;
+    }
+    await this.prisma.order.create({
+      data: {
+        tenantId,
+        externalId: order.externalId,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        trackingCode: order.trackingCode,
+        totalAmount: new Prisma.Decimal(order.totalAmount),
+        currency: order.currency,
+        customerPhoneLast4: order.customerPhoneLast4,
+        customerEmail: order.customerEmail,
+        syncedAt: now,
+      },
+    });
+  }
+
+  async countProducts(tenantId: string): Promise<number> {
+    return this.prisma.product.count({ where: { tenantId } });
   }
 
   async productsForTenant(tenantId: string): Promise<Product[]> {
@@ -1606,6 +1761,7 @@ export class DataStore implements OnModuleInit {
   }
 
   private mapStore(row: {
+    id: string;
     tenantId: string;
     platform: string;
     shopDomain?: string | null;
@@ -1616,6 +1772,7 @@ export class DataStore implements OnModuleInit {
     failureReason: string | null;
   }): StoreConnection {
     return {
+      id: row.id,
       tenantId: row.tenantId,
       platform: row.platform as StoreConnection['platform'],
       shopDomain: row.shopDomain ?? null,

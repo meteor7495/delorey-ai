@@ -3,7 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const origins = (process.env.CORS_ORIGINS ?? 'http://localhost:3010,http://localhost:5173')
     .split(',')
     .map((s) => s.trim());
