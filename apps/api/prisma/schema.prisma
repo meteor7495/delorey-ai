@@ -93,14 +93,17 @@ model Employee {
 }
 
 model StoreConnection {
-  id            String    @id @default(uuid())
-  tenantId      String    @unique @map("tenant_id")
-  platform      String
-  syncHealth    String    @map("sync_health")
-  lastSyncAt    DateTime? @map("last_sync_at")
-  failureReason String?   @map("failure_reason")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id                 String    @id @default(uuid())
+  tenantId           String    @unique @map("tenant_id")
+  platform           String
+  shopDomain         String?   @map("shop_domain")
+  externalShopId     String?   @map("external_shop_id")
+  credentialsCipher  String?   @map("credentials_cipher")
+  syncHealth         String    @map("sync_health")
+  lastSyncAt         DateTime? @map("last_sync_at")
+  failureReason      String?   @map("failure_reason")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -110,6 +113,7 @@ model StoreConnection {
 model Product {
   id          String   @id @default(uuid())
   tenantId    String   @map("tenant_id")
+  externalId  String?  @map("external_id")
   sku         String
   title       String
   price       Decimal  @db.Decimal(18, 2)
@@ -123,6 +127,7 @@ model Product {
 
   @@unique([tenantId, sku])
   @@index([tenantId])
+  @@index([tenantId, externalId])
   @@map("products")
 }
 

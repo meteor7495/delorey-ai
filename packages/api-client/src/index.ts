@@ -75,6 +75,26 @@ export function createApiClient(opts: ApiClientOptions) {
     getStore: () => request<Record<string, unknown>>(opts, '/store'),
     mockConnectStore: () =>
       request(opts, '/store/mock-connect', { method: 'POST', body: '{}' }),
+    getShopifyStatus: () =>
+      request<{ oauthReady: boolean; scopes: string }>(
+        opts,
+        '/store/shopify/status',
+      ),
+    connectShopify: (body: { shopDomain: string; accessToken: string }) =>
+      request<Record<string, unknown>>(opts, '/store/shopify/connect', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    startShopifyOAuth: (body: { shopDomain: string }) =>
+      request<{ authorizeUrl: string }>(opts, '/store/shopify/oauth/start', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    syncStore: () =>
+      request<Record<string, unknown>>(opts, '/store/sync', {
+        method: 'POST',
+        body: '{}',
+      }),
     getProducts: () => request<unknown[]>(opts, '/catalog/products'),
     getOrders: () =>
       request<

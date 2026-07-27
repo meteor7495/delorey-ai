@@ -24,6 +24,7 @@ import type {
   User,
 } from './types';
 import { DEFAULT_GUARDRAILS, normalizeGuardrails } from './types';
+import type { SyncHealth } from './types';
 type EmployeeSkills = Employee['skills'];
 
 /**
@@ -404,6 +405,134 @@ export class DataStore implements OnModuleInit {
       },
     });
     return this.mapStore(row);
+  }
+
+  async getStoreCredentialsCipher(tenantId: string): Promise<string | null> {
+    const row = await this.prisma.storeConnection.findUnique({
+      where: { tenantId },
+      select: { credentialsCipher: true },
+    });
+    return row?.credentialsCipher ?? null;
+  }
+
+  async upsertShopifyConnection(input: {
+    tenantId: string;
+    shopDomain: string;
+    externalShopId: string | null;
+    credentialsCipher: string;
+    syncHealth: SyncHealth;
+    failureReason: string | null;
+    lastSyncAt: Date | null;
+  }): Promise<StoreConnection> {
+    const row = await this.prisma.storeConnection.upsert({
+      where: { tenantId: input.tenantId },
+      create: {
+        tenantId: input.tenantId,
+        platform: 'shopify',
+        shopDomain: input.shopDomain,
+        externalShopId: input.externalShopId,
+        credentialsCipher: input.credentialsCipher,
+        syncHealth: input.syncHealth,
+        lastSyncAt: input.lastSyncAt,
+        failureReason: input.failureReason,
+      },
+      update: {
+        platform: 'shopify',
+        shopDomain: input.shopDomain,
+        externalShopId: input.externalShopId,
+        credentialsCipher: input.credentialsCipher,
+        syncHealth: input.syncHealth,
+        lastSyncAt: input.lastSyncAt,
+        failureReason: input.failureReason,
+      },
+    });
+    return this.mapStore(row);
+  }
+
+  async markStoreSyncResult(
+    tenantId: string,
+    result: {
+      syncHealth: SyncHealth;
+      failureReason: string | null;
+      lastSyncAt?: Date | null;
+    },
+  ): Promise<StoreConnection> {
+    const row = await this.prisma.storeConnection.update({
+      where: { tenantId },
+      data: {
+        syncHealth: result.syncHealth,
+        failureReason: result.failureReason,
+        ...(result.lastSyncAt !== undefined
+          ? { lastSyncAt: result.lastSyncAt }
+          : {}),
+      },
+    });
+    return this.mapStore(row);
+  }
+
+  /**
+   * Replace tenant catalog with Shopify-normalized products (honest switch off mock).
+   */
+  async replaceCatalog(
+    tenantId: string,
+    products: Array<{
+      externalId: string;
+      sku: string;
+      title: string;
+      price: number;
+      currency: string;
+      inStock: boolean;
+      description: string | null;
+    }>,
+  ): Promise<number> {
+    await this.prisma.product.deleteMany({ where: { tenantId } });
+    if (products.length === 0) return 0;
+    await this.prisma.product.createMany({
+      data: products.map((p) => ({
+        tenantId,
+        externalId: p.externalId,
+        sku: p.sku,
+        title: p.title,
+        price: new Prisma.Decimal(p.price),
+        currency: p.currency,
+        inStock: p.inStock,
+        description: p.description,
+      })),
+    });
+    return products.length;
+  }
+
+  async replaceOrders(
+    tenantId: string,
+    orders: Array<{
+      externalId: string;
+      orderNumber: string;
+      status: string;
+      trackingCode: string | null;
+      totalAmount: number;
+      currency: string;
+      customerPhoneLast4: string;
+      customerEmail: string | null;
+    }>,
+  ): Promise<number> {
+    await this.prisma.order.deleteMany({ where: { tenantId } });
+    if (orders.length === 0) return 0;
+    const now = new Date();
+    await this.prisma.order.createMany({
+      data: orders.map((o) => ({
+        tenantId,
+        externalId: o.externalId,
+        orderNumber: o.orderNumber,
+        status: o.status,
+        trackingCode: o.trackingCode,
+        totalAmount: new Prisma.Decimal(o.totalAmount),
+        currency: o.currency,
+        customerPhoneLast4: o.customerPhoneLast4,
+        customerEmail: o.customerEmail,
+        syncedAt: now,
+      })),
+    });
+    return orders.length;
   }
 
   async productsForTenant(tenantId: string): Promise<Product[]> {
@@ -1479,6 +1608,9 @@ export class DataStore implements OnModuleInit {
   private mapStore(row: {
     tenantId: string;
     platform: string;
+    shopDomain?: string | null;
+    externalShopId?: string | null;
+    credentialsCipher?: string | null;
     syncHealth: string;
     lastSyncAt: Date | null;
     failureReason: string | null;
@@ -1486,15 +1618,19 @@ export class DataStore implements OnModuleInit {
     return {
       tenantId: row.tenantId,
       platform: row.platform as StoreConnection['platform'],
+      shopDomain: row.shopDomain ?? null,
+      externalShopId: row.externalShopId ?? null,
       syncHealth: row.syncHealth as StoreConnection['syncHealth'],
       lastSyncAt: row.lastSyncAt?.toISOString() ?? null,
       failureReason: row.failureReason,
+      hasCredentials: Boolean(row.credentialsCipher),
     };
   }
 
   private mapProduct(row: {
     id: string;
     tenantId: string;
+    externalId?: string | null;
     sku: string;
     title: string;
     price: Prisma.Decimal;
@@ -1505,6 +1641,7 @@ export class DataStore implements OnModuleInit {
     return {
       id: row.id,
       tenantId: row.tenantId,
+      externalId: row.externalId ?? null,
       sku: row.sku,
       title: row.title,
       price: Number(row.price),

@@ -84,6 +84,7 @@ export interface Session {
 export interface Product {
   id: string;
   tenantId: string;
+  externalId?: string | null;
   sku: string;
   title: string;
   price: number;
@@ -259,9 +260,13 @@ export interface KnowledgeChunk {
 export interface StoreConnection {
   tenantId: string;
   platform: 'mock' | 'shopify' | 'woocommerce';
+  shopDomain: string | null;
+  externalShopId: string | null;
   syncHealth: SyncHealth;
   lastSyncAt: string | null;
   failureReason: string | null;
+  /** Never expose cipher / token — only whether credentials exist */
+  hasCredentials: boolean;
 }
 
 export const ESCALATION_LABELS: Record<EscalationReason, string> = {
