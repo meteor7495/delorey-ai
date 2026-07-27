@@ -13,6 +13,7 @@ import { InboxModule } from './modules/inbox/inbox.module';
 import { TelegramAdapterModule } from './modules/adapters/telegram/telegram.module';
 import { BaleAdapterModule } from './modules/adapters/bale/bale.module';
 import { ShopifyAdapterModule } from './modules/adapters/shopify/shopify.module';
+import { WooCommerceAdapterModule } from './modules/adapters/woocommerce/woocommerce.module';
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -39,6 +40,7 @@ import { HealthController } from './health.controller';
     TelegramAdapterModule,
     BaleAdapterModule,
     ShopifyAdapterModule,
+    WooCommerceAdapterModule,
   ],
   controllers: [HealthController],
 })

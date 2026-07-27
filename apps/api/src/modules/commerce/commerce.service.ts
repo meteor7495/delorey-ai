@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataStore } from '../platform/data.store';
+import { ShopifyAdapterService } from '../adapters/shopify/shopify.service';
+import { WooCommerceAdapterService } from '../adapters/woocommerce/woocommerce.service';
 
 @Injectable()
 export class CommerceService {
-  constructor(private readonly store: DataStore) {}
+  constructor(
+    private readonly store: DataStore,
+    private readonly shopify: ShopifyAdapterService,
+    private readonly woo: WooCommerceAdapterService,
+  ) {}
 
   async getStore(tenantId: string) {
     const connection = await this.store.getStore(tenantId);
@@ -16,10 +22,37 @@ export class CommerceService {
       ...connection,
       productCount: products.length,
       webhookUrl:
-        connection.platform === 'shopify'
+        connection.platform === 'shopify' ||
+        connection.platform === 'woocommerce'
           ? `${apiBase}/v1/webhooks/store/${connection.id}`
           : null,
     };
+  }
+
+  async requestSync(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection) throw new NotFoundException('Store not connected');
+    if (connection.platform === 'woocommerce') {
+      return this.woo.syncNow(tenantId);
+    }
+    if (connection.platform === 'shopify') {
+      return this.shopify.syncNow(tenantId);
+    }
+    throw new BadRequestException(
+      'همگام‌سازی فقط برای Shopify یا WooCommerce پشتیبانی می‌شود.',
+    );
+  }
+
+  async registerWebhooks(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection) throw new NotFoundException('Store not connected');
+    if (connection.platform === 'woocommerce') {
+      return this.woo.ensureWebhooks(tenantId);
+    }
+    if (connection.platform === 'shopify') {
+      return this.shopify.ensureWebhooks(tenantId);
+    }
+    throw new BadRequestException('ثبت webhook برای این پلتفرم پشتیبانی نمی‌شود.');
   }
 
   async mockConnect(tenantId: string) {

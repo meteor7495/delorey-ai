@@ -438,11 +438,24 @@ export class DataStore implements OnModuleInit {
     failureReason: string | null;
     lastSyncAt: Date | null;
   }): Promise<StoreConnection> {
+    return this.upsertPlatformConnection({ ...input, platform: 'shopify' });
+  }
+
+  async upsertPlatformConnection(input: {
+    tenantId: string;
+    platform: 'shopify' | 'woocommerce';
+    shopDomain: string;
+    externalShopId: string | null;
+    credentialsCipher: string;
+    syncHealth: SyncHealth;
+    failureReason: string | null;
+    lastSyncAt: Date | null;
+  }): Promise<StoreConnection> {
     const row = await this.prisma.storeConnection.upsert({
       where: { tenantId: input.tenantId },
       create: {
         tenantId: input.tenantId,
-        platform: 'shopify',
+        platform: input.platform,
         shopDomain: input.shopDomain,
         externalShopId: input.externalShopId,
         credentialsCipher: input.credentialsCipher,
@@ -451,7 +464,7 @@ export class DataStore implements OnModuleInit {
         failureReason: input.failureReason,
       },
       update: {
-        platform: 'shopify',
+        platform: input.platform,
         shopDomain: input.shopDomain,
         externalShopId: input.externalShopId,
         credentialsCipher: input.credentialsCipher,
@@ -607,6 +620,7 @@ export class DataStore implements OnModuleInit {
         tenantId,
         OR: [
           { externalId: { startsWith: `${productId}:` } },
+          { externalId: productId },
           { sku: { startsWith: `SHP-${productId}-` } },
         ],
       },

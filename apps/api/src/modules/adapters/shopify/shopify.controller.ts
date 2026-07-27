@@ -3,17 +3,13 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
-  Param,
   Post,
   Query,
-  RawBodyRequest,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { IsString, MinLength } from 'class-validator';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { CurrentAuth, SessionAuthGuard } from '../../platform/auth.guard';
 import type { AuthContext } from '../../platform/auth.guard';
 import { AuditService } from '../../audit/audit.service';
@@ -100,26 +96,6 @@ export class ShopifyAdapterController {
     return res.redirect(redirectTo);
   }
 
-  @Post('store/sync')
-  @UseGuards(SessionAuthGuard)
-  async sync(@CurrentAuth() auth: AuthContext) {
-    const store = await this.shopify.syncNow(auth.tenantId);
-    await this.audit.recordAdmin(
-      auth,
-      'store.sync',
-      store.queued
-        ? 'همگام‌سازی در صف batch.sync'
-        : 'همگام‌سازی فروشگاه (هم‌زمان)',
-      {
-        platform: store.platform,
-        syncHealth: store.syncHealth,
-        queued: store.queued,
-        jobId: 'jobId' in store ? store.jobId : undefined,
-      },
-    );
-    return store;
-  }
-
   @Post('store/shopify/webhooks/register')
   @UseGuards(SessionAuthGuard)
   async registerWebhooks(@CurrentAuth() auth: AuthContext) {
@@ -131,28 +107,5 @@ export class ShopifyAdapterController {
       { webhookUrl: result?.webhookUrl },
     );
     return result;
-  }
-
-  @Post('webhooks/store/:connectionId')
-  webhook(
-    @Param('connectionId') connectionId: string,
-    @Headers('x-shopify-topic') topic: string | undefined,
-    @Headers('x-shopify-hmac-sha256') hmac: string | undefined,
-    @Headers('x-shopify-webhook-id') webhookId: string | undefined,
-    @Headers('x-shopify-shop-domain') shopDomain: string | undefined,
-    @Req() req: RawBodyRequest<Request>,
-  ) {
-    const rawBody = req.rawBody;
-    if (!rawBody) {
-      throw new BadRequestException('بدنه خام webhook در دسترس نیست.');
-    }
-    return this.shopify.handleWebhook({
-      connectionId,
-      topic,
-      hmac,
-      webhookId,
-      shopDomain,
-      rawBody,
-    });
   }
 }

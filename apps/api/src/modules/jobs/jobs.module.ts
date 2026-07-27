@@ -1,5 +1,9 @@
-import { Global, Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { PlatformModule } from '../platform/platform.module';
+import { ShopifyAdapterModule } from '../adapters/shopify/shopify.module';
+import { WooCommerceAdapterModule } from '../adapters/woocommerce/woocommerce.module';
+import { BatchSyncProcessor } from './batch-sync.processor';
 import { BatchSyncQueue } from './batch-sync.queue';
 import { BATCH_SYNC_QUEUE } from './batch-sync.types';
 
@@ -8,9 +12,9 @@ function redisConnection() {
   return { url, maxRetriesPerRequest: null as null };
 }
 
-@Global()
 @Module({
   imports: [
+    PlatformModule,
     BullModule.forRoot({
       connection: redisConnection(),
     }),
@@ -21,8 +25,10 @@ function redisConnection() {
         removeOnFail: 200,
       },
     }),
+    forwardRef(() => ShopifyAdapterModule),
+    forwardRef(() => WooCommerceAdapterModule),
   ],
-  providers: [BatchSyncQueue],
+  providers: [BatchSyncQueue, BatchSyncProcessor],
   exports: [BatchSyncQueue, BullModule],
 })
 export class JobsModule {}

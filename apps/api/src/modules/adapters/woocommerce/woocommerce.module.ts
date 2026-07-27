@@ -2,8 +2,8 @@ import { Module, forwardRef } from '@nestjs/common';
 import { AuditModule } from '../../audit/audit.module';
 import { PlatformModule } from '../../platform/platform.module';
 import { JobsModule } from '../../jobs/jobs.module';
-import { ShopifyAdapterController } from './shopify.controller';
-import { ShopifyAdapterService } from './shopify.service';
+import { WooCommerceAdapterController } from './woocommerce.controller';
+import { WooCommerceAdapterService } from './woocommerce.service';
 
 @Module({
   imports: [
@@ -11,8 +11,8 @@ import { ShopifyAdapterService } from './shopify.service';
     AuditModule,
     forwardRef(() => JobsModule),
   ],
-  controllers: [ShopifyAdapterController],
-  providers: [ShopifyAdapterService],
-  exports: [ShopifyAdapterService],
+  controllers: [WooCommerceAdapterController],
+  providers: [WooCommerceAdapterService],
+  exports: [WooCommerceAdapterService],
 })
-export class ShopifyAdapterModule {}
+export class WooCommerceAdapterModule {}
