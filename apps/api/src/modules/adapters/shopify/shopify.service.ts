@@ -1,12 +1,14 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { DataStore } from '../../platform/data.store';
 import { decryptSecret, encryptSecret } from '../../platform/crypto.util';
+import { BatchSyncQueue } from '../../jobs/batch-sync.queue';
 import {
   exchangeShopifyOAuthCode,
   fetchShopifyOrders,
@@ -22,13 +24,18 @@ import {
 
 type CredPayload = { accessToken: string };
 
-/** In-process webhook idempotency (MVP debounce — not Redis yet). */
+/** In-process webhook idempotency (also jobId on queue). */
 const seenWebhookIds = new Map<string, number>();
 const WEBHOOK_ID_TTL_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class ShopifyAdapterService {
-  constructor(private readonly store: DataStore) {}
+  private readonly log = new Logger(ShopifyAdapterService.name);
+
+  constructor(
+    private readonly store: DataStore,
+    private readonly batchSync: BatchSyncQueue,
+  ) {}
 
   private credentialsKey(): string {
     return (
@@ -59,6 +66,7 @@ export class ShopifyAdapterService {
     return {
       oauthReady: this.oauthConfigured(),
       webhooksReady: Boolean(this.webhookSecret()),
+      queue: 'batch.sync',
       scopes:
         process.env.SHOPIFY_SCOPES ??
         'read_products,read_orders,read_inventory',
@@ -95,9 +103,27 @@ export class ShopifyAdapterService {
         failureReason: null,
         lastSyncAt: null,
       });
-      const result = await this.syncNow(tenantId);
-      await this.ensureWebhooks(tenantId);
-      return result;
+
+      const queued = await this.enqueueFullSync(tenantId);
+      if (!queued) {
+        const result = await this.runFullSync(tenantId);
+        await this.ensureWebhooks(tenantId);
+        return { ...result, queued: false as const };
+      }
+      await this.batchSync.enqueue({
+        tenantId,
+        type: 'commerce.webhooks.register',
+        idempotencyKey: `whreg:${tenantId}:${Date.now()}`,
+      });
+      const store = await this.store.getStore(tenantId);
+      return {
+        ...store!,
+        productCount: 0,
+        orderCount: 0,
+        webhookUrl: this.webhookUrlFor(store!.id),
+        queued: true as const,
+        jobId: queued.jobId,
+      };
     } catch (e) {
       if (e instanceof BadRequestException) throw e;
       const reason =
@@ -177,7 +203,48 @@ export class ShopifyAdapterService {
     return `${workspace.replace(/\/$/, '')}/store?shopify=connected`;
   }
 
+  /** Public API: enqueue full sync (or inline fallback). */
   async syncNow(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection || connection.platform !== 'shopify') {
+      throw new BadRequestException('فروشگاه Shopify متصل نیست.');
+    }
+    await this.store.markStoreSyncResult(tenantId, {
+      syncHealth: 'stale',
+      failureReason: 'همگام‌سازی در صف batch.sync',
+    });
+    const queued = await this.enqueueFullSync(tenantId);
+    if (!queued) {
+      const result = await this.runFullSync(tenantId);
+      await this.ensureWebhooks(tenantId);
+      return { ...result, queued: false as const };
+    }
+    await this.batchSync.enqueue({
+      tenantId,
+      type: 'commerce.webhooks.register',
+      idempotencyKey: `whreg:${tenantId}:${queued.jobId}`,
+    });
+    return {
+      ...connection,
+      syncHealth: 'stale' as const,
+      failureReason: 'همگام‌سازی در صف batch.sync',
+      productCount: await this.store.countProducts(tenantId),
+      webhookUrl: this.webhookUrlFor(connection.id),
+      queued: true as const,
+      jobId: queued.jobId,
+    };
+  }
+
+  private enqueueFullSync(tenantId: string) {
+    return this.batchSync.enqueue({
+      tenantId,
+      type: 'commerce.sync',
+      idempotencyKey: `sync:${tenantId}:${Math.floor(Date.now() / 15_000)}`,
+    });
+  }
+
+  /** Worker entry — full catalog/order pull. */
+  async runFullSync(tenantId: string) {
     const connection = await this.store.getStore(tenantId);
     if (!connection || connection.platform !== 'shopify') {
       throw new BadRequestException('فروشگاه Shopify متصل نیست.');
@@ -271,6 +338,9 @@ export class ShopifyAdapterService {
     return { webhookUrl: address, results };
   }
 
+  /**
+   * HTTP webhook path: verify HMAC fast, enqueue batch.sync, ack.
+   */
   async handleWebhook(input: {
     connectionId: string;
     topic: string | undefined;
@@ -282,7 +352,7 @@ export class ShopifyAdapterService {
     this.assertWebhookHmac(input.rawBody, input.hmac);
 
     if (input.webhookId && this.isDuplicateWebhook(input.webhookId)) {
-      return { ok: true, duplicate: true };
+      return { ok: true, duplicate: true, queued: false };
     }
 
     const connection = await this.store.getStoreById(input.connectionId);
@@ -298,10 +368,55 @@ export class ShopifyAdapterService {
       throw new UnauthorizedException('دامنه فروشگاه با اتصال هم‌خوان نیست.');
     }
 
+    const bodyJson = input.rawBody.toString('utf8');
+    const idempotencyKey = input.webhookId
+      ? `wh:${input.webhookId}`
+      : `wh:${input.connectionId}:${input.topic}:${createHmac('sha256', bodyJson).digest('hex').slice(0, 16)}`;
+
+    const queued = await this.batchSync.enqueue({
+      tenantId: connection.tenantId,
+      type: 'commerce.webhook',
+      idempotencyKey,
+      payload: {
+        connectionId: input.connectionId,
+        topic: input.topic,
+        shopDomain: input.shopDomain,
+        webhookId: input.webhookId,
+        bodyJson,
+      },
+    });
+
+    if (!queued) {
+      const result = await this.processWebhookJob({
+        connectionId: input.connectionId,
+        topic: input.topic,
+        shopDomain: input.shopDomain,
+        webhookId: input.webhookId,
+        bodyJson,
+      });
+      return { ...result, queued: false };
+    }
+
+    return { ok: true, queued: true, jobId: queued.jobId };
+  }
+
+  /** Worker entry — apply one Shopify webhook payload. */
+  async processWebhookJob(input: {
+    connectionId: string;
+    topic: string | undefined;
+    shopDomain: string | undefined;
+    webhookId: string | undefined;
+    bodyJson: string;
+  }) {
+    const connection = await this.store.getStoreById(input.connectionId);
+    if (!connection || connection.platform !== 'shopify') {
+      throw new BadRequestException('اتصال فروشگاه یافت نشد.');
+    }
+
     const topic = (input.topic ?? '').toLowerCase();
     let payload: unknown = {};
     try {
-      payload = JSON.parse(input.rawBody.toString('utf8'));
+      payload = JSON.parse(input.bodyJson);
     } catch {
       throw new BadRequestException('بدنه webhook نامعتبر است.');
     }
@@ -357,6 +472,7 @@ export class ShopifyAdapterService {
       return { ok: true, topic, action: 'order_upserted' };
     }
 
+    this.log.debug(`Ignored webhook topic ${topic}`);
     return { ok: true, topic, action: 'ignored' };
   }
 

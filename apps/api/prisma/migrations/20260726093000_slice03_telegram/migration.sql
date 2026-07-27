@@ -1,4 +1,4 @@
-﻿-- AlterTable channel_bindings
+-- AlterTable channel_bindings
 ALTER TABLE "channel_bindings" ADD COLUMN IF NOT EXISTS "credentials_cipher" TEXT;
 ALTER TABLE "channel_bindings" ADD COLUMN IF NOT EXISTS "webhook_secret" TEXT;
 ALTER TABLE "channel_bindings" ADD COLUMN IF NOT EXISTS "bot_username" TEXT;

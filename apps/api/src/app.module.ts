@@ -16,12 +16,14 @@ import { ShopifyAdapterModule } from './modules/adapters/shopify/shopify.module'
 import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { JobsModule } from './modules/jobs/jobs.module';
 import { HealthController } from './health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ['.env', '../../.env'] }),
     PlatformModule,
+    JobsModule,
     IdentityModule,
     WorkspaceModule,
     EmployeeModule,

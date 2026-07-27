@@ -72,7 +72,9 @@ export default function StoreClient() {
         accessToken: accessToken.trim(),
       });
       setAccessToken('');
-      setMessage('Shopify متصل شد و کاتالوگ همگام گردید.');
+      setMessage(
+        'Shopify متصل شد — همگام‌سازی در صف است؛ چند ثانیه بعد تازه کنید.',
+      );
       await load();
     } catch (err) {
       setError(
@@ -150,8 +152,12 @@ export default function StoreClient() {
                 setBusy(true);
                 setError(null);
                 try {
-                  await api.syncStore();
-                  setMessage('همگام‌سازی مجدد انجام شد.');
+                  const res = await api.syncStore();
+                  setMessage(
+                    res && (res as { queued?: boolean }).queued
+                      ? 'همگام‌سازی در صف قرار گرفت — چند ثانیه بعد تازه کنید.'
+                      : 'همگام‌سازی انجام شد.',
+                  );
                   await load();
                 } catch (err) {
                   setError(

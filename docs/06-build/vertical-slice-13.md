@@ -30,7 +30,7 @@
 
 # Out of this slice
 
-BullMQ webhook debounce workers · variants as first-class rows · WooCommerce · Shopify webhook HMAC ingest · multi-store.
+BullMQ webhook debounce workers · variants as first-class rows · WooCommerce · multi-store.
 
 ---
 

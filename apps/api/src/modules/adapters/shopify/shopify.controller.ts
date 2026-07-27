@@ -104,15 +104,17 @@ export class ShopifyAdapterController {
   @UseGuards(SessionAuthGuard)
   async sync(@CurrentAuth() auth: AuthContext) {
     const store = await this.shopify.syncNow(auth.tenantId);
-    await this.shopify.ensureWebhooks(auth.tenantId);
     await this.audit.recordAdmin(
       auth,
       'store.sync',
-      'همگام‌سازی مجدد فروشگاه',
+      store.queued
+        ? 'همگام‌سازی در صف batch.sync'
+        : 'همگام‌سازی فروشگاه (هم‌زمان)',
       {
         platform: store.platform,
         syncHealth: store.syncHealth,
-        productCount: store.productCount,
+        queued: store.queued,
+        jobId: 'jobId' in store ? store.jobId : undefined,
       },
     );
     return store;
