@@ -319,6 +319,8 @@ export class RuntimeService {
       system,
       user: userText,
       tenantId,
+      conversationId,
+      feature: 'sales_reply',
       taskClass: 'chat.reply.cheap',
       routeHint: 'cheap',
     });

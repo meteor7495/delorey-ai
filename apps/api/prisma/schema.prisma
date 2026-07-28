@@ -28,6 +28,8 @@ model Tenant {
   knowledgeDocs   KnowledgeDoc[]
   knowledgeChunks KnowledgeChunk[]
   orders           Order[]
+  aiPolicy         TenantAiPolicy?
+  aiCallEvents     AiCallEvent[]
 
   @@map("tenants")
 }
@@ -285,4 +287,77 @@ model Order {
   @@unique([tenantId, externalId])
   @@index([tenantId])
   @@map("orders")
+}
+
+/// Per-tenant AI routing constraints (Provider Layer) — ops/admin, not merchant model playground
+model TenantAiPolicy {
+  id                 String   @id @default(uuid())
+  tenantId           String   @unique @map("tenant_id")
+  preferredProvider  String?  @map("preferred_provider")
+  preferredModels    Json?    @map("preferred_models")
+  allowedProviders   String[] @default([]) @map("allowed_providers")
+  blockedProviders   String[] @default([]) @map("blocked_providers")
+  fallbackOrder      String[] @default([]) @map("fallback_order")
+  maxCostPerTurnUsd  Decimal? @map("max_cost_per_turn_usd") @db.Decimal(12, 6)
+  maxCostPerDayUsd   Decimal? @map("max_cost_per_day_usd") @db.Decimal(12, 6)
+  latencyTargetMs    Int?     @map("latency_target_ms")
+  qualityTarget      String   @default("standard") @map("quality_target")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_ai_policies")
+}
+
+/// Internal model id → provider + upstream model string
+model AiModelBinding {
+  id                   String   @id @default(uuid())
+  internalModelId      String   @unique @map("internal_model_id")
+  providerId           String   @map("provider_id")
+  upstreamModel        String   @map("upstream_model")
+  taskClasses          String[] @default([]) @map("task_classes")
+  costTier             String   @default("cheap") @map("cost_tier")
+  enabled              Boolean  @default(true)
+  pricePromptPer1k     Decimal? @map("price_prompt_per_1k") @db.Decimal(12, 8)
+  priceCompletionPer1k Decimal? @map("price_completion_per_1k") @db.Decimal(12, 8)
+  metadata             Json?
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  @@index([providerId, enabled])
+  @@map("ai_model_bindings")
+}
+
+/// Append-only Gateway call ledger (Provider Layer observability / cost)
+model AiCallEvent {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  conversationId   String?  @map("conversation_id")
+  feature          String?
+  taskClass        String   @map("task_class")
+  routeHint        String   @map("route_hint")
+  providerId       String   @map("provider_id")
+  modelId          String   @map("model_id")
+  internalModelId  String?  @map("internal_model_id")
+  latencyMs        Int      @map("latency_ms")
+  promptTokens     Int      @map("prompt_tokens")
+  completionTokens Int      @map("completion_tokens")
+  totalTokens      Int      @map("total_tokens")
+  costUsd          Decimal? @map("cost_usd") @db.Decimal(12, 8)
+  retryCount       Int      @default(0) @map("retry_count")
+  fallbackCount    Int      @default(0) @map("fallback_count")
+  errorCode        String?  @map("error_code")
+  cacheHit         Boolean  @default(false) @map("cache_hit")
+  shadow           Boolean  @default(false)
+  idempotencyKey   String?  @map("idempotency_key")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([providerId, createdAt])
+  @@index([conversationId])
+  @@index([tenantId, feature, createdAt])
+  @@map("ai_call_events")
 }

@@ -3,6 +3,8 @@ import { GatewayError } from './domain/gateway-errors';
 import type { GenerateResponse } from './domain/provider.port';
 import type { RouteHint, TaskClass } from './domain/routing.types';
 import { RouterService } from './application/router.service';
+import { CircuitBreakerService } from './infrastructure/circuit-breaker.redis';
+import { UsageLedgerService } from './infrastructure/persistence/usage-ledger.service';
 
 export type CompleteInput = {
   system: string;
@@ -46,7 +48,11 @@ export type CompleteResult = {
 export class AiGatewayService {
   private readonly log = new Logger(AiGatewayService.name);
 
-  constructor(private readonly router: RouterService) {}
+  constructor(
+    private readonly router: RouterService,
+    private readonly circuits: CircuitBreakerService,
+    private readonly ledger: UsageLedgerService,
+  ) {}
 
   async complete(input: CompleteInput): Promise<CompleteResult> {
     const taskClass: TaskClass = input.taskClass ?? 'chat.reply.cheap';
@@ -54,7 +60,7 @@ export class AiGatewayService {
       input.routeHint ??
       (taskClass === 'chat.reply.premium' ? 'premium' : 'cheap');
 
-    const decision = this.router.decide({
+    const decision = await this.router.decide({
       tenantId: input.tenantId,
       taskClass,
       routeHint,
@@ -64,6 +70,9 @@ export class AiGatewayService {
     let retryCount = 0;
     let fallbackCount = 0;
     let lastReason: string | undefined;
+    if (decision.rejectReason) {
+      lastReason = decision.rejectReason;
+    }
 
     for (let i = 0; i < chain.length; i++) {
       const candidate = chain[i]!;
@@ -88,6 +97,8 @@ export class AiGatewayService {
           routeHint,
         });
 
+        await this.circuits.recordSuccess(candidate.providerId);
+
         const mode: 'mock' | 'live' =
           res.providerId === 'mock' ? 'mock' : 'live';
         const meter = this.toMeter({
@@ -103,6 +114,22 @@ export class AiGatewayService {
               : undefined,
         });
         this.logMeter(input.tenantId, meter);
+        await this.ledger.record({
+          tenantId: input.tenantId,
+          conversationId: input.conversationId,
+          feature: input.feature ?? 'sales_reply',
+          taskClass,
+          routeHint,
+          providerId: meter.providerId,
+          modelId: meter.modelId,
+          latencyMs: meter.latencyMs,
+          promptTokens: meter.tokensIn,
+          completionTokens: meter.tokensOut,
+          costUsd: meter.costUsd,
+          retryCount,
+          fallbackCount,
+          cacheHit: false,
+        });
         return {
           text: res.text?.trim() || '',
           mode,
@@ -117,11 +144,28 @@ export class AiGatewayService {
               : 'unknown';
         lastReason = reason.slice(0, 240);
 
+        await this.circuits.recordFailure(candidate.providerId);
+        await this.ledger.record({
+          tenantId: input.tenantId,
+          conversationId: input.conversationId,
+          feature: input.feature ?? 'sales_reply',
+          taskClass,
+          routeHint,
+          providerId: candidate.providerId,
+          modelId: candidate.modelId,
+          latencyMs: 0,
+          promptTokens: 0,
+          completionTokens: 0,
+          retryCount,
+          fallbackCount,
+          errorCode:
+            err instanceof GatewayError ? err.code : 'unavailable',
+        });
+
         const retryable =
           err instanceof GatewayError ? err.retryable : true;
 
         if (retryable && i === 0 && retryCount < 1) {
-          // one immediate retry on primary
           retryCount += 1;
           i -= 1;
           continue;
@@ -136,7 +180,6 @@ export class AiGatewayService {
       }
     }
 
-    // Absolute last resort — should be unreachable if mock is in chain
     const mock = this.router.resolveProvider('mock');
     const res = mock
       ? await mock.generate({
@@ -150,14 +193,14 @@ export class AiGatewayService {
           taskClass,
           routeHint,
         })
-      : {
+      : ({
           text: 'الان اطلاعات مطمئنی ندارم.',
           finishReason: 'stop',
           usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
           providerId: 'mock',
           modelId: 'grounded-template',
           latencyMs: 0,
-        };
+        } satisfies GenerateResponse);
 
     const meter = this.toMeter({
       res,
@@ -169,6 +212,21 @@ export class AiGatewayService {
       fallbackReason: (lastReason ?? 'all_providers_failed').slice(0, 240),
     });
     this.logMeter(input.tenantId, meter);
+    await this.ledger.record({
+      tenantId: input.tenantId,
+      conversationId: input.conversationId,
+      feature: input.feature ?? 'sales_reply',
+      taskClass,
+      routeHint,
+      providerId: meter.providerId,
+      modelId: meter.modelId,
+      latencyMs: meter.latencyMs,
+      promptTokens: meter.tokensIn,
+      completionTokens: meter.tokensOut,
+      costUsd: 0,
+      retryCount,
+      fallbackCount,
+    });
     return { text: res.text?.trim() || '', mode: 'mock', meter };
   }
 
