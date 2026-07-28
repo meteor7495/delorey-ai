@@ -1,13 +1,15 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import {
-  aiStateLabel,
-  channelStatusLabel,
-  decisionLabel,
-} from '@delorey/ui';
+import { aiStateLabel, channelStatusLabel, decisionLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 type BotChannelStatus = {
   connected: boolean;
@@ -123,126 +125,135 @@ export default function ChannelsPage() {
 
   return (
     <AppShell>
-      <h1>کانال‌ها</h1>
-      <p className="muted">وبسایت · تلگرام · بله — یک مغز (Runtime)</p>
+      <div className="space-y-6">
+        <PageHeader
+          title="کانال‌ها"
+          description="وبسایت · تلگرام · بله — یک مغز (Runtime)"
+        />
+        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-      <div className="card">
-        <h3>گفتگوی وبسایت</h3>
-        <p>
-          وضعیت:{' '}
-          <strong>
-            {website ? aiStateLabel(website.status) : '…'}
-          </strong>
-        </p>
-        <p className="muted">
-          کلید عمومی:{' '}
-          <code dir="ltr">{website?.publicKey ?? '—'}</code>
-        </p>
-        <pre className="snippet">{website?.snippet}</pre>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle>گفتگوی وبسایت</CardTitle>
+              <Badge>
+                {website ? aiStateLabel(website.status) : '…'}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-[var(--text-3)]">
+              کلید عمومی:{' '}
+              <code dir="ltr" className="text-[var(--text-2)]">
+                {website?.publicKey ?? '—'}
+              </code>
+            </p>
+            <pre
+              dir="ltr"
+              className="overflow-x-auto rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface-3)] p-3 text-xs text-[var(--text-2)]"
+            >
+              {website?.snippet}
+            </pre>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>تلگرام</CardTitle>
+            <CardDescription>
+              {telegram?.connected
+                ? `${channelStatusLabel(String(telegram.status))} (@${telegram.botUsername ?? '—'})`
+                : 'متصل نیست'}
+              {' · '}
+              {telegram?.live
+                ? 'ارسال واقعی فعال است'
+                : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {telegram?.webhookUrl && (
+              <p className="text-xs text-[var(--text-3)]" dir="ltr">
+                {telegram.webhookUrl}
+              </p>
+            )}
+            <form onSubmit={onConnectTelegram} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>توکن ربات</Label>
+                <Input
+                  dir="ltr"
+                  value={tgToken}
+                  onChange={(e) => setTgToken(e.target.value)}
+                  placeholder="123456:ABC… یا خالی برای توکن آزمایشی"
+                />
+              </div>
+              <Button type="submit">اتصال تلگرام</Button>
+            </form>
+            {telegram?.connected && (
+              <form onSubmit={onSimulateTelegram} className="space-y-3 border-t border-[var(--border-color)] pt-4">
+                <div className="space-y-1.5">
+                  <Label>شبیه‌سازی پیام ورودی (محلی)</Label>
+                  <Input
+                    value={tgSimText}
+                    onChange={(e) => setTgSimText(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" variant="outline">
+                  شبیه‌سازی پیام
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>بله</CardTitle>
+            <CardDescription>
+              {bale?.connected
+                ? `${channelStatusLabel(String(bale.status))} (@${bale.botUsername ?? '—'})`
+                : 'متصل نیست'}
+              {' · '}
+              {bale?.live
+                ? 'ارسال واقعی فعال است'
+                : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {bale?.webhookUrl && (
+              <p className="text-xs text-[var(--text-3)]" dir="ltr">
+                {bale.webhookUrl}
+              </p>
+            )}
+            <form onSubmit={onConnectBale} className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>توکن ربات</Label>
+                <Input
+                  dir="ltr"
+                  value={baleToken}
+                  onChange={(e) => setBaleToken(e.target.value)}
+                  placeholder="توکن بله · خالی برای آزمایشی"
+                />
+              </div>
+              <Button type="submit">اتصال بله</Button>
+            </form>
+            {bale?.connected && (
+              <form onSubmit={onSimulateBale} className="space-y-3 border-t border-[var(--border-color)] pt-4">
+                <div className="space-y-1.5">
+                  <Label>شبیه‌سازی پیام ورودی (محلی)</Label>
+                  <Input
+                    value={baleSimText}
+                    onChange={(e) => setBaleSimText(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" variant="outline">
+                  شبیه‌سازی پیام
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>تلگرام</h3>
-        <p>
-          وضعیت:{' '}
-          <strong>
-            {telegram?.connected
-              ? `${channelStatusLabel(String(telegram.status))} (@${telegram.botUsername ?? '—'})`
-              : 'متصل نیست'}
-          </strong>
-        </p>
-        {telegram?.webhookUrl && (
-          <p className="muted" style={{ direction: 'ltr', textAlign: 'left' }}>
-            {telegram.webhookUrl}
-          </p>
-        )}
-        <p className="muted">
-          {telegram?.live
-            ? 'ارسال واقعی فعال است'
-            : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
-        </p>
-
-        <form onSubmit={onConnectTelegram}>
-          <label>توکن ربات</label>
-          <input
-            className="input"
-            dir="ltr"
-            value={tgToken}
-            onChange={(e) => setTgToken(e.target.value)}
-            placeholder="123456:ABC… یا خالی برای توکن آزمایشی"
-          />
-          <button className="btn" type="submit">
-            اتصال تلگرام
-          </button>
-        </form>
-
-        {telegram?.connected && (
-          <form onSubmit={onSimulateTelegram} style={{ marginTop: 16 }}>
-            <label>شبیه‌سازی پیام ورودی (محلی)</label>
-            <input
-              className="input"
-              value={tgSimText}
-              onChange={(e) => setTgSimText(e.target.value)}
-            />
-            <button className="btn secondary" type="submit">
-              شبیه‌سازی پیام
-            </button>
-          </form>
-        )}
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>بله</h3>
-        <p>
-          وضعیت:{' '}
-          <strong>
-            {bale?.connected
-              ? `${channelStatusLabel(String(bale.status))} (@${bale.botUsername ?? '—'})`
-              : 'متصل نیست'}
-          </strong>
-        </p>
-        {bale?.webhookUrl && (
-          <p className="muted" style={{ direction: 'ltr', textAlign: 'left' }}>
-            {bale.webhookUrl}
-          </p>
-        )}
-        <p className="muted">
-          {bale?.live
-            ? 'ارسال واقعی فعال است'
-            : 'حالت آزمایشی — برای تست محلی از شبیه‌سازی استفاده کنید'}
-        </p>
-
-        <form onSubmit={onConnectBale}>
-          <label>توکن ربات</label>
-          <input
-            className="input"
-            dir="ltr"
-            value={baleToken}
-            onChange={(e) => setBaleToken(e.target.value)}
-            placeholder="توکن بله · خالی برای آزمایشی"
-          />
-          <button className="btn" type="submit">
-            اتصال بله
-          </button>
-        </form>
-
-        {bale?.connected && (
-          <form onSubmit={onSimulateBale} style={{ marginTop: 16 }}>
-            <label>شبیه‌سازی پیام ورودی (محلی)</label>
-            <input
-              className="input"
-              value={baleSimText}
-              onChange={(e) => setBaleSimText(e.target.value)}
-            />
-            <button className="btn secondary" type="submit">
-              شبیه‌سازی پیام
-            </button>
-          </form>
-        )}
-      </div>
-
-      {message && <p style={{ color: 'var(--success)' }}>{message}</p>}
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
     </AppShell>
   );
 }

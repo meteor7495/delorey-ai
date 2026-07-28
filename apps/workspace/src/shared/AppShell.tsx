@@ -1,27 +1,29 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
-import { AiStateChip } from '@delorey/ui';
+import { Sidebar } from '@/components/layout/sidebar';
+import { Topbar } from '@/components/layout/topbar';
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
 import { api, getToken, setToken } from '@/shared/api';
 
-const links = [
-  { href: '/home', label: 'خانه' },
-  { href: '/dashboard', label: 'داشبورد' },
-  { href: '/audit', label: 'ممیزی' },
-  { href: '/onboarding', label: 'شروع کار' },
-  { href: '/store', label: 'فروشگاه' },
-  { href: '/employee', label: 'کارمند فروش' },
-  { href: '/channels', label: 'کانال‌ها' },
-  { href: '/inbox', label: 'صندوق ورودی' },
-  { href: '/knowledge', label: 'دانش' },
-];
+const titleMap: Record<string, string> = {
+  '/home': 'خانه',
+  '/dashboard': 'داشبورد',
+  '/onboarding': 'شروع کار',
+  '/store': 'فروشگاه',
+  '/employee': 'کارمند فروش',
+  '/channels': 'کانال‌ها',
+  '/inbox': 'صندوق ورودی',
+  '/knowledge': 'دانش',
+  '/audit': 'ممیزی',
+};
 
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const [ready, setReady] = useState(false);
   const [status, setStatus] = useState('inactive');
   const [tenantName, setTenantName] = useState('فضای کاری');
 
@@ -36,6 +38,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         setStatus(String(me.employeeStatus ?? 'inactive'));
         const tenant = me.tenant as { name?: string } | undefined;
         if (tenant?.name) setTenantName(tenant.name);
+        setReady(true);
       })
       .catch(() => {
         setToken(null);
@@ -43,33 +46,35 @@ export function AppShell({ children }: { children: ReactNode }) {
       });
   }, [router, pathname]);
 
+  if (!ready) {
+    return (
+      <div className="flex h-[100dvh] items-center justify-center bg-[var(--bg)] text-[var(--text-3)] text-sm">
+        در حال بارگذاری…
+      </div>
+    );
+  }
+
+  const title =
+    Object.entries(titleMap).find(([path]) =>
+      path === '/home' || path === '/dashboard'
+        ? pathname === path
+        : pathname === path || pathname.startsWith(`${path}/`),
+    )?.[1] ?? 'فضای کاری';
+
   return (
-    <div className="shell">
-      <aside className="nav">
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>DeloRey</div>
-        <div className="muted" style={{ fontSize: 13, marginBottom: 12 }}>
-          {tenantName}
+    <div className="flex h-[100dvh] overflow-hidden bg-[var(--bg)] app-shell">
+      <Sidebar tenantName={tenantName} employeeStatus={status} />
+
+      <main className="flex flex-1 min-w-0 flex-col overflow-hidden">
+        <Topbar title={title} tenantName={tenantName} />
+        <div className="flex-1 overflow-y-auto bg-[var(--bg)] overscroll-contain mobile-content-pad pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+          <div className="mx-auto w-full max-w-[1100px] p-4 sm:p-6 fade-up">
+            {children}
+          </div>
         </div>
-        <AiStateChip state={status} />
-        <div style={{ height: 8 }} />
-        {links.map((l) => (
-          <Link key={l.href} href={l.href}>
-            {l.label}
-          </Link>
-        ))}
-        <button
-          className="btn secondary"
-          style={{ marginTop: 'auto' }}
-          type="button"
-          onClick={() => {
-            setToken(null);
-            router.push('/login');
-          }}
-        >
-          خروج
-        </button>
-      </aside>
-      <main className="main">{children}</main>
+      </main>
+
+      <MobileBottomNav />
     </div>
   );
 }

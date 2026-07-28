@@ -13,10 +13,11 @@ export function AiStateChip({ state }: { state: string }) {
         gap: 6,
         padding: '4px 10px',
         borderRadius: 999,
-        border: `1px solid ${tokens.color.border}`,
-        background: tokens.color.surface,
-        color: tokens.color.text,
-        fontSize: 13,
+        border: '1px solid rgba(255,255,255,0.12)',
+        background: 'rgba(255,255,255,0.06)',
+        color: '#E2E8F0',
+        fontSize: 12,
+        fontWeight: 600,
       }}
     >
       <span

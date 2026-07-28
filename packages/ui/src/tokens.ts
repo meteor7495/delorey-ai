@@ -1,22 +1,22 @@
 export const tokens = {
   color: {
-    bg: '#f4f6f8',
+    bg: '#F4F7F8',
     surface: '#ffffff',
     text: '#14212b',
     muted: '#5b6b76',
     accent: '#0f6e6e',
-    success: '#1f7a4c',
-    warning: '#b54708',
-    danger: '#b42318',
+    success: '#10B981',
+    warning: '#F59E0B',
+    danger: '#EF4444',
     info: '#175cd3',
-    border: '#d7dee5',
+    border: '#DCE5E8',
   },
   font: {
     sans: '"Vazirmatn", "Segoe UI", Tahoma, sans-serif',
   },
   radius: {
-    sm: '6px',
-    md: '10px',
+    sm: '9px',
+    md: '12px',
   },
 } as const;
 

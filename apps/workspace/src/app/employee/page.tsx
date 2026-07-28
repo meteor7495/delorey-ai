@@ -3,6 +3,11 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function EmployeePage() {
   const [name, setName] = useState('');
@@ -71,111 +76,126 @@ export default function EmployeePage() {
 
   return (
     <AppShell>
-      <h1>کارمند فروش</h1>
-      <p className="muted">
-        این تنظیمات در Runtime اعمال می‌شوند — تزئینی نیستند.
-      </p>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+      <div className="space-y-6">
+        <PageHeader
+          title="کارمند فروش"
+          description="این تنظیمات در Runtime اعمال می‌شوند — تزئینی نیستند."
+        />
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-      <form className="card" onSubmit={onSubmit}>
-        <label>نام</label>
-        <input
-          className="input"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <label>لحن</label>
-        <input
-          className="input"
-          value={tone}
-          onChange={(e) => setTone(e.target.value)}
-        />
-        <label>وضعیت</label>
-        <select
-          className="input"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="active">فعال</option>
-          <option value="paused">متوقف</option>
-          <option value="inactive">غیرفعال</option>
-        </select>
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={orderStatus}
-            onChange={(e) => setOrderStatus(e.target.checked)}
-          />
-          مهارت پیگیری سفارش
-        </label>
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={recommend}
-            onChange={(e) => setRecommend(e.target.checked)}
-          />
-          مهارت پیشنهاد محصول
-        </label>
-        <button className="btn" type="submit">
-          ذخیره
-        </button>
-        {saved && <p style={{ color: 'var(--success)' }}>ذخیره شد.</p>}
-      </form>
+        <Card>
+          <CardHeader>
+            <CardTitle>پروفایل و مهارت‌ها</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>نام</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>لحن</Label>
+                <Input value={tone} onChange={(e) => setTone(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>وضعیت</Label>
+                <select
+                  className="flex h-9 w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm text-[var(--text-1)]"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="active">فعال</option>
+                  <option value="paused">متوقف</option>
+                  <option value="inactive">غیرفعال</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-[var(--text-2)]">
+                <input
+                  type="checkbox"
+                  checked={orderStatus}
+                  onChange={(e) => setOrderStatus(e.target.checked)}
+                />
+                مهارت پیگیری سفارش
+              </label>
+              <label className="flex items-center gap-2 text-sm text-[var(--text-2)]">
+                <input
+                  type="checkbox"
+                  checked={recommend}
+                  onChange={(e) => setRecommend(e.target.checked)}
+                />
+                مهارت پیشنهاد محصول
+              </label>
+              <div className="flex items-center gap-3">
+                <Button type="submit">ذخیره</Button>
+                {saved && (
+                  <span className="text-sm text-[var(--success)]">ذخیره شد.</span>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-      <form
-        className="card"
-        style={{ marginTop: 16 }}
-        onSubmit={onGuardrailsSubmit}
-      >
-        <h3>محدودیت‌های سخت</h3>
-        <p className="muted" style={{ fontSize: 13 }}>
-          موضوع ممنوع، سقف تخفیف، و ممنوعیت استرداد/لغو — قبل از ابزار و پاسخ
-          مدل اعمال می‌شوند. خاموش کردن تحویل به انسان برای اتوماسیون نمایشی ممکن
-          نیست.
-        </p>
-        <label>موضوع‌های ممنوع (هر خط یک عبارت)</label>
-        <textarea
-          className="input"
-          rows={4}
-          value={blockedTopicsText}
-          onChange={(e) => setBlockedTopicsText(e.target.value)}
-          placeholder={'سیاسی\nقمار\nشرط‌بندی'}
-        />
-        <label>سقف تخفیف (درصد)</label>
-        <input
-          className="input"
-          type="number"
-          min={0}
-          max={100}
-          value={discountCap}
-          onChange={(e) => setDiscountCap(Number(e.target.value))}
-        />
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={onBlockedTopic}
-            onChange={(e) => setOnBlockedTopic(e.target.checked)}
-          />
-          ارجاع به انسان هنگام موضوع ممنوع
-        </label>
-        <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input
-            type="checkbox"
-            checked={onDiscountCap}
-            onChange={(e) => setOnDiscountCap(e.target.checked)}
-          />
-          ارجاع هنگام تخفیف بالاتر از سقف
-        </label>
-        <p className="muted" style={{ fontSize: 13 }}>
-          استرداد وجه و لغو سفارش همیشه مسدودند (MVP) — قابل خاموش‌کردن نیست.
-        </p>
-        <button className="btn" type="submit">
-          ذخیره محدودیت‌ها
-        </button>
-        {guardSaved && (
-          <p style={{ color: 'var(--success)' }}>محدودیت‌ها ذخیره شد.</p>
-        )}
-      </form>
+        <Card>
+          <CardHeader>
+            <CardTitle>محدودیت‌های سخت</CardTitle>
+            <CardDescription>
+              موضوع ممنوع، سقف تخفیف، و ممنوعیت استرداد/لغو — قبل از ابزار و پاسخ
+              مدل اعمال می‌شوند.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onGuardrailsSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>موضوع‌های ممنوع (هر خط یک عبارت)</Label>
+                <textarea
+                  className="flex min-h-[100px] w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--text-1)]"
+                  rows={4}
+                  value={blockedTopicsText}
+                  onChange={(e) => setBlockedTopicsText(e.target.value)}
+                  placeholder={'سیاسی\nقمار\nشرط‌بندی'}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>سقف تخفیف (درصد)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={discountCap}
+                  onChange={(e) => setDiscountCap(Number(e.target.value))}
+                />
+              </div>
+              <label className="flex items-center gap-2 text-sm text-[var(--text-2)]">
+                <input
+                  type="checkbox"
+                  checked={onBlockedTopic}
+                  onChange={(e) => setOnBlockedTopic(e.target.checked)}
+                />
+                ارجاع به انسان هنگام موضوع ممنوع
+              </label>
+              <label className="flex items-center gap-2 text-sm text-[var(--text-2)]">
+                <input
+                  type="checkbox"
+                  checked={onDiscountCap}
+                  onChange={(e) => setOnDiscountCap(e.target.checked)}
+                />
+                ارجاع هنگام تخفیف بالاتر از سقف
+              </label>
+              <p className="text-xs text-[var(--text-3)]">
+                استرداد وجه و لغو سفارش همیشه مسدودند (MVP) — قابل خاموش‌کردن نیست.
+              </p>
+              <div className="flex items-center gap-3">
+                <Button type="submit">ذخیره محدودیت‌ها</Button>
+                {guardSaved && (
+                  <span className="text-sm text-[var(--success)]">
+                    محدودیت‌ها ذخیره شد.
+                  </span>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </AppShell>
   );
 }

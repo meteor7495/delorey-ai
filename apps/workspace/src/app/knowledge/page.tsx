@@ -1,12 +1,17 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import {
-  knowledgeDocTypeLabel,
-  knowledgeStatusLabel,
-} from '@delorey/ui';
+import { knowledgeDocTypeLabel, knowledgeStatusLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { EmptyState } from '@/components/shared/empty-state';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen } from 'lucide-react';
 
 type KnowledgeDoc = {
   id: string;
@@ -90,136 +95,158 @@ export default function KnowledgePage() {
 
   return (
     <AppShell>
-      <h1>دانش فروشگاه</h1>
-      <p className="muted">
-        پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای
-      </p>
+      <div className="space-y-6">
+        <PageHeader
+          title="دانش فروشگاه"
+          description="پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای"
+        />
 
-      {index && (
-        <div className="banner" style={{ marginBottom: 16 }}>
-          <strong>وضعیت ایندکس:</strong> {index.note}
-          <div className="muted" style={{ fontSize: 13 }}>
-            حالت: {index.mode === 'keyword' ? 'کلیدواژه' : index.mode} · فعال:{' '}
-            {index.active} · در حال ایندکس: {index.indexing} · ناموفق:{' '}
-            {index.failed}
-          </div>
-        </div>
-      )}
-
-      <div className="card">
-        <h3>{editingId ? 'ویرایش سند' : 'افزودن پرسش متداول / سیاست'}</h3>
-        <form onSubmit={onSubmit}>
-          <label>نوع</label>
-          <select
-            className="input"
-            value={docType}
-            onChange={(e) =>
-              setDocType(e.target.value as 'faq' | 'policy_override')
-            }
-          >
-            <option value="faq">پرسش متداول</option>
-            <option value="policy_override">سیاست / بازنویسی</option>
-          </select>
-          <label>عنوان</label>
-          <input
-            className="input"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-          <label>متن</label>
-          <textarea
-            className="input"
-            style={{ minHeight: 100 }}
-            value={bodyText}
-            onChange={(e) => setBodyText(e.target.value)}
-            required
-          />
-          <label>منبع</label>
-          <input
-            className="input"
-            value={sourceAttribution}
-            onChange={(e) => setSourceAttribution(e.target.value)}
-            required
-          />
-          <div className="row">
-            <button className="btn" type="submit">
-              {editingId ? 'ذخیره' : 'افزودن'}
-            </button>
-            {editingId && (
-              <button
-                className="btn secondary"
-                type="button"
-                onClick={resetForm}
-              >
-                انصراف
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      <div className="card" style={{ marginTop: 16 }}>
-        <h3>اسناد</h3>
-        {docs.length === 0 && (
-          <p className="muted">سندی نیست — دمو معمولاً دو پرسش متداول پیش‌فرض دارد.</p>
+        {index && (
+          <Card className="border-[var(--brand-400)]/20 bg-[var(--brand-50)]">
+            <CardContent className="space-y-1 p-4">
+              <p className="text-sm font-semibold text-[var(--text-1)]">
+                وضعیت ایندکس: {index.note}
+              </p>
+              <p className="text-xs text-[var(--text-3)]">
+                حالت: {index.mode === 'keyword' ? 'کلیدواژه' : index.mode} · فعال:{' '}
+                {index.active} · در حال ایندکس: {index.indexing} · ناموفق:{' '}
+                {index.failed}
+              </p>
+            </CardContent>
+          </Card>
         )}
-        {docs.map((d) => (
-          <div
-            key={d.id}
-            style={{
-              borderBottom: '1px solid var(--border)',
-              padding: '12px 0',
-            }}
-          >
-            <div className="row" style={{ justifyContent: 'space-between' }}>
-              <strong>
-                {d.title}{' '}
-                <span className="muted" style={{ fontWeight: 400 }}>
-                  ({knowledgeDocTypeLabel(d.docType)} ·{' '}
-                  {knowledgeStatusLabel(d.status)})
-                </span>
-              </strong>
-              <div className="row">
-                <button
-                  type="button"
-                  className="btn secondary"
-                  onClick={() => {
-                    setEditingId(d.id);
-                    setTitle(d.title);
-                    setBodyText(d.bodyText);
-                    setSourceAttribution(d.sourceAttribution);
-                    setDocType(
-                      d.docType === 'policy_override'
-                        ? 'policy_override'
-                        : 'faq',
-                    );
-                  }}
-                >
-                  ویرایش
-                </button>
-                <button
-                  type="button"
-                  className="btn secondary"
-                  onClick={async () => {
-                    await api.deleteKnowledgeDoc(d.id);
-                    await refresh();
-                  }}
-                >
-                  حذف
-                </button>
-              </div>
-            </div>
-            <p style={{ margin: '8px 0' }}>{d.bodyText}</p>
-            <p className="muted" style={{ fontSize: 13, margin: 0 }}>
-              منبع: {d.sourceAttribution}
-            </p>
-          </div>
-        ))}
-      </div>
 
-      {message && <p style={{ color: 'var(--success)' }}>{message}</p>}
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              {editingId ? 'ویرایش سند' : 'افزودن پرسش متداول / سیاست'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>نوع</Label>
+                <select
+                  className="flex h-9 w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
+                  value={docType}
+                  onChange={(e) =>
+                    setDocType(e.target.value as 'faq' | 'policy_override')
+                  }
+                >
+                  <option value="faq">پرسش متداول</option>
+                  <option value="policy_override">سیاست / بازنویسی</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>عنوان</Label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>متن</Label>
+                <textarea
+                  className="flex min-h-[100px] w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm"
+                  value={bodyText}
+                  onChange={(e) => setBodyText(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>منبع</Label>
+                <Input
+                  value={sourceAttribution}
+                  onChange={(e) => setSourceAttribution(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button type="submit">{editingId ? 'ذخیره' : 'افزودن'}</Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    انصراف
+                  </Button>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>اسناد</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {docs.length === 0 ? (
+              <EmptyState
+                icon={BookOpen}
+                title="سندی نیست"
+                description="دمو معمولاً دو پرسش متداول پیش‌فرض دارد."
+              />
+            ) : (
+              <div className="divide-y divide-[var(--border-color)]">
+                {docs.map((d) => (
+                  <div key={d.id} className="space-y-2 px-5 py-4">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-[var(--text-1)]">{d.title}</p>
+                        <div className="mt-1 flex flex-wrap gap-1.5">
+                          <Badge variant="secondary">
+                            {knowledgeDocTypeLabel(d.docType)}
+                          </Badge>
+                          <Badge variant="outline">
+                            {knowledgeStatusLabel(d.status)}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingId(d.id);
+                            setTitle(d.title);
+                            setBodyText(d.bodyText);
+                            setSourceAttribution(d.sourceAttribution);
+                            setDocType(
+                              d.docType === 'policy_override'
+                                ? 'policy_override'
+                                : 'faq',
+                            );
+                          }}
+                        >
+                          ویرایش
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={async () => {
+                            await api.deleteKnowledgeDoc(d.id);
+                            await refresh();
+                          }}
+                        >
+                          حذف
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-sm text-[var(--text-2)]">{d.bodyText}</p>
+                    <p className="text-xs text-[var(--text-3)]">
+                      منبع: {d.sourceAttribution}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </AppShell>
   );
 }

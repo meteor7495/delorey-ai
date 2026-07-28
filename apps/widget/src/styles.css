@@ -49,7 +49,7 @@ body {
 
 .bubble.shopper {
   align-self: flex-start;
-  background: #1d4ed8;
+  background: #1e3a5f;
 }
 
 .bubble.employee {
@@ -78,13 +78,24 @@ input {
   padding: 10px 12px;
 }
 
+input:focus {
+  outline: none;
+  border-color: #2a8a8a;
+  box-shadow: 0 0 0 3px rgba(15, 110, 110, 0.25);
+}
+
 button {
   border: none;
   border-radius: 10px;
-  background: #0f6e6e;
+  background: linear-gradient(135deg, #2a8a8a, #0f6e6e);
   color: white;
   padding: 10px 14px;
   cursor: pointer;
+  font-weight: 600;
+}
+
+button:hover {
+  opacity: 0.92;
 }
 
 .muted {

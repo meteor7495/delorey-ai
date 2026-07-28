@@ -13,6 +13,10 @@ import {
 } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type AuditItem = {
   id: string;
@@ -125,250 +129,232 @@ export default function AuditClient() {
 
   return (
     <AppShell>
-      <h1>ممیزی</h1>
-      <p className="muted">
-        نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت
-      </p>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+      <div className="space-y-4">
+        <PageHeader
+          title="ممیزی"
+          description="نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت"
+        />
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-      <div className="row" style={{ marginBottom: 12 }}>
-        <button
-          type="button"
-          className={`btn ${tab === 'turns' ? '' : 'secondary'}`}
-          onClick={() => setTab('turns')}
-        >
-          نوبت‌های کارمند
-        </button>
-        <button
-          type="button"
-          className={`btn ${tab === 'admin' ? '' : 'secondary'}`}
-          onClick={() => setTab('admin')}
-        >
-          اقدامات ادمین
-        </button>
-      </div>
-
-      <div className="row" style={{ marginBottom: 12, flexWrap: 'wrap' }}>
-        {[7, 14, 30].map((d) => (
-          <button
-            key={d}
-            type="button"
-            className={`btn ${days === d ? '' : 'secondary'}`}
-            onClick={() => setDays(d)}
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            size="sm"
+            variant={tab === 'turns' ? 'default' : 'outline'}
+            onClick={() => setTab('turns')}
           >
-            {d} روز
-          </button>
-        ))}
-        {tab === 'turns' ? (
-          <select
-            className="input"
-            style={{ width: 'auto', margin: 0 }}
-            value={decision}
-            onChange={(e) => setDecision(e.target.value)}
+            نوبت‌های کارمند
+          </Button>
+          <Button
+            size="sm"
+            variant={tab === 'admin' ? 'default' : 'outline'}
+            onClick={() => setTab('admin')}
           >
-            <option value="">همه تصمیم‌ها</option>
-            <option value="answer_grounded">{decisionLabel('answer_grounded')}</option>
-            <option value="answer_knowledge">{decisionLabel('answer_knowledge')}</option>
-            <option value="recommend">{decisionLabel('recommend')}</option>
-            <option value="order_lookup">{decisionLabel('order_lookup')}</option>
-            <option value="escalated:*">{decisionLabel('escalated:*')}</option>
-            <option value="guardrail_block:*">{decisionLabel('guardrail_block:*')}</option>
-            <option value="answer_empty_catalog">
-              {decisionLabel('answer_empty_catalog')}
-            </option>
-          </select>
-        ) : (
-          <select
-            className="input"
-            style={{ width: 'auto', margin: 0 }}
-            value={action}
-            onChange={(e) => setAction(e.target.value)}
-          >
-            <option value="">همه اقدامات</option>
-            <option value="employee.*">{adminActionLabel('employee.*')}</option>
-            <option value="knowledge.*">{adminActionLabel('knowledge.*')}</option>
-            <option value="store.*">{adminActionLabel('store.*')}</option>
-            <option value="channel.*">{adminActionLabel('channel.*')}</option>
-          </select>
-        )}
-        {conversationId && tab === 'turns' && (
-          <span className="muted" style={{ fontSize: 13 }}>
-            فیلتر گفتگو: <code dir="ltr">{conversationId.slice(0, 8)}…</code>{' '}
-            <Link href="/audit">حذف</Link>
-          </span>
-        )}
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(280px, 1fr) minmax(280px, 1fr)',
-          gap: 16,
-        }}
-      >
-        <div
-          className="card"
-          style={{ padding: 0, maxHeight: '70vh', overflow: 'auto' }}
-        >
-          <div style={{ padding: 12 }} className="muted">
-            {total} مورد
-          </div>
-          {tab === 'turns' && items.length === 0 && (
-            <p className="muted" style={{ padding: 16 }}>
-              ممیزی‌ای در این فیلتر نیست.
-            </p>
-          )}
-          {tab === 'admin' && adminItems.length === 0 && (
-            <p className="muted" style={{ padding: 16 }}>
-              اقدام ادمینی در این فیلتر نیست.
-            </p>
-          )}
-          {tab === 'turns' &&
-            items.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => selectTurn(item.id)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'right',
-                  border: 'none',
-                  borderBottom: '1px solid var(--border)',
-                  background:
-                    item.id === selectedId ? '#e7eef2' : 'transparent',
-                  padding: '10px 14px',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: 13 }}>
-                  {decisionLabel(item.decision)}
-                </div>
-                <div className="muted" style={{ fontSize: 12 }} dir="ltr">
-                  {new Date(item.createdAt).toLocaleString('fa-IR')} ·{' '}
-                  {item.conversationId.slice(0, 8)}
-                </div>
-              </button>
-            ))}
-          {tab === 'admin' &&
-            adminItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => selectAdmin(item.id)}
-                style={{
-                  display: 'block',
-                  width: '100%',
-                  textAlign: 'right',
-                  border: 'none',
-                  borderBottom: '1px solid var(--border)',
-                  background:
-                    item.id === selectedAdminId ? '#e7eef2' : 'transparent',
-                  padding: '10px 14px',
-                  cursor: 'pointer',
-                }}
-              >
-                <div style={{ fontWeight: 600, fontSize: 13 }}>
-                  {adminActionLabel(item.action)}
-                </div>
-                <div className="muted" style={{ fontSize: 12 }}>
-                  {item.summary}
-                </div>
-                <div className="muted" style={{ fontSize: 12 }} dir="ltr">
-                  {new Date(item.createdAt).toLocaleString('fa-IR')}
-                </div>
-              </button>
-            ))}
+            اقدامات ادمین
+          </Button>
         </div>
 
-        <div className="card">
-          {tab === 'turns' && !detail && (
-            <p className="muted">یک نوبت را از لیست انتخاب کنید.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {[7, 14, 30].map((d) => (
+            <Button
+              key={d}
+              size="sm"
+              variant={days === d ? 'default' : 'outline'}
+              onClick={() => setDays(d)}
+            >
+              {d} روز
+            </Button>
+          ))}
+          {tab === 'turns' ? (
+            <select
+              className="h-8 rounded-[var(--r-xs)] border border-[var(--border-color)] bg-[var(--surface)] px-2 text-xs"
+              value={decision}
+              onChange={(e) => setDecision(e.target.value)}
+            >
+              <option value="">همه تصمیم‌ها</option>
+              <option value="answer_grounded">{decisionLabel('answer_grounded')}</option>
+              <option value="answer_knowledge">{decisionLabel('answer_knowledge')}</option>
+              <option value="recommend">{decisionLabel('recommend')}</option>
+              <option value="order_lookup">{decisionLabel('order_lookup')}</option>
+              <option value="escalated:*">{decisionLabel('escalated:*')}</option>
+              <option value="guardrail_block:*">{decisionLabel('guardrail_block:*')}</option>
+              <option value="answer_empty_catalog">
+                {decisionLabel('answer_empty_catalog')}
+              </option>
+            </select>
+          ) : (
+            <select
+              className="h-8 rounded-[var(--r-xs)] border border-[var(--border-color)] bg-[var(--surface)] px-2 text-xs"
+              value={action}
+              onChange={(e) => setAction(e.target.value)}
+            >
+              <option value="">همه اقدامات</option>
+              <option value="employee.*">{adminActionLabel('employee.*')}</option>
+              <option value="knowledge.*">{adminActionLabel('knowledge.*')}</option>
+              <option value="store.*">{adminActionLabel('store.*')}</option>
+              <option value="channel.*">{adminActionLabel('channel.*')}</option>
+            </select>
           )}
-          {tab === 'admin' && !adminDetail && (
-            <p className="muted">یک اقدام ادمین را انتخاب کنید.</p>
+          {conversationId && tab === 'turns' && (
+            <span className="text-xs text-[var(--text-3)]">
+              فیلتر گفتگو: <code dir="ltr">{conversationId.slice(0, 8)}…</code>{' '}
+              <Link href="/audit" className="text-[var(--brand-500)]">
+                حذف
+              </Link>
+            </span>
           )}
-          {tab === 'turns' && detail && (
-            <>
-              <p>
-                <strong>{decisionLabel(detail.decision)}</strong>
-              </p>
-              <p className="muted" style={{ fontSize: 13 }}>
-                {new Date(detail.createdAt).toLocaleString('fa-IR')}
-              </p>
-              <p className="muted" style={{ fontSize: 13 }}>
-                {detail.note}
-              </p>
-              {detail.conversation && (
-                <p>
-                  کانال: {channelLabel(detail.conversation.channel)} · مالکیت:{' '}
-                  {ownershipLabel(detail.conversation.ownership)}
-                  {detail.conversation.escalationReason
-                    ? ` · ${escalationLabel(detail.conversation.escalationReason)}`
-                    : ''}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="overflow-hidden">
+            <CardContent className="max-h-[70vh] overflow-auto p-0">
+              <div className="border-b border-[var(--border-color)] px-3 py-2 text-xs text-[var(--text-3)]">
+                {total} مورد
+              </div>
+              {tab === 'turns' && items.length === 0 && (
+                <p className="p-4 text-sm text-[var(--text-3)]">
+                  ممیزی‌ای در این فیلتر نیست.
                 </p>
               )}
-              <div className="row">
-                <Link
-                  className="btn secondary"
-                  href={`/inbox?c=${detail.conversationId}`}
-                >
-                  باز کردن صندوق ورودی
-                </Link>
-                <Link
-                  className="btn secondary"
-                  href={`/audit?c=${detail.conversationId}`}
-                >
-                  فقط این گفتگو
-                </Link>
-              </div>
-              <h3 style={{ marginTop: 16 }}>استنادها</h3>
-              <pre
-                className="snippet"
-                style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}
-              >
-                {JSON.stringify(detail.citations, null, 2)}
-              </pre>
-              <h3>پیام‌های اخیر</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {detail.recentMessages.map((m, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: '#f4f6f8',
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      fontSize: 13,
-                    }}
+              {tab === 'admin' && adminItems.length === 0 && (
+                <p className="p-4 text-sm text-[var(--text-3)]">
+                  اقدام ادمینی در این فیلتر نیست.
+                </p>
+              )}
+              {tab === 'turns' &&
+                items.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => selectTurn(item.id)}
+                    className={cn(
+                      'block w-full border-b border-[var(--border-color)] px-3.5 py-2.5 text-start',
+                      item.id === selectedId
+                        ? 'bg-[var(--brand-50)]'
+                        : 'hover:bg-[var(--surface-hover)]',
+                    )}
                   >
-                    <span className="muted">{messageRoleLabel(m.role)}</span>
-                    <div>{m.content}</div>
-                  </div>
+                    <div className="text-[13px] font-semibold text-[var(--text-1)]">
+                      {decisionLabel(item.decision)}
+                    </div>
+                    <div className="text-xs text-[var(--text-3)]" dir="ltr">
+                      {new Date(item.createdAt).toLocaleString('fa-IR')} ·{' '}
+                      {item.conversationId.slice(0, 8)}
+                    </div>
+                  </button>
                 ))}
-              </div>
-            </>
-          )}
-          {tab === 'admin' && adminDetail && (
-            <>
-              <p>
-                <strong>{adminActionLabel(adminDetail.action)}</strong>
-              </p>
-              <p>{adminDetail.summary}</p>
-              <p className="muted" style={{ fontSize: 13 }}>
-                {new Date(adminDetail.createdAt).toLocaleString('fa-IR')}
-              </p>
-              <p className="muted" style={{ fontSize: 13 }} dir="ltr">
-                عامل: {adminDetail.actorUserId}
-              </p>
-              <h3 style={{ marginTop: 16 }}>جزئیات</h3>
-              <pre
-                className="snippet"
-                style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}
-              >
-                {JSON.stringify(adminDetail.payload, null, 2)}
-              </pre>
-            </>
-          )}
+              {tab === 'admin' &&
+                adminItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => selectAdmin(item.id)}
+                    className={cn(
+                      'block w-full border-b border-[var(--border-color)] px-3.5 py-2.5 text-start',
+                      item.id === selectedAdminId
+                        ? 'bg-[var(--brand-50)]'
+                        : 'hover:bg-[var(--surface-hover)]',
+                    )}
+                  >
+                    <div className="text-[13px] font-semibold text-[var(--text-1)]">
+                      {adminActionLabel(item.action)}
+                    </div>
+                    <div className="text-xs text-[var(--text-3)]">{item.summary}</div>
+                    <div className="text-xs text-[var(--text-3)]" dir="ltr">
+                      {new Date(item.createdAt).toLocaleString('fa-IR')}
+                    </div>
+                  </button>
+                ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-3 p-5">
+              {tab === 'turns' && !detail && (
+                <p className="text-sm text-[var(--text-3)]">
+                  یک نوبت را از لیست انتخاب کنید.
+                </p>
+              )}
+              {tab === 'admin' && !adminDetail && (
+                <p className="text-sm text-[var(--text-3)]">
+                  یک اقدام ادمین را انتخاب کنید.
+                </p>
+              )}
+              {tab === 'turns' && detail && (
+                <>
+                  <p className="font-semibold text-[var(--text-1)]">
+                    {decisionLabel(detail.decision)}
+                  </p>
+                  <p className="text-xs text-[var(--text-3)]">
+                    {new Date(detail.createdAt).toLocaleString('fa-IR')}
+                  </p>
+                  <p className="text-xs text-[var(--text-3)]">{detail.note}</p>
+                  {detail.conversation && (
+                    <p className="text-sm text-[var(--text-2)]">
+                      کانال: {channelLabel(detail.conversation.channel)} · مالکیت:{' '}
+                      {ownershipLabel(detail.conversation.ownership)}
+                      {detail.conversation.escalationReason
+                        ? ` · ${escalationLabel(detail.conversation.escalationReason)}`
+                        : ''}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/inbox?c=${detail.conversationId}`}>
+                        باز کردن صندوق ورودی
+                      </Link>
+                    </Button>
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/audit?c=${detail.conversationId}`}>
+                        فقط این گفتگو
+                      </Link>
+                    </Button>
+                  </div>
+                  <h3 className="pt-2 text-sm font-bold">استنادها</h3>
+                  <pre
+                    dir="ltr"
+                    className="overflow-x-auto rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface-3)] p-3 text-xs whitespace-pre-wrap"
+                  >
+                    {JSON.stringify(detail.citations, null, 2)}
+                  </pre>
+                  <h3 className="text-sm font-bold">پیام‌های اخیر</h3>
+                  <div className="flex flex-col gap-2">
+                    {detail.recentMessages.map((m, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg bg-[var(--surface-3)] px-2.5 py-2 text-[13px]"
+                      >
+                        <span className="text-[var(--text-3)]">
+                          {messageRoleLabel(m.role)}
+                        </span>
+                        <div>{m.content}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+              {tab === 'admin' && adminDetail && (
+                <>
+                  <p className="font-semibold text-[var(--text-1)]">
+                    {adminActionLabel(adminDetail.action)}
+                  </p>
+                  <p className="text-sm text-[var(--text-2)]">{adminDetail.summary}</p>
+                  <p className="text-xs text-[var(--text-3)]">
+                    {new Date(adminDetail.createdAt).toLocaleString('fa-IR')}
+                  </p>
+                  <p className="text-xs text-[var(--text-3)]" dir="ltr">
+                    عامل: {adminDetail.actorUserId}
+                  </p>
+                  <h3 className="pt-2 text-sm font-bold">جزئیات</h3>
+                  <pre
+                    dir="ltr"
+                    className="overflow-x-auto rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface-3)] p-3 text-xs whitespace-pre-wrap"
+                  >
+                    {JSON.stringify(adminDetail.payload, null, 2)}
+                  </pre>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AppShell>

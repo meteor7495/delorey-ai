@@ -10,6 +10,11 @@ import {
 } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 type InboxItem = {
   id: string;
@@ -118,203 +123,189 @@ export default function InboxClient() {
 
   return (
     <AppShell>
-      <h1>صندوق ورودی</h1>
-      <p className="muted">گفتگوها · تحویل به انسان · بدون تیکت</p>
-      {error && <p style={{ color: 'var(--danger)' }}>{error}</p>}
+      <div className="space-y-4">
+        <PageHeader
+          title="صندوق ورودی"
+          description="گفتگوها · تحویل به انسان · بدون تیکت"
+        />
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-      <div className="row" style={{ marginBottom: 12 }}>
-        <button
-          type="button"
-          className={`btn ${!filter ? '' : 'secondary'}`}
-          onClick={() => setFilter('')}
-        >
-          همه
-        </button>
-        <button
-          type="button"
-          className={`btn ${filter === 'human_owned' ? '' : 'secondary'}`}
-          onClick={() => setFilter('human_owned')}
-        >
-          در اختیار انسان
-        </button>
-        <button
-          type="button"
-          className={`btn ${filter === 'ai_owned' ? '' : 'secondary'}`}
-          onClick={() => setFilter('ai_owned')}
-        >
-          پاسخ‌گوی AI
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(240px, 320px) 1fr',
-          gap: 16,
-          minHeight: '60vh',
-        }}
-      >
-        <div className="card" style={{ padding: 0, overflow: 'auto' }}>
-          {items.length === 0 && (
-            <p className="muted" style={{ padding: 16 }}>
-              هنوز گفتگویی نیست. یک کانال را فعال کنید یا گفتگوی آزمایشی بسازید.
-            </p>
-          )}
-          {items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => select(item.id)}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'right',
-                border: 'none',
-                borderBottom: '1px solid var(--border)',
-                background: item.id === selectedId ? '#e7eef2' : 'transparent',
-                padding: '12px 14px',
-                cursor: 'pointer',
-              }}
-            >
-              <div style={{ fontWeight: 600, fontSize: 13 }}>
-                {channelLabel(item.channel)} ·{' '}
-                {ownershipLabel(item.ownership)}
-              </div>
-              <div className="muted" style={{ fontSize: 13 }}>
-                {(item.preview ?? '—').slice(0, 80)}
-              </div>
-              {item.escalationReason && (
-                <div style={{ color: 'var(--danger)', fontSize: 12 }}>
-                  {escalationLabel(item.escalationReason)}
-                </div>
-              )}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            size="sm"
+            variant={!filter ? 'default' : 'outline'}
+            onClick={() => setFilter('')}
+          >
+            همه
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === 'human_owned' ? 'default' : 'outline'}
+            onClick={() => setFilter('human_owned')}
+          >
+            در اختیار انسان
+          </Button>
+          <Button
+            size="sm"
+            variant={filter === 'ai_owned' ? 'default' : 'outline'}
+            onClick={() => setFilter('ai_owned')}
+          >
+            پاسخ‌گوی AI
+          </Button>
         </div>
 
-        <div className="card">
-          {!selectedId && (
-            <p className="muted">یک گفتگو را از لیست انتخاب کنید.</p>
-          )}
-          {selectedId && (
-            <>
-              <div className="row" style={{ justifyContent: 'space-between' }}>
-                <div>
-                  <strong>وضعیت:</strong> {ownershipLabel(ownership)}
-                  {packet && (
-                    <div className="muted" style={{ fontSize: 13 }}>
-                      دلیل: {packet.reasonLabel}
-                    </div>
-                  )}
-                </div>
-                <div className="row">
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    onClick={async () => {
-                      await api.inboxTakeover(selectedId);
-                      await loadThread(selectedId);
-                      await loadList();
-                    }}
-                  >
-                    تحویل بگیر
-                  </button>
-                  <button
-                    type="button"
-                    className="btn secondary"
-                    onClick={async () => {
-                      await api.inboxRelease(selectedId);
-                      await loadThread(selectedId);
-                      await loadList();
-                    }}
-                  >
-                    بازگشت به AI
-                  </button>
-                  <a className="btn secondary" href={`/audit?c=${selectedId}`}>
-                    ممیزی
-                  </a>
-                </div>
-              </div>
-
-              {packet && (
-                <div className="banner" style={{ marginTop: 12 }}>
-                  <strong>بسته زمینه تحویل</strong>
-                  {packet.intentSummary && (
-                    <div>خلاصه: {packet.intentSummary}</div>
-                  )}
-                  {packet.citations?.length > 0 && (
-                    <div>
-                      استناد:{' '}
-                      {packet.citations
-                        .map((c) =>
-                          c.type === 'knowledge' || c.sourceAttribution
-                            ? `${c.title} (${c.sourceAttribution})`
-                            : `${c.title} (${c.sku})`,
-                        )
-                        .join(' · ')}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div
-                style={{
-                  marginTop: 12,
-                  maxHeight: 360,
-                  overflow: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                }}
-              >
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    style={{
-                      alignSelf:
-                        m.role === 'shopper' ? 'flex-start' : 'flex-end',
-                      background:
-                        m.role === 'shopper'
-                          ? '#e8eef5'
-                          : m.role === 'operator'
-                            ? '#d8f3dc'
-                            : m.role === 'system'
-                              ? '#fff4e5'
-                              : '#dcefea',
-                      padding: '8px 10px',
-                      borderRadius: 10,
-                      maxWidth: '85%',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
-                    <div className="muted" style={{ fontSize: 11 }}>
-                      {messageRoleLabel(m.role)}
-                    </div>
-                    {m.content}
-                  </div>
-                ))}
-              </div>
-
-              <form onSubmit={onReply} className="row" style={{ marginTop: 12 }}>
-                <input
-                  className="input"
-                  style={{ margin: 0, flex: 1 }}
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  placeholder="پاسخ اپراتور..."
-                />
-                <button className="btn" type="submit">
-                  ارسال
-                </button>
-              </form>
-              {selected && (
-                <p className="muted" style={{ fontSize: 12 }}>
-                  {selected.messageCount} پیام · به‌روزرسانی{' '}
-                  {new Date(selected.updatedAt).toLocaleString('fa-IR')}
+        <div className="grid min-h-[60vh] gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
+          <Card className="overflow-hidden">
+            <CardContent className="max-h-[70vh] overflow-auto p-0">
+              {items.length === 0 && (
+                <p className="p-4 text-sm text-[var(--text-3)]">
+                  هنوز گفتگویی نیست. یک کانال را فعال کنید یا گفتگوی آزمایشی بسازید.
                 </p>
               )}
-            </>
-          )}
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => select(item.id)}
+                  className={cn(
+                    'block w-full border-b border-[var(--border-color)] px-3.5 py-3 text-start transition-colors',
+                    item.id === selectedId
+                      ? 'bg-[var(--brand-50)]'
+                      : 'bg-transparent hover:bg-[var(--surface-hover)]',
+                  )}
+                >
+                  <div className="text-[13px] font-semibold text-[var(--text-1)]">
+                    {channelLabel(item.channel)} · {ownershipLabel(item.ownership)}
+                  </div>
+                  <div className="mt-0.5 text-[13px] text-[var(--text-3)]">
+                    {(item.preview ?? '—').slice(0, 80)}
+                  </div>
+                  {item.escalationReason && (
+                    <div className="mt-0.5 text-xs text-[var(--danger)]">
+                      {escalationLabel(item.escalationReason)}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="space-y-3 p-5">
+              {!selectedId && (
+                <p className="text-sm text-[var(--text-3)]">
+                  یک گفتگو را از لیست انتخاب کنید.
+                </p>
+              )}
+              {selectedId && (
+                <>
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--text-1)]">
+                        وضعیت: {ownershipLabel(ownership)}
+                      </p>
+                      {packet && (
+                        <p className="text-xs text-[var(--text-3)]">
+                          دلیل: {packet.reasonLabel}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          await api.inboxTakeover(selectedId);
+                          await loadThread(selectedId);
+                          await loadList();
+                        }}
+                      >
+                        تحویل بگیر
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          await api.inboxRelease(selectedId);
+                          await loadThread(selectedId);
+                          await loadList();
+                        }}
+                      >
+                        بازگشت به AI
+                      </Button>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={`/audit?c=${selectedId}`}>ممیزی</a>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {packet && (
+                    <div className="rounded-[var(--r-sm)] border border-[var(--warning)]/30 bg-[var(--warning-bg)] p-3 text-sm">
+                      <strong className="text-[var(--text-1)]">بسته زمینه تحویل</strong>
+                      {packet.intentSummary && (
+                        <div className="mt-1 text-[var(--text-2)]">
+                          خلاصه: {packet.intentSummary}
+                        </div>
+                      )}
+                      {packet.citations?.length > 0 && (
+                        <div className="mt-1 text-[var(--text-3)]">
+                          استناد:{' '}
+                          {packet.citations
+                            .map((c) =>
+                              c.type === 'knowledge' || c.sourceAttribution
+                                ? `${c.title} (${c.sourceAttribution})`
+                                : `${c.title} (${c.sku})`,
+                            )
+                            .join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex max-h-[360px] flex-col gap-2 overflow-auto">
+                    {messages.map((m) => (
+                      <div
+                        key={m.id}
+                        className={cn(
+                          'max-w-[85%] rounded-[10px] px-2.5 py-2 text-sm whitespace-pre-wrap',
+                          m.role === 'shopper'
+                            ? 'self-start bg-[#e8eef5] text-[var(--text-1)] dark:bg-[rgba(59,130,246,0.15)]'
+                            : m.role === 'operator'
+                              ? 'self-end bg-[#d8f3dc] dark:bg-[rgba(16,185,129,0.2)]'
+                              : m.role === 'system'
+                                ? 'self-end bg-[var(--warning-bg)]'
+                                : 'self-end bg-[var(--brand-50)]',
+                        )}
+                      >
+                        <div className="mb-0.5 text-[11px] text-[var(--text-3)]">
+                          {messageRoleLabel(m.role)}
+                        </div>
+                        {m.content}
+                      </div>
+                    ))}
+                  </div>
+
+                  <form onSubmit={onReply} className="flex gap-2">
+                    <Input
+                      className="flex-1"
+                      value={reply}
+                      onChange={(e) => setReply(e.target.value)}
+                      placeholder="پاسخ اپراتور..."
+                    />
+                    <Button type="submit">ارسال</Button>
+                  </form>
+                  {selected && (
+                    <p className="text-xs text-[var(--text-3)]">
+                      {selected.messageCount} پیام · به‌روزرسانی{' '}
+                      {new Date(selected.updatedAt).toLocaleString('fa-IR')}
+                    </p>
+                  )}
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </AppShell>
