@@ -24,7 +24,9 @@ export default function ChannelsPage() {
     publicKey: string;
     snippet: string;
     status: string;
+    allowedOrigins?: string[];
   } | null>(null);
+  const [originsText, setOriginsText] = useState('');
   const [telegram, setTelegram] = useState<BotChannelStatus>(null);
   const [bale, setBale] = useState<BotChannelStatus>(null);
   const [tgToken, setTgToken] = useState('');
@@ -41,6 +43,7 @@ export default function ChannelsPage() {
       api.getBaleChannel(),
     ]);
     setWebsite(w);
+    setOriginsText((w.allowedOrigins ?? []).join('\n'));
     setTelegram(t);
     setBale(b);
   }
@@ -155,6 +158,50 @@ export default function ChannelsPage() {
             >
               {website?.snippet}
             </pre>
+            <p className="text-xs text-[var(--text-3)]">
+              اسکریپت را قبل از{' '}
+              <code dir="ltr">&lt;/body&gt;</code> فروشگاه بگذارید. دامنه فروشگاه
+              باید در لیست مجاز باشد (مثلاً{' '}
+              <code dir="ltr">https://your-shop.myshopify.com</code>).
+            </p>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError(null);
+                setMessage(null);
+                try {
+                  const origins = originsText
+                    .split(/[\n,]+/)
+                    .map((s) => s.trim())
+                    .filter(Boolean);
+                  const res = await api.updateWebsiteOrigins(origins);
+                  setWebsite(res);
+                  setOriginsText(res.allowedOrigins.join('\n'));
+                  setMessage('دامنه‌های مجاز ویجت ذخیره شد.');
+                } catch (err) {
+                  setError(
+                    err instanceof Error
+                      ? err.message
+                      : 'ذخیره دامنه‌ها ناموفق بود.',
+                  );
+                }
+              }}
+              className="space-y-3 border-t border-[var(--border-color)] pt-4"
+            >
+              <div className="space-y-1.5">
+                <Label>دامنه‌های مجاز (هر خط یک Origin)</Label>
+                <textarea
+                  dir="ltr"
+                  className="min-h-[96px] w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface-3)] p-3 text-xs text-[var(--text-2)]"
+                  value={originsText}
+                  onChange={(e) => setOriginsText(e.target.value)}
+                  placeholder={'http://localhost:5173\nhttps://example.com'}
+                />
+              </div>
+              <Button type="submit" variant="outline">
+                ذخیره دامنه‌ها
+              </Button>
+            </form>
           </CardContent>
         </Card>
 

@@ -12,6 +12,7 @@ export class WorkspaceService {
     const channel = await this.store.websiteChannel(tenantId);
     const products = await this.store.productsForTenant(tenantId);
     const escalatedCount = await this.store.countEscalated(tenantId);
+    const path = await this.store.partnerPathStats(tenantId);
 
     let primaryAttention: { code: string; title: string; href: string } | null =
       null;
@@ -39,7 +40,32 @@ export class WorkspaceService {
         title: 'کارمند فروش فعال نیست',
         href: '/employee',
       };
+    } else if (path.groundedTurns === 0) {
+      primaryAttention = {
+        code: 'first_chat',
+        title: 'اولین گفتگوی grounded را روی ویجت امتحان کنید',
+        href: '/channels',
+      };
     }
+
+    const onboarding = {
+      storeConnected: Boolean(store),
+      syncHealthy: store?.syncHealth === 'healthy',
+      employeeConfigured: Boolean(employee) && employee!.status === 'active',
+      channelConnected: channel?.status === 'connected',
+      knowledgeReady: path.activeKnowledge > 0,
+      firstChatDone: path.groundedTurns > 0 || path.websiteConversations > 0,
+      handoffProven: path.escalatedEver > 0,
+      auditVisible: path.anyAudit > 0,
+    };
+
+    const partnerReady =
+      onboarding.storeConnected &&
+      onboarding.syncHealthy &&
+      onboarding.employeeConfigured &&
+      onboarding.channelConnected &&
+      onboarding.firstChatDone &&
+      onboarding.auditVisible;
 
     return {
       email,
@@ -50,12 +76,9 @@ export class WorkspaceService {
       productCount: products.length,
       escalatedCount,
       primaryAttention,
-      onboarding: {
-        storeConnected: Boolean(store),
-        syncHealthy: store?.syncHealth === 'healthy',
-        employeeConfigured: Boolean(employee),
-        channelConnected: channel?.status === 'connected',
-      },
+      onboarding,
+      partnerReady,
+      pathStats: path,
     };
   }
 }

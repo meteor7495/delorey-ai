@@ -72,8 +72,34 @@ export class CommerceService {
   async getWebsiteChannel(tenantId: string) {
     const channel = await this.store.websiteChannel(tenantId);
     if (!channel) throw new NotFoundException('Website channel missing');
-    const snippet = `<script src="http://localhost:5173/embed.js" data-public-key="${channel.publicKey}" async></script>`;
-    return { ...channel, snippet };
+    const widgetBase = (
+      process.env.WIDGET_EMBED_BASE_URL ?? 'http://localhost:5173'
+    ).replace(/\/$/, '');
+    const apiBase = (
+      process.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
+    ).replace(/\/$/, '');
+    const snippet = `<script src="${widgetBase}/embed.js" data-public-key="${channel.publicKey}" data-api-base="${apiBase}" async></script>`;
+    return {
+      publicKey: channel.publicKey,
+      status: channel.status,
+      allowedOrigins: channel.allowedOrigins,
+      snippet,
+      widgetBase,
+      apiBase,
+    };
+  }
+
+  async updateWebsiteOrigins(tenantId: string, origins: string[]) {
+    const channel = await this.store.websiteChannel(tenantId);
+    if (!channel) throw new NotFoundException('Website channel missing');
+    const updated = await this.store.updateWebsiteAllowedOrigins(
+      tenantId,
+      origins,
+    );
+    return this.getWebsiteChannel(tenantId).then((w) => ({
+      ...w,
+      allowedOrigins: updated.allowedOrigins,
+    }));
   }
 
   async searchProducts(tenantId: string, query: string) {

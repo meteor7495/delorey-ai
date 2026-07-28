@@ -7,43 +7,108 @@ import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+
+const ITEMS: Array<{
+  key: string;
+  label: string;
+  hint: string;
+  href: string;
+}> = [
+  {
+    key: 'storeConnected',
+    label: 'اتصال فروشگاه',
+    hint: 'Mock یا Shopify / WooCommerce',
+    href: '/store',
+  },
+  {
+    key: 'syncHealthy',
+    label: 'همگام‌سازی سالم',
+    hint: 'کاتالوگ و سفارش‌ها در SoR',
+    href: '/store',
+  },
+  {
+    key: 'employeeConfigured',
+    label: 'کارمند فروش فعال',
+    hint: 'نام، لحن، مهارت‌ها',
+    href: '/employee',
+  },
+  {
+    key: 'knowledgeReady',
+    label: 'حداقل یک دانش FAQ',
+    hint: 'سیاست ارسال / مرجوعی',
+    href: '/knowledge',
+  },
+  {
+    key: 'channelConnected',
+    label: 'کانال وب + دامنه مجاز',
+    hint: 'اسنیپت و Origin',
+    href: '/channels',
+  },
+  {
+    key: 'firstChatDone',
+    label: 'اولین گفتگوی grounded',
+    hint: 'ویجت → سؤال محصول',
+    href: '/channels',
+  },
+  {
+    key: 'handoffProven',
+    label: 'تست ارجاع به انسان',
+    hint: 'مثلاً: با اپراتور حرف بزنم',
+    href: '/inbox',
+  },
+  {
+    key: 'auditVisible',
+    label: 'مشاهده Audit نوبت',
+    hint: 'تصمیم و citations',
+    href: '/audit',
+  },
+];
+
+const PROMPTS = [
+  'پیراهن لینن موجوده؟ قیمتش چنده؟',
+  'هزینه ارسال به تهران چقدره؟',
+  'وضعیت سفارش DR-1001 با موبایل 0912…1234',
+  'یه هدیه زیر ۲۰۰ هزار پیشنهاد بده',
+  'می‌خوام با انسان / اپراتور حرف بزنم',
+];
 
 export default function OnboardingPage() {
   const [steps, setSteps] = useState<Record<string, boolean> | null>(null);
+  const [partnerReady, setPartnerReady] = useState(false);
+  const [publicKey, setPublicKey] = useState<string | null>(null);
 
   useEffect(() => {
-    api.workspaceMe().then((me) => {
-      setSteps((me.onboarding as Record<string, boolean>) ?? null);
-    });
+    Promise.all([api.workspaceMe(), api.getWebsiteChannel().catch(() => null)])
+      .then(([me, ch]) => {
+        setSteps((me.onboarding as Record<string, boolean>) ?? null);
+        setPartnerReady(Boolean(me.partnerReady));
+        setPublicKey(ch?.publicKey ?? null);
+      })
+      .catch(console.error);
   }, []);
 
-  const items = [
-    { key: 'storeConnected', label: 'اتصال فروشگاه', href: '/store' },
-    { key: 'syncHealthy', label: 'همگام‌سازی سالم', href: '/store' },
-    { key: 'employeeConfigured', label: 'پیکربندی کارمند', href: '/employee' },
-    { key: 'channelConnected', label: 'اتصال کانال وب', href: '/channels' },
-  ];
-
-  const doneCount = items.filter((i) => Boolean(steps?.[i.key])).length;
+  const doneCount = ITEMS.filter((i) => Boolean(steps?.[i.key])).length;
 
   return (
     <AppShell>
       <div className="space-y-6">
         <PageHeader
-          title="شروع کار"
-          description="مسیر تا اولین گفتگوی grounded"
+          title="شروع کار — مسیر design partner"
+          description="از اتصال فروشگاه تا Audit؛ بدون LLM پولی هم با mock gateway قابل اجراست"
           actions={
-            <Badge variant="secondary">
-              {doneCount} از {items.length}
+            <Badge variant={partnerReady ? 'default' : 'secondary'}>
+              {partnerReady
+                ? 'مسیر اصلی آماده'
+                : `${doneCount} از ${ITEMS.length}`}
             </Badge>
           }
         />
 
         <Card>
           <CardContent className="divide-y divide-[var(--border-color)] p-0">
-            {items.map((item) => {
+            {ITEMS.map((item) => {
               const done = Boolean(steps?.[item.key]);
               return (
                 <div
@@ -52,26 +117,66 @@ export default function OnboardingPage() {
                 >
                   <div className="flex items-center gap-3">
                     {done ? (
-                      <CheckCircle2 className="h-5 w-5 text-[var(--success)]" />
+                      <CheckCircle2 className="h-5 w-5 shrink-0 text-[var(--success)]" />
                     ) : (
-                      <Circle className="h-5 w-5 text-[var(--text-4)]" />
+                      <Circle className="h-5 w-5 shrink-0 text-[var(--text-4)]" />
                     )}
-                    <span
-                      className={
-                        done
-                          ? 'font-medium text-[var(--text-2)]'
-                          : 'font-semibold text-[var(--text-1)]'
-                      }
-                    >
-                      {item.label}
-                    </span>
+                    <div>
+                      <p
+                        className={
+                          done
+                            ? 'font-medium text-[var(--text-2)]'
+                            : 'font-semibold text-[var(--text-1)]'
+                        }
+                      >
+                        {item.label}
+                      </p>
+                      <p className="text-xs text-[var(--text-3)]">{item.hint}</p>
+                    </div>
                   </div>
-                  <Button variant={done ? 'outline' : 'default'} size="sm" asChild>
+                  <Button
+                    variant={done ? 'outline' : 'default'}
+                    size="sm"
+                    asChild
+                  >
                     <Link href={item.href}>{done ? 'مشاهده' : 'انجام'}</Link>
                   </Button>
                 </div>
               );
             })}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">پرامپت‌های smoke</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {publicKey && (
+              <p className="text-sm text-[var(--text-3)]">
+                کلید عمومی:{' '}
+                <code dir="ltr" className="text-[var(--text-2)]">
+                  {publicKey}
+                </code>
+                {' · '}
+                <a
+                  className="text-[var(--accent)] underline"
+                  href="http://localhost:5173"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  باز کردن harness ویجت
+                </a>
+              </p>
+            )}
+            <ul className="list-inside list-disc space-y-1 text-sm text-[var(--text-2)]">
+              {PROMPTS.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+            <p className="text-xs text-[var(--text-3)]">
+              جزئیات کامل: docs/06-build/vertical-slice-19.md
+            </p>
           </CardContent>
         </Card>
       </div>

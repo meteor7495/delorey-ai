@@ -2,30 +2,43 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 
+function isLocalDevOrigin(origin: string): boolean {
+  return (
+    origin === 'null' ||
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)
+  );
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
   const origins = (process.env.CORS_ORIGINS ?? 'http://localhost:3010,http://localhost:5173')
     .split(',')
-    .map((s) => s.trim());
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: (
       origin: string | undefined,
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
-      if (!origin || origins.includes(origin) || origins.includes('*')) {
+      // No Origin = same-origin / curl / server — always OK
+      if (!origin) {
         callback(null, true);
         return;
       }
-      // Embed snippet testing from file:// or other local ports
-      if (process.env.NODE_ENV !== 'production') {
-        if (
-          origin === 'null' ||
-          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-        ) {
-          callback(null, true);
-          return;
-        }
+      if (origins.includes('*') || origins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      if (process.env.NODE_ENV !== 'production' && isLocalDevOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      // Merchant storefront embeds (Shopify/Woo) — allow HTTPS; tenant
+      // allowlist is enforced in WebsiteAdapterService.assertOrigin.
+      if (/^https:\/\//i.test(origin)) {
+        callback(null, true);
+        return;
       }
       callback(new Error(`CORS blocked: ${origin}`), false);
     },

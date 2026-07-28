@@ -134,10 +134,24 @@ export function createApiClient(opts: ApiClientOptions) {
         }>
       >(opts, '/orders'),
     getWebsiteChannel: () =>
-      request<{ publicKey: string; snippet: string; status: string }>(
-        opts,
-        '/channels/website',
-      ),
+      request<{
+        publicKey: string;
+        snippet: string;
+        status: string;
+        allowedOrigins: string[];
+        widgetBase?: string;
+        apiBase?: string;
+      }>(opts, '/channels/website'),
+    updateWebsiteOrigins: (origins: string[]) =>
+      request<{
+        publicKey: string;
+        snippet: string;
+        status: string;
+        allowedOrigins: string[];
+      }>(opts, '/channels/website/origins', {
+        method: 'PUT',
+        body: JSON.stringify({ origins }),
+      }),
     createChatSession: (publicKey: string) =>
       request<{ conversationId: string; employee: string; status: string }>(
         opts,

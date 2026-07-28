@@ -96,9 +96,29 @@
 }
 
 .drw-employee,
-.drw-system {
+.drw-system,
+.drw-operator {
   align-self: flex-end;
   background: #0f6e6e;
+}
+
+.drw-system {
+  background: #243147;
+  font-size: 13px;
+}
+
+.drw-operator {
+  background: #1a4d6e;
+}
+
+.drw-handoff {
+  margin: 0;
+  padding: 10px 14px;
+  background: #3b1d1d;
+  border-bottom: 1px solid #5c2b2b;
+  color: #f3b0a8;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .drw-composer {

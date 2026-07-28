@@ -7,6 +7,11 @@ import { DataStore } from '../../platform/data.store';
 import { ConversationService } from '../../conversation/conversation.service';
 import { RuntimeService } from '../../runtime/runtime.service';
 
+/** Simple per-key sliding window for public chat abuse (MVP, in-process). */
+const RATE = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
+
 @Injectable()
 export class WebsiteAdapterService {
   constructor(
@@ -21,6 +26,8 @@ export class WebsiteAdapterService {
       throw new NotFoundException('Unknown public key');
     }
     this.assertOrigin(channel.allowedOrigins, origin);
+    this.assertRate(`session:${publicKey}:${origin ?? 'none'}`);
+
     const conversation = await this.conversations.createWebsiteConversation(
       channel.tenantId,
     );
@@ -41,6 +48,7 @@ export class WebsiteAdapterService {
     const channel = await this.store.channelByPublicKey(publicKey);
     if (!channel) throw new NotFoundException('Unknown public key');
     this.assertOrigin(channel.allowedOrigins, origin);
+    this.assertRate(`msg:${publicKey}:${conversationId}`);
 
     const conversation = await this.conversations.get(conversationId);
     if (!conversation || conversation.tenantId !== channel.tenantId) {
@@ -99,14 +107,59 @@ export class WebsiteAdapterService {
     };
   }
 
+  /**
+   * Tenant allowlist is the gate. CORS may reflect many origins so embeds work;
+   * this check rejects wrong storefronts even if CORS allowed the request.
+   */
   private assertOrigin(allowed: string[], origin?: string) {
-    if (!origin) return;
-    if (allowed.includes(origin)) return;
+    const normalizedAllowed = allowed
+      .map((o) => o.trim().replace(/\/+$/, ''))
+      .filter(Boolean);
+    const hasAllowlist = normalizedAllowed.length > 0;
+
+    if (!origin) {
+      // Browsers send Origin on cross-origin POSTs. Missing Origin is typical of
+      // same-origin / server-side / non-browser clients — allow only in non-prod.
+      if (process.env.NODE_ENV === 'production' && hasAllowlist) {
+        throw new ForbiddenException('Origin header required');
+      }
+      return;
+    }
+
+    const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+    if (
+      normalizedAllowed.some(
+        (a) => a.toLowerCase() === normalizedOrigin.toLowerCase(),
+      )
+    ) {
+      return;
+    }
+
     // Local snippet testing (file:// → Origin "null", arbitrary localhost ports)
     if (process.env.NODE_ENV !== 'production') {
-      if (origin === 'null') return;
-      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return;
+      if (normalizedOrigin === 'null') return;
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(normalizedOrigin)) {
+        return;
+      }
     }
-    throw new ForbiddenException(`Origin not allowed: ${origin}`);
+
+    throw new ForbiddenException(
+      `Origin not allowed: ${origin}. دامنه فروشگاه را در کانال‌ها → دامنه‌های مجاز اضافه کنید.`,
+    );
+  }
+
+  private assertRate(key: string) {
+    const now = Date.now();
+    const row = RATE.get(key);
+    if (!row || row.resetAt <= now) {
+      RATE.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
+      return;
+    }
+    row.count += 1;
+    if (row.count > RATE_LIMIT) {
+      throw new ForbiddenException(
+        'Too many requests — کمی صبر کنید و دوباره تلاش کنید.',
+      );
+    }
   }
 }

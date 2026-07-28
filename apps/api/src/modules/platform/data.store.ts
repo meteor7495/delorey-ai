@@ -172,12 +172,9 @@ export class DataStore implements OnModuleInit {
           'http://127.0.0.1:5173',
         ],
       },
+      // Do not reset merchant-configured origins on re-provision
       update: {
         status: 'connected',
-        allowedOrigins: [
-          'http://localhost:5173',
-          'http://127.0.0.1:5173',
-        ],
       },
     });
 
@@ -763,6 +760,18 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapChannel(row) : null;
   }
 
+  async updateWebsiteAllowedOrigins(
+    tenantId: string,
+    origins: string[],
+  ): Promise<ChannelBinding> {
+    const normalized = normalizeAllowedOrigins(origins);
+    const row = await this.prisma.channelBinding.update({
+      where: { tenantId_channel: { tenantId, channel: 'website' } },
+      data: { allowedOrigins: normalized },
+    });
+    return this.mapChannel(row);
+  }
+
   async channelByPublicKey(publicKey: string): Promise<ChannelBinding | null> {
     const row = await this.prisma.channelBinding.findUnique({
       where: { publicKey },
@@ -1016,6 +1025,51 @@ export class DataStore implements OnModuleInit {
         escalationReason: { not: null },
       },
     });
+  }
+
+  /** Design-partner readiness signals (Slice 19). */
+  async partnerPathStats(tenantId: string) {
+    const [
+      groundedTurns,
+      anyAudit,
+      escalatedEver,
+      activeKnowledge,
+      websiteConversations,
+    ] = await Promise.all([
+      this.prisma.auditTurn.count({
+        where: {
+          tenantId,
+          OR: [
+            { decision: { startsWith: 'answer_grounded' } },
+            { decision: { startsWith: 'answer_knowledge' } },
+            { decision: { startsWith: 'recommend' } },
+          ],
+        },
+      }),
+      this.prisma.auditTurn.count({ where: { tenantId } }),
+      this.prisma.conversation.count({
+        where: {
+          tenantId,
+          OR: [
+            { ownership: 'human_owned' },
+            { escalationReason: { not: null } },
+          ],
+        },
+      }),
+      this.prisma.knowledgeDoc.count({
+        where: { tenantId, status: 'active' },
+      }),
+      this.prisma.conversation.count({
+        where: { tenantId, channel: 'website' },
+      }),
+    ]);
+    return {
+      groundedTurns,
+      anyAudit,
+      escalatedEver,
+      activeKnowledge,
+      websiteConversations,
+    };
   }
 
   async findMessageByIdempotency(
@@ -1973,4 +2027,22 @@ export class DataStore implements OnModuleInit {
       syncedAt: row.syncedAt.toISOString(),
     };
   }
+}
+
+/** Trim, strip trailing slash, dedupe, cap list size for website allowlist. */
+export function normalizeAllowedOrigins(origins: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of origins) {
+    let o = raw.trim();
+    if (!o) continue;
+    o = o.replace(/\/+$/, '');
+    if (!/^https?:\/\/.+/i.test(o) && o !== 'null') continue;
+    const key = o.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(o);
+    if (out.length >= 40) break;
+  }
+  return out;
 }
