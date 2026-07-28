@@ -101,8 +101,12 @@ export class WebsiteAdapterService {
 
   private assertOrigin(allowed: string[], origin?: string) {
     if (!origin) return;
-    if (!allowed.includes(origin)) {
-      throw new ForbiddenException(`Origin not allowed: ${origin}`);
+    if (allowed.includes(origin)) return;
+    // Local snippet testing (file:// → Origin "null", arbitrary localhost ports)
+    if (process.env.NODE_ENV !== 'production') {
+      if (origin === 'null') return;
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return;
     }
+    throw new ForbiddenException(`Origin not allowed: ${origin}`);
   }
 }

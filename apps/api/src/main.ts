@@ -8,7 +8,29 @@ async function bootstrap() {
     .split(',')
     .map((s) => s.trim());
 
-  app.enableCors({ origin: origins, credentials: true });
+  app.enableCors({
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin || origins.includes(origin) || origins.includes('*')) {
+        callback(null, true);
+        return;
+      }
+      // Embed snippet testing from file:// or other local ports
+      if (process.env.NODE_ENV !== 'production') {
+        if (
+          origin === 'null' ||
+          /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+        ) {
+          callback(null, true);
+          return;
+        }
+      }
+      callback(new Error(`CORS blocked: ${origin}`), false);
+    },
+    credentials: true,
+  });
   app.setGlobalPrefix('v1');
   app.useGlobalPipes(
     new ValidationPipe({

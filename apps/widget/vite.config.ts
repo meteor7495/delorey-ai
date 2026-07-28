@@ -1,10 +1,63 @@
-import { defineConfig } from 'vite';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const dir = path.dirname(fileURLToPath(import.meta.url));
+
+/** Serves classic `/embed.js` that boots the Vite module (async-safe). */
+function serveEmbedDev(): Plugin {
+  return {
+    name: 'delorey-serve-embed',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url?.split('?')[0];
+        if (url !== '/embed.js') {
+          next();
+          return;
+        }
+
+        res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.end(`(function () {
+  var nodes = document.querySelectorAll('script[src*="embed.js"]');
+  var el = nodes[nodes.length - 1];
+  var publicKey = (el && el.getAttribute('data-public-key')) || '';
+  var apiBase = (el && el.getAttribute('data-api-base')) || undefined;
+  var base = el && el.src ? el.src.replace(/\\/embed\\.js(\\?.*)?$/, '') : '';
+  window.__DELOREY_EMBED__ = { publicKey: publicKey, apiBase: apiBase };
+  var s = document.createElement('script');
+  s.type = 'module';
+  s.crossOrigin = 'anonymous';
+  s.src = base + '/src/embed.tsx';
+  (document.head || document.documentElement).appendChild(s);
+})();`);
+      });
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), serveEmbedDev()],
   server: {
     port: 5173,
     host: true,
+    cors: true,
+  },
+  build: {
+    lib: {
+      entry: path.resolve(dir, 'src/embed.tsx'),
+      name: 'DeloReyWidget',
+      formats: ['iife'],
+      fileName: () => 'embed.js',
+    },
+    cssCodeSplit: false,
+    rollupOptions: {
+      output: {
+        inlineDynamicImports: true,
+        assetFileNames: 'embed.[ext]',
+      },
+    },
   },
 });
