@@ -9,7 +9,7 @@
 | **Owner** | Founder / AI Platform / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) · [Backend Architecture](./backend-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) |
-| **Related Documents** | [Product Principles](../02-product/product-principles.md) · [Product Scope](../02-product/product-scope.md) · [Database Design](./database-design.md) · [Pricing Strategy](../01-business/pricing-strategy.md) |
+| **Related Documents** | [AI Provider Layer Design](./ai-provider-layer.md) · [Product Principles](../02-product/product-principles.md) · [Product Scope](../02-product/product-scope.md) · [Database Design](./database-design.md) · [Pricing Strategy](../01-business/pricing-strategy.md) |
 
 **Audience:** AI Platform, Backend (`ai-gateway` / `cost` modules), DevOps (provider health, cost), Security.
 
@@ -181,9 +181,12 @@ Architecture explicitly anticipates plugins for:
 - Anthropic  
 - Gemini  
 - Open-weight / self-hosted  
+- Aggregators used **only** as upstream providers (e.g. **9Router**, OpenRouter) — never as a replacement for this Gateway  
 - Future providers  
 
-MVP may ship **one primary + one fallback** chat path and **one embed** path; the **plugin interface** must exist so adding Qwen/DeepSeek/Llama/self-host does not touch Runtime/Skills.
+MVP may ship **one primary + one fallback** chat path and **one embed** path; the **plugin interface** must exist so adding Qwen/DeepSeek/Llama/self-host/9Router does not touch Runtime/Skills.
+
+Full Provider Layer contracts (`AiProviderPort`, router strategy, tenant policies, cost schema, monitoring): [AI Provider Layer Design](./ai-provider-layer.md).
 
 ```mermaid
 flowchart LR
@@ -489,6 +492,7 @@ Config via environment + secret store — no secrets in images ([System Architec
 | Document | Relationship |
 |----------|--------------|
 | [System Architecture §6 / §12](./system-architecture.md) | Parent contracts + Cost Layer |
+| [AI Provider Layer Design](./ai-provider-layer.md) | Provider port, 9Router as upstream, routing/cost/schema depth |
 | [AI Runtime Architecture](./ai-runtime-architecture.md) | When Complete is invoked |
 | [Knowledge & RAG Design](./knowledge-rag-design.md) | Embed usage |
 | [Context Engine Design](./context-engine-design.md) | Compression may call Gateway |

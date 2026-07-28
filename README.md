@@ -59,7 +59,7 @@ Full smoke: [vertical-slice-19.md](docs/06-build/vertical-slice-19.md).
 
 ## AI Gateway
 
-Default `AI_GATEWAY_MODE=mock`. For live NLG set `live` + `AI_GATEWAY_PROVIDER` (`gapgpt` | `liara` | `boxapi` | `openai` | `custom`) and the matching API key — see `.env.example`.
+Default `AI_GATEWAY_MODE=mock`. For live NLG set `live` + `AI_GATEWAY_PROVIDER` (`gapgpt` | `liara` | `boxapi` | `openai` | `ninerouter` | `custom`) and the matching API key — see `.env.example`. Optional `AI_GATEWAY_FALLBACK_PROVIDERS` is a comma-separated failover chain (Gateway-owned; 9Router is one upstream only).
 
 ## Ship gate
 

@@ -1,38 +1,22 @@
-export type RouteHint = 'cheap' | 'premium' | 'classifier' | 'compress';
+/** @deprecated Import from `./domain/provider.port` or `./domain/routing.types`. */
+export type {
+  RouteHint,
+  TaskClass,
+} from './domain/routing.types';
 
-export type TaskClass =
-  | 'chat.reply.cheap'
-  | 'chat.reply.premium'
-  | 'chat.classify'
-  | 'chat.compress'
-  | 'embed.knowledge'
-  | 'embed.query';
+export type {
+  GenerateRequest as CompletionRequest,
+  GenerateResponse as CompletionResponse,
+  TokenUsage as CompletionUsage,
+} from './domain/provider.port';
 
-export type CompletionRequest = {
-  tenantId: string;
-  system: string;
-  user: string;
-  taskClass: TaskClass;
-  routeHint: RouteHint;
-  maxTokens?: number;
-  temperature?: number;
-};
+import type { AiProviderPort } from './domain/provider.port';
+import type { GenerateRequest, GenerateResponse } from './domain/provider.port';
 
-export type CompletionUsage = {
-  tokensIn: number;
-  tokensOut: number;
-};
-
-export type CompletionResponse = {
-  text: string;
-  finishReason: string;
-  usage: CompletionUsage;
-  providerId: string;
-  modelId: string;
-  latencyMs: number;
-};
-
+/** @deprecated Use AiProviderPort.generate */
 export interface ChatProviderPlugin {
   readonly id: string;
-  complete(req: CompletionRequest): Promise<CompletionResponse>;
+  complete(req: GenerateRequest): Promise<GenerateResponse>;
 }
+
+export type { AiProviderPort };
