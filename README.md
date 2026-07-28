@@ -2,7 +2,7 @@
 
 AI Commerce Platform — primary product: **AI Sales Employee** (Website, Telegram, Bale).
 
-This repo is past docs-only: **Vertical Slice 01** scaffolds a runnable path from signup → mock catalog → website chat with grounded answers.
+Build status: vertical slices **01–19** (see [`docs/06-build/README.md`](docs/06-build/README.md)).
 
 ## Docs map
 
@@ -12,14 +12,15 @@ This repo is past docs-only: **Vertical Slice 01** scaffolds a runnable path fro
 | Architecture | `docs/03-architecture/` |
 | PRDs | `docs/04-prd/` |
 | UI/UX | `docs/05-ui/` |
-| Build epics | [`docs/06-build/vertical-slice-01.md`](docs/06-build/vertical-slice-01.md) |
+| Build epics | [`docs/06-build/`](docs/06-build/) |
+| Partner E2E | [`docs/06-build/vertical-slice-19.md`](docs/06-build/vertical-slice-19.md) |
 
 ## Monorepo
 
 ```
 apps/api          NestJS — /v1 API (Postgres SoR via Prisma)
 apps/workspace    Next.js — merchant Workspace
-apps/widget       Vite — Website chat test harness
+apps/widget       Vite — Website chat harness + embed.js
 packages/api-client
 packages/ui
 ```
@@ -28,39 +29,38 @@ packages/ui
 
 - Node 20+
 - pnpm 10+
-- Docker (Postgres for SoR — required from Slice 01 persistence)
+- Docker (Postgres on **55432**; Redis for `batch.sync`)
 
-## Quick start (Slice 01)
+## Quick start
 
 ```bash
 pnpm install
 cp .env.example .env
 
-# Postgres on host port 55432 (avoids local Postgres on 5432)
 pnpm db:up
-pnpm --filter @delorey/api prisma:migrate
+pnpm --filter @delorey/api exec prisma migrate deploy
 
-# terminal 1
-pnpm dev:api
-
-# terminal 2
-pnpm dev:workspace
-
-# terminal 3
-pnpm dev:widget
+pnpm dev
 ```
 
-1. Open http://localhost:3010/login  
-2. Demo account: `demo@delorey.local` / `demo1234` (or sign up)  
-3. Workspace → **کانال‌ها** → copy `publicKey`  
-4. Open http://localhost:5173 → paste key → **شروع نشست**  
-5. Ask: `پیراهن لینن موجوده؟ قیمتش چنده؟`  
-6. Expect a reply citing catalog SKU/price/stock — not an invented product  
+| App | URL |
+|-----|-----|
+| Workspace | http://localhost:3010 |
+| Widget | http://localhost:5173 |
+| API | http://localhost:3001/v1 |
+
+1. Login: `demo@delorey.local` / `demo1234` (or signup)  
+2. Workspace → **شروع کار** — follow partner checklist  
+3. **کانال‌ها** → copy public key / snippet; allow `http://localhost:5173`  
+4. Widget → ask `پیراهن لینن موجوده؟ قیمتش چنده؟`  
+5. Expect catalog-grounded reply (mock gateway OK without paid LLM)  
+
+Full smoke: [vertical-slice-19.md](docs/06-build/vertical-slice-19.md).
+
+## AI Gateway
+
+Default `AI_GATEWAY_MODE=mock`. For live NLG set `live` + `AI_GATEWAY_PROVIDER` (`gapgpt` | `liara` | `boxapi` | `openai` | `custom`) and the matching API key — see `.env.example`.
 
 ## Ship gate
 
-See [vertical-slice-01.md](docs/06-build/vertical-slice-01.md). Invented prices = not done.
-
-## Next slices
-
-03 Telegram — done ([vertical-slice-03.md](docs/06-build/vertical-slice-03.md)) · **Next:** Bale adapter or Knowledge/RAG
+Invented prices/SKUs = not done. Partner path `partnerReady` on `/v1/workspace/me` when store, sync, employee, channel, first chat, and audit are green.

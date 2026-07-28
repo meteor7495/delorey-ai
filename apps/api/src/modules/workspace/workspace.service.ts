@@ -51,7 +51,7 @@ export class WorkspaceService {
     const onboarding = {
       storeConnected: Boolean(store),
       syncHealthy: store?.syncHealth === 'healthy',
-      employeeConfigured: Boolean(employee) && employee!.status === 'active',
+      employeeConfigured: Boolean(employee && employee.status === 'active'),
       channelConnected: channel?.status === 'connected',
       knowledgeReady: path.activeKnowledge > 0,
       firstChatDone: path.groundedTurns > 0 || path.websiteConversations > 0,

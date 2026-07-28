@@ -61,7 +61,7 @@ export default function HomePage() {
                   <Link href="/channels">کانال وبسایت</Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link href="/onboarding">چک‌لیست شروع</Link>
+                  <Link href="/onboarding">مسیر design partner</Link>
                 </Button>
               </div>
             </CardContent>
