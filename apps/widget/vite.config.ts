@@ -5,13 +5,34 @@ import react from '@vitejs/plugin-react';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
-/** Serves classic `/embed.js` that boots the Vite module (async-safe). */
+/**
+ * Classic `/embed.js` for merchant pages (Goftino-style).
+ * Loads a Vite-origin module that installs the React Refresh preamble
+ * before importing the widget — required when the host page is not Vite.
+ */
 function serveEmbedDev(): Plugin {
   return {
     name: 'delorey-serve-embed',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split('?')[0];
+
+        if (url === '/embed-boot.js') {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          // Preamble MUST run before any @vitejs/plugin-react module loads.
+          // Static import of embed.tsx would be hoisted — use dynamic import.
+          res.end(`import RefreshRuntime from "/@react-refresh";
+RefreshRuntime.injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;
+window.__vite_plugin_react_preamble_installed__ = true;
+import("/src/embed.tsx");
+`);
+          return;
+        }
+
         if (url !== '/embed.js') {
           next();
           return;
@@ -30,7 +51,7 @@ function serveEmbedDev(): Plugin {
   var s = document.createElement('script');
   s.type = 'module';
   s.crossOrigin = 'anonymous';
-  s.src = base + '/src/embed.tsx';
+  s.src = base + '/embed-boot.js';
   (document.head || document.documentElement).appendChild(s);
 })();`);
       });

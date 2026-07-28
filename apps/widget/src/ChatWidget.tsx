@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createApiClient } from '@delorey/api-client';
-import { aiStateLabel } from '@delorey/ui';
+import { aiStateLabel } from '@delorey/ui/tokens';
 
 type ChatMsg = {
   role: 'shopper' | 'employee' | 'system';
