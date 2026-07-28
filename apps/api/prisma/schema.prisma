@@ -197,6 +197,8 @@ model AuditTurn {
   conversationId String   @map("conversation_id")
   decision       String
   citations      Json
+  /// Gateway metering / route label (Slice 17) — tokens, provider, fallback
+  gateway        Json?
   createdAt      DateTime @default(now()) @map("created_at")
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)

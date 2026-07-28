@@ -5,7 +5,12 @@ import { CommerceService } from '../commerce/commerce.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
-import type { Citation, Employee, EmployeeGuardrails } from '../platform/types';
+import type {
+  AuditTurn,
+  Citation,
+  Employee,
+  EmployeeGuardrails,
+} from '../platform/types';
 import { DEFAULT_GUARDRAILS } from '../platform/types';
 
 export type TurnResult = {
@@ -310,7 +315,13 @@ export class RuntimeService {
       `CONTEXT_JSON:${contextJson}`,
     ].join('\n');
 
-    const completion = await this.gateway.complete({ system, user: userText });
+    const completion = await this.gateway.complete({
+      system,
+      user: userText,
+      tenantId,
+      taskClass: 'chat.reply.cheap',
+      routeHint: 'cheap',
+    });
 
     const replyDiscounts = extractDiscountPercents(completion.text);
     const replyOverCap = replyDiscounts.find(
@@ -332,6 +343,7 @@ export class RuntimeService {
         conversationId,
         'guardrail_block:discount_cap_reply',
         citations,
+        completion.meter,
       );
       return {
         reply: `پاسخ مدل شامل تخفیف بالاتر از سقف (${guardrails.discountCapPercent}٪) بود و اعمال نشد. همکار انسانی پیگیری می‌کند.`,
@@ -344,6 +356,10 @@ export class RuntimeService {
     let decision = 'answer_empty_catalog';
     if (matches.length) decision = 'answer_grounded';
     else if (knowledgeHits.length) decision = 'answer_knowledge';
+    if (completion.mode === 'live') decision = `${decision}:live`;
+    else if (completion.meter.fallbackReason) {
+      decision = `${decision}:mock_fallback`;
+    }
 
     await this.store.addAudit({
       id: uuid(),
@@ -351,6 +367,7 @@ export class RuntimeService {
       conversationId,
       decision,
       citations,
+      gateway: completion.meter,
     });
 
     return {
@@ -563,6 +580,7 @@ export class RuntimeService {
     conversationId: string,
     decision: string,
     citations: Citation[],
+    gateway?: AuditTurn['gateway'],
   ) {
     await this.store.addAudit({
       id: uuid(),
@@ -570,6 +588,7 @@ export class RuntimeService {
       conversationId,
       decision,
       citations,
+      gateway: gateway ?? null,
     });
   }
 }

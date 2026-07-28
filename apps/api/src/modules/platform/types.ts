@@ -217,12 +217,25 @@ export interface Message {
   idempotencyKey?: string;
 }
 
+export type AuditGatewayMeter = {
+  mode: 'mock' | 'live';
+  providerId: string;
+  modelId: string;
+  tokensIn: number;
+  tokensOut: number;
+  latencyMs: number;
+  taskClass: string;
+  routeHint: string;
+  fallbackReason?: string;
+};
+
 export interface AuditTurn {
   id: string;
   tenantId: string;
   conversationId: string;
   decision: string;
   citations: Citation[];
+  gateway?: AuditGatewayMeter | null;
   createdAt: string;
 }
 

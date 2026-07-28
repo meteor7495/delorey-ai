@@ -1295,6 +1295,10 @@ export class DataStore implements OnModuleInit {
         conversationId: turn.conversationId,
         decision: turn.decision,
         citations: turn.citations,
+        gateway:
+          turn.gateway == null
+            ? undefined
+            : (turn.gateway as Prisma.InputJsonValue),
       },
     });
   }
@@ -1708,6 +1712,7 @@ export class DataStore implements OnModuleInit {
         conversationId: r.conversationId,
         decision: r.decision,
         citations: r.citations,
+        gateway: r.gateway,
         createdAt: r.createdAt.toISOString(),
       })),
     };
@@ -1732,6 +1737,7 @@ export class DataStore implements OnModuleInit {
       conversationId: row.conversationId,
       decision: row.decision,
       citations: row.citations,
+      gateway: row.gateway,
       createdAt: row.createdAt.toISOString(),
       conversation: conversation
         ? {
