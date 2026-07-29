@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PlatformModule } from '../platform/platform.module';
+import { AuditModule } from '../audit/audit.module';
 import { AiGatewayService } from './ai-gateway.service';
+import { AiGatewayController } from './ai-gateway.controller';
 import { RouterService } from './application/router.service';
+import { GatewayOpsService } from './application/gateway-ops.service';
 import {
   PROVIDER_REGISTRY,
   ProviderFactory,
@@ -10,9 +13,11 @@ import { CircuitBreakerService } from './infrastructure/circuit-breaker.redis';
 import { UsageLedgerService } from './infrastructure/persistence/usage-ledger.service';
 import { TenantAiPolicyService } from './infrastructure/persistence/tenant-ai-policy.service';
 import { ModelBindingService } from './infrastructure/persistence/model-binding.service';
+import { ModelBindingBootstrap } from './infrastructure/persistence/model-binding.bootstrap';
 
 @Module({
-  imports: [PlatformModule],
+  imports: [PlatformModule, AuditModule],
+  controllers: [AiGatewayController],
   providers: [
     ProviderFactory,
     {
@@ -24,7 +29,9 @@ import { ModelBindingService } from './infrastructure/persistence/model-binding.
     UsageLedgerService,
     TenantAiPolicyService,
     ModelBindingService,
+    ModelBindingBootstrap,
     RouterService,
+    GatewayOpsService,
     AiGatewayService,
   ],
   exports: [AiGatewayService],

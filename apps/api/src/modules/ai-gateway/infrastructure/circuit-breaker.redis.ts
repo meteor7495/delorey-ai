@@ -62,8 +62,28 @@ export class CircuitBreakerService implements OnModuleDestroy {
 
   async isAvailable(providerId: string): Promise<boolean> {
     if (providerId === 'mock') return true;
-    const state = await this.getState(providerId);
+    const state = await this.getCircuitState(providerId);
     return state !== 'open';
+  }
+
+  async getCircuitState(providerId: string): Promise<CircuitState> {
+    const key = this.key(providerId);
+    if (this.redis) {
+      try {
+        const data = await this.redis.hgetall(key);
+        const openUntil = Number(data.openUntil ?? 0);
+        if (openUntil > Date.now()) return 'open';
+        if (openUntil > 0 && openUntil <= Date.now()) return 'half_open';
+        return 'closed';
+      } catch {
+        /* fall through */
+      }
+    }
+    const cur = this.memory.get(providerId);
+    if (!cur) return 'closed';
+    if (cur.openUntil > Date.now()) return 'open';
+    if (cur.openUntil > 0) return 'half_open';
+    return 'closed';
   }
 
   async recordSuccess(providerId: string): Promise<void> {
@@ -117,26 +137,6 @@ export class CircuitBreakerService implements OnModuleDestroy {
       );
     }
     this.memory.set(providerId, cur);
-  }
-
-  private async getState(providerId: string): Promise<CircuitState> {
-    const key = this.key(providerId);
-    if (this.redis) {
-      try {
-        const data = await this.redis.hgetall(key);
-        const openUntil = Number(data.openUntil ?? 0);
-        if (openUntil > Date.now()) return 'open';
-        if (openUntil > 0 && openUntil <= Date.now()) return 'half_open';
-        return 'closed';
-      } catch {
-        /* fall through */
-      }
-    }
-    const cur = this.memory.get(providerId);
-    if (!cur) return 'closed';
-    if (cur.openUntil > Date.now()) return 'open';
-    if (cur.openUntil > 0) return 'half_open';
-    return 'closed';
   }
 
   private key(providerId: string): string {

@@ -24,5 +24,6 @@ Active implementation slices for DeloRey AI MVP.
 | 17 — Live AI Gateway | [vertical-slice-17.md](./vertical-slice-17.md) | Done |
 | 18 — Website Chat Harden | [vertical-slice-18.md](./vertical-slice-18.md) | Done |
 | 19 — Design-Partner E2E | [vertical-slice-19.md](./vertical-slice-19.md) | Done |
+| 20 — AI Provider Layer Ops | [vertical-slice-20.md](./vertical-slice-20.md) | Done |
 
 Authority remains Product Scope → Journey → Architecture → PRDs → UI. Slices do not expand MVP scope.

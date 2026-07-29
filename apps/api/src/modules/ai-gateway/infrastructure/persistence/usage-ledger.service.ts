@@ -87,4 +87,48 @@ export class UsageLedgerService {
       return 0;
     }
   }
+
+  async summarize(tenantId: string, opts?: { limit?: number }) {
+    const limit = Math.min(opts?.limit ?? 50, 200);
+    const start = new Date();
+    start.setUTCHours(0, 0, 0, 0);
+    const [dayCost, dayCount, recent] = await Promise.all([
+      this.dayCostUsd(tenantId),
+      this.prisma.aiCallEvent.count({
+        where: { tenantId, createdAt: { gte: start } },
+      }),
+      this.prisma.aiCallEvent.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          providerId: true,
+          modelId: true,
+          taskClass: true,
+          routeHint: true,
+          latencyMs: true,
+          promptTokens: true,
+          completionTokens: true,
+          costUsd: true,
+          retryCount: true,
+          fallbackCount: true,
+          errorCode: true,
+          cacheHit: true,
+          feature: true,
+          conversationId: true,
+          createdAt: true,
+        },
+      }),
+    ]);
+    return {
+      dayCostUsd: dayCost,
+      dayCallCount: dayCount,
+      recent: recent.map((r) => ({
+        ...r,
+        costUsd: r.costUsd != null ? Number(r.costUsd) : null,
+        createdAt: r.createdAt.toISOString(),
+      })),
+    };
+  }
 }
