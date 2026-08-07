@@ -20,6 +20,7 @@ Build status: vertical slices **01–26** (see [`docs/06-build/README.md`](docs/
 
 ```
 apps/api          NestJS — /v1 API (Postgres SoR via Prisma)
+apps/web          Next.js — marketing landing + pricing + access request
 apps/workspace    Next.js — merchant Workspace + CMS
 apps/storefront   Next.js — public Digikala-like shop
 apps/widget       Vite — Website chat harness + embed.js
@@ -47,18 +48,15 @@ pnpm dev
 
 | App | URL |
 |-----|-----|
+| Landing | http://localhost:3000 |
 | Workspace | http://localhost:3010 |
 | Storefront | http://localhost:3020 |
 | Widget | http://localhost:5173 |
 | API | http://localhost:3001/v1 |
 
-1. Login: `demo@delorey.local` / `demo1234` (or signup)  
-2. Workspace → **فروشگاه** — products / categories / appearance  
-3. **تنظیمات فروشگاه** → copy storefront URL (`/s/{slug}`)  
-4. Optional: **Shopify / Woo** under اتصالات خارجی (unchanged)  
-5. Optional: Widget embed on storefront via website channel origins including `:3020`  
-
-Full partner smoke still: [vertical-slice-19.md](docs/06-build/vertical-slice-19.md).
+1. Landing → **تعرفه‌ها** → ثبت درخواست  
+2. فعال‌سازی آزمایشی پرداخت → ورود Workspace  
+3. یا Login مستقیم: `demo@delorey.local` / `demo1234`
 
 ## AI Gateway
 

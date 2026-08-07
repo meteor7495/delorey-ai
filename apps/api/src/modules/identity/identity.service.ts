@@ -11,7 +11,12 @@ import { DataStore } from '../platform/data.store';
 export class IdentityService {
   constructor(private readonly store: DataStore) {}
 
-  async signup(email: string, password: string, workspaceName: string) {
+  async signup(
+    email: string,
+    password: string,
+    workspaceName: string,
+    opts?: { plan?: string; billingStatus?: string },
+  ) {
     const normalized = email.trim().toLowerCase();
     if (await this.store.findUserByEmail(normalized)) {
       throw new ConflictException('Email already registered');
@@ -28,6 +33,8 @@ export class IdentityService {
       id: tenantId,
       name: workspaceName,
       ownerUserId: userId,
+      plan: opts?.plan ?? 'trial',
+      billingStatus: opts?.billingStatus ?? 'trial',
     });
     await this.store.addMembership({ userId, tenantId, role: 'owner' });
     await this.store.provisionTenantDefaults(tenantId);

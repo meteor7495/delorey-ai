@@ -65,6 +65,8 @@ export interface Tenant {
   id: string;
   name: string;
   ownerUserId: string;
+  plan?: string;
+  billingStatus?: string;
   createdAt: string;
 }
 

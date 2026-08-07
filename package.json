@@ -6,11 +6,12 @@
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @delorey/api --filter @delorey/workspace --filter @delorey/widget --filter @delorey/storefront run dev",
+    "dev": "pnpm --parallel --filter @delorey/api --filter @delorey/workspace --filter @delorey/widget --filter @delorey/storefront --filter @delorey/web run dev",
     "dev:api": "pnpm --filter @delorey/api dev",
     "dev:workspace": "pnpm --filter @delorey/workspace dev",
     "dev:widget": "pnpm --filter @delorey/widget dev",
     "dev:storefront": "pnpm --filter @delorey/storefront dev",
+    "dev:web": "pnpm --filter @delorey/web dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",

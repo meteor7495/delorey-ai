@@ -13,6 +13,10 @@ model Tenant {
   name        String
   ownerUserId String   @map("owner_user_id")
   status      String   @default("active")
+  /// starter | professional | business | trial
+  plan        String   @default("trial")
+  /// pending_payment | active | trial | suspended
+  billingStatus String @default("trial") @map("billing_status")
   createdAt   DateTime @default(now()) @map("created_at")
 
   memberships      WorkspaceMembership[]
@@ -35,8 +39,31 @@ model Tenant {
   storefrontBanners    StorefrontBanner[]
   aiPolicy             TenantAiPolicy?
   aiCallEvents         AiCallEvent[]
+  accessRequests       AccessRequest[]
 
   @@map("tenants")
+}
+
+/// Public landing access / signup requests (SaaS onboarding)
+model AccessRequest {
+  id          String   @id @default(uuid())
+  fullName    String   @map("full_name")
+  email       String
+  phone       String
+  shopName    String   @map("shop_name")
+  plan        String
+  status      String   @default("submitted")
+  /// submitted | provisioned | paid | rejected
+  tenantId    String?  @map("tenant_id")
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([status, createdAt])
+  @@map("access_requests")
 }
 
 model User {

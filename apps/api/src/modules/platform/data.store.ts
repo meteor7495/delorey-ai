@@ -346,12 +346,19 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapUser(row) : null;
   }
 
-  async createTenant(tenant: Omit<Tenant, 'createdAt'>): Promise<Tenant> {
+  async createTenant(
+    tenant: Omit<Tenant, 'createdAt'> & {
+      plan?: string;
+      billingStatus?: string;
+    },
+  ): Promise<Tenant> {
     const row = await this.prisma.tenant.create({
       data: {
         id: tenant.id,
         name: tenant.name,
         ownerUserId: tenant.ownerUserId,
+        plan: tenant.plan ?? 'trial',
+        billingStatus: tenant.billingStatus ?? 'trial',
       },
     });
     return this.mapTenant(row);
@@ -1859,12 +1866,16 @@ export class DataStore implements OnModuleInit {
     id: string;
     name: string;
     ownerUserId: string;
+    plan?: string;
+    billingStatus?: string;
     createdAt: Date;
   }): Tenant {
     return {
       id: row.id,
       name: row.name,
       ownerUserId: row.ownerUserId,
+      plan: row.plan ?? 'trial',
+      billingStatus: row.billingStatus ?? 'trial',
       createdAt: row.createdAt.toISOString(),
     };
   }

@@ -115,6 +115,40 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  apps/web:
+    dependencies:
+      next:
+        specifier: ^15.3.3
+        version: 15.5.21(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react:
+        specifier: ^19.1.0
+        version: 19.2.8
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.2.8(react@19.2.8)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.15.30
+        version: 22.20.1
+      '@types/react':
+        specifier: ^19.1.6
+        version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.1.5
+        version: 19.2.3(@types/react@19.2.17)
+      autoprefixer:
+        specifier: ^10.5.4
+        version: 10.5.4(postcss@8.5.24)
+      postcss:
+        specifier: ^8.5.24
+        version: 8.5.24
+      tailwindcss:
+        specifier: ^3.4.17
+        version: 3.4.17
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
   apps/widget:
     dependencies:
       '@delorey/api-client':
