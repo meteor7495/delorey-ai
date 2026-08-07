@@ -44,7 +44,7 @@ DeloRey AI is an **AI Commerce Operating System**: a multi-tenant, API-first, AI
 | **Chatbot builder** | Generic bot trees and prompt playgrounds optimize for “conversation coverage,” not commerce outcomes. Merchants who need a toy can find one elsewhere. |
 | **CRM** | We store customer context required for conversations and attribution. We do not become the system of record for pipelines, deals, and sales stages. |
 | **Helpdesk** | Tickets are a failure mode and an escalation surface — not the product center of gravity. Conversations are commerce events, not queue items. |
-| **Website builder** | We meet customers where they already talk. We do not design storefronts, themes, or page editors. |
+| **Website builder (drag-drop page IDE)** | Free-form page builders are out. We ship a **native Digikala-like storefront** with CMS blocks (catalog, banners, COD) plus Shopify/Woo connectors — not a theme marketplace IDE. |
 | **Marketing automation monster** | Campaign blasts, drip sequences, and audience builders are out of scope until they are clearly subordinate to AI Employee outcomes. |
 | **Everything app** | Breadth without depth produces a wrapper. We deepen commerce conversation operations before we expand category. |
 

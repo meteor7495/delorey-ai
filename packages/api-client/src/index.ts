@@ -498,6 +498,151 @@ export function createApiClient(opts: ApiClientOptions) {
         payload: Record<string, unknown> | null;
         createdAt: string;
       }>(opts, `/audit/admin/${id}`),
+
+    // ── Native shop CMS ──────────────────────────────────────────────
+    shopOverview: () =>
+      request<{
+        settings: Record<string, unknown>;
+        storefrontUrl: string;
+        stats: {
+          productCount: number;
+          categoryCount: number;
+          orderCount: number;
+          pendingOrders: number;
+        };
+      }>(opts, '/shop/overview'),
+    shopSettings: () =>
+      request<Record<string, unknown>>(opts, '/shop/settings'),
+    updateShopSettings: (body: Record<string, unknown>) =>
+      request<Record<string, unknown>>(opts, '/shop/settings', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    listShopCategories: () =>
+      request<
+        Array<{
+          id: string;
+          parentId: string | null;
+          name: string;
+          slug: string;
+          imageUrl: string | null;
+          sortOrder: number;
+        }>
+      >(opts, '/shop/categories'),
+    createShopCategory: (body: Record<string, unknown>) =>
+      request(opts, '/shop/categories', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopCategory: (id: string, body: Record<string, unknown>) =>
+      request(opts, `/shop/categories/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopCategory: (id: string) =>
+      request(opts, `/shop/categories/${id}`, { method: 'DELETE' }),
+    listShopProducts: (source?: string) =>
+      request<Array<Record<string, unknown>>>(
+        opts,
+        `/shop/products${source ? `?source=${encodeURIComponent(source)}` : ''}`,
+      ),
+    createShopProduct: (body: Record<string, unknown>) =>
+      request(opts, '/shop/products', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopProduct: (id: string, body: Record<string, unknown>) =>
+      request(opts, `/shop/products/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopProduct: (id: string) =>
+      request(opts, `/shop/products/${id}`, { method: 'DELETE' }),
+    listShopBanners: () =>
+      request<Array<Record<string, unknown>>>(opts, '/shop/banners'),
+    createShopBanner: (body: Record<string, unknown>) =>
+      request(opts, '/shop/banners', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopBanner: (id: string, body: Record<string, unknown>) =>
+      request(opts, `/shop/banners/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopBanner: (id: string) =>
+      request(opts, `/shop/banners/${id}`, { method: 'DELETE' }),
+    listShopOrders: () =>
+      request<Array<Record<string, unknown>>>(opts, '/shop/orders'),
+    updateShopOrderStatus: (id: string, status: string) =>
+      request(opts, `/shop/orders/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }),
+
+    // ── Public storefront ────────────────────────────────────────────
+    storefrontHome: (storeSlug: string) =>
+      request<Record<string, unknown>>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/home`,
+      ),
+    storefrontProducts: (
+      storeSlug: string,
+      query: Record<string, string> = {},
+    ) => {
+      const params = new URLSearchParams(query);
+      const qs = params.toString();
+      return request<Array<Record<string, unknown>>>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/products${qs ? `?${qs}` : ''}`,
+      );
+    },
+    storefrontProduct: (storeSlug: string, productSlug: string) =>
+      request<Record<string, unknown>>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/products/${encodeURIComponent(productSlug)}`,
+      ),
+    storefrontCategories: (storeSlug: string) =>
+      request<Array<Record<string, unknown>>>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/categories`,
+      ),
+    storefrontGetCart: (storeSlug: string, sessionId: string) =>
+      request<Record<string, unknown>>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/cart?sessionId=${encodeURIComponent(sessionId)}`,
+      ),
+    storefrontSetCartItem: (
+      storeSlug: string,
+      body: { sessionId: string; productId: string; quantity: number },
+    ) =>
+      request(opts, `/storefront/${encodeURIComponent(storeSlug)}/cart`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    storefrontCheckout: (
+      storeSlug: string,
+      body: {
+        sessionId: string;
+        customerName: string;
+        customerPhone: string;
+        customerAddress: string;
+        customerNote?: string;
+      },
+    ) =>
+      request(opts, `/storefront/${encodeURIComponent(storeSlug)}/checkout`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    storefrontTrackOrder: (
+      storeSlug: string,
+      orderNumber: string,
+      phone: string,
+    ) =>
+      request(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/orders/track?orderNumber=${encodeURIComponent(orderNumber)}&phone=${encodeURIComponent(phone)}`,
+      ),
   };
 }
 

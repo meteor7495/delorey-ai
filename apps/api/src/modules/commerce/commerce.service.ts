@@ -104,7 +104,9 @@ export class CommerceService {
 
   async searchProducts(tenantId: string, query: string) {
     const q = query.trim().toLowerCase();
-    const products = await this.store.productsForTenant(tenantId);
+    const products = (await this.store.productsForTenant(tenantId)).filter(
+      (p) => p.status !== 'draft',
+    );
     if (!q) return products.slice(0, 5);
 
     const tokens = q
@@ -126,7 +128,9 @@ export class CommerceService {
    * Prefers in-stock; applies simple budget filter when present.
    */
   async recommendProducts(tenantId: string, query: string) {
-    const products = await this.store.productsForTenant(tenantId);
+    const products = (await this.store.productsForTenant(tenantId)).filter(
+      (p) => p.status !== 'draft',
+    );
     if (products.length === 0) return [];
 
     const q = query.trim().toLowerCase();

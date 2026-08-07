@@ -121,27 +121,39 @@ export class DataStore implements OnModuleInit {
     const catalog = [
       {
         sku: 'SHIRT-001',
+        slug: 'linen-blue-shirt',
         title: 'پیراهن لینن آبی',
         price: 890000,
         currency: 'IRR',
         inStock: true,
         description: 'سایزهای M و L موجود',
+        source: 'mock',
+        status: 'published',
+        images: [] as string[],
       },
       {
         sku: 'BAG-014',
+        slug: 'black-leather-bag',
         title: 'کیف چرمی مشکی',
         price: 2450000,
         currency: 'IRR',
         inStock: true,
         description: null as string | null,
+        source: 'mock',
+        status: 'published',
+        images: [] as string[],
       },
       {
         sku: 'SHOE-220',
+        slug: 'white-sport-shoes',
         title: 'کفش اسپرت سفید',
         price: 1750000,
         currency: 'IRR',
         inStock: false,
         description: 'فعلاً ناموجود',
+        source: 'mock',
+        status: 'published',
+        images: [] as string[],
       },
     ];
 
@@ -151,13 +163,18 @@ export class DataStore implements OnModuleInit {
         create: { tenantId, ...item },
         update: {
           title: item.title,
+          slug: item.slug,
           price: item.price,
           currency: item.currency,
           inStock: item.inStock,
           description: item.description,
+          source: item.source,
+          status: item.status,
         },
       });
     }
+
+    await this.ensureStorefrontSettings(tenantId);
 
     const publicKey = `pk_live_${tenantId.slice(0, 8)}`;
     await this.prisma.channelBinding.upsert({
@@ -170,6 +187,8 @@ export class DataStore implements OnModuleInit {
         allowedOrigins: [
           'http://localhost:5173',
           'http://127.0.0.1:5173',
+          'http://localhost:3020',
+          'http://127.0.0.1:3020',
         ],
       },
       // Do not reset merchant-configured origins on re-provision
@@ -495,7 +514,7 @@ export class DataStore implements OnModuleInit {
   }
 
   /**
-   * Replace tenant catalog with Shopify-normalized products (honest switch off mock).
+   * Replace synced (non-native) catalog rows. Native CMS products are preserved.
    */
   async replaceCatalog(
     tenantId: string,
@@ -508,19 +527,26 @@ export class DataStore implements OnModuleInit {
       inStock: boolean;
       description: string | null;
     }>,
+    source: 'shopify' | 'woocommerce' | 'mock' = 'shopify',
   ): Promise<number> {
-    await this.prisma.product.deleteMany({ where: { tenantId } });
+    await this.prisma.product.deleteMany({
+      where: { tenantId, source: { not: 'native' } },
+    });
     if (products.length === 0) return 0;
     await this.prisma.product.createMany({
       data: products.map((p) => ({
         tenantId,
         externalId: p.externalId,
         sku: p.sku,
+        slug: this.slugFromSku(p.sku, p.externalId),
         title: p.title,
         price: new Prisma.Decimal(p.price),
         currency: p.currency,
         inStock: p.inStock,
         description: p.description,
+        source,
+        status: 'published',
+        images: [],
       })),
     });
     return products.length;
@@ -570,20 +596,25 @@ export class DataStore implements OnModuleInit {
       inStock: boolean;
       description: string | null;
     },
+    source: 'shopify' | 'woocommerce' | 'mock' = 'shopify',
   ): Promise<void> {
     const existing = await this.prisma.product.findFirst({
       where: { tenantId, externalId: product.externalId },
     });
+    const slug = this.slugFromSku(product.sku, product.externalId);
     if (existing) {
       await this.prisma.product.update({
         where: { id: existing.id },
         data: {
           sku: product.sku,
+          slug: existing.source === 'native' ? existing.slug : slug,
           title: product.title,
           price: new Prisma.Decimal(product.price),
           currency: product.currency,
           inStock: product.inStock,
           description: product.description,
+          source: existing.source === 'native' ? 'native' : source,
+          status: 'published',
         },
       });
       return;
@@ -599,11 +630,15 @@ export class DataStore implements OnModuleInit {
         tenantId,
         externalId: product.externalId,
         sku,
+        slug: this.slugFromSku(sku, product.externalId),
         title: product.title,
         price: new Prisma.Decimal(product.price),
         currency: product.currency,
         inStock: product.inStock,
         description: product.description,
+        source,
+        status: 'published',
+        images: [],
       },
     });
   }
@@ -1863,23 +1898,74 @@ export class DataStore implements OnModuleInit {
     tenantId: string;
     externalId?: string | null;
     sku: string;
+    slug?: string | null;
     title: string;
     price: Prisma.Decimal;
+    compareAtPrice?: Prisma.Decimal | null;
     currency: string;
     inStock: boolean;
     description: string | null;
+    images?: string[] | null;
+    categoryId?: string | null;
+    status?: string | null;
+    source?: string | null;
   }): Product {
     return {
       id: row.id,
       tenantId: row.tenantId,
       externalId: row.externalId ?? null,
       sku: row.sku,
+      slug: row.slug && row.slug.length > 0 ? row.slug : this.slugFromSku(row.sku, row.id),
       title: row.title,
       price: Number(row.price),
+      compareAtPrice:
+        row.compareAtPrice != null ? Number(row.compareAtPrice) : null,
       currency: row.currency,
       inStock: row.inStock,
       description: row.description ?? undefined,
+      images: row.images ?? [],
+      categoryId: row.categoryId ?? null,
+      status: row.status ?? 'published',
+      source: row.source ?? 'mock',
     };
+  }
+
+  slugFromSku(sku: string, fallback: string): string {
+    const base = `${sku}-${fallback}`
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 80);
+    return base || `p-${fallback.slice(0, 8)}`;
+  }
+
+  async ensureStorefrontSettings(tenantId: string) {
+    const existing = await this.prisma.storefrontSettings.findUnique({
+      where: { tenantId },
+    });
+    if (existing) return existing;
+    const tenant = await this.prisma.tenant.findUnique({ where: { id: tenantId } });
+    const base = (tenant?.name ?? 'store')
+      .toLowerCase()
+      .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 40);
+    let storeSlug = base.replace(/[^\w-]/g, '') || `shop-${tenantId.slice(0, 8)}`;
+    const taken = await this.prisma.storefrontSettings.findUnique({
+      where: { storeSlug },
+    });
+    if (taken) storeSlug = `${storeSlug}-${tenantId.slice(0, 6)}`;
+    return this.prisma.storefrontSettings.create({
+      data: {
+        tenantId,
+        storeName: tenant?.name ?? 'فروشگاه من',
+        storeSlug,
+        tagline: 'خرید آسان با پشتیبانی هوشمند',
+        primaryColor: '#ef4056',
+        secondaryColor: '#0c0c0c',
+        codEnabled: true,
+      },
+    });
   }
 
   private mapEmployee(row: {

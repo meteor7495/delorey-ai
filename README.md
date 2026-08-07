@@ -2,7 +2,7 @@
 
 AI Commerce Platform — primary product: **AI Sales Employee** (Website, Telegram, Bale).
 
-Build status: vertical slices **01–19** (see [`docs/06-build/README.md`](docs/06-build/README.md)).
+Build status: vertical slices **01–26** (see [`docs/06-build/README.md`](docs/06-build/README.md)).
 
 ## Docs map
 
@@ -14,12 +14,14 @@ Build status: vertical slices **01–19** (see [`docs/06-build/README.md`](docs/
 | UI/UX | `docs/05-ui/` |
 | Build epics | [`docs/06-build/`](docs/06-build/) |
 | Partner E2E | [`docs/06-build/vertical-slice-19.md`](docs/06-build/vertical-slice-19.md) |
+| Native shop | [`docs/06-build/vertical-slice-21-26-native-storefront.md`](docs/06-build/vertical-slice-21-26-native-storefront.md) |
 
 ## Monorepo
 
 ```
 apps/api          NestJS — /v1 API (Postgres SoR via Prisma)
-apps/workspace    Next.js — merchant Workspace
+apps/workspace    Next.js — merchant Workspace + CMS
+apps/storefront   Next.js — public Digikala-like shop
 apps/widget       Vite — Website chat harness + embed.js
 packages/api-client
 packages/ui
@@ -46,16 +48,17 @@ pnpm dev
 | App | URL |
 |-----|-----|
 | Workspace | http://localhost:3010 |
+| Storefront | http://localhost:3020 |
 | Widget | http://localhost:5173 |
 | API | http://localhost:3001/v1 |
 
 1. Login: `demo@delorey.local` / `demo1234` (or signup)  
-2. Workspace → **شروع کار** — follow partner checklist  
-3. **کانال‌ها** → copy public key / snippet; allow `http://localhost:5173`  
-4. Widget → ask `پیراهن لینن موجوده؟ قیمتش چنده؟`  
-5. Expect catalog-grounded reply (mock gateway OK without paid LLM)  
+2. Workspace → **فروشگاه** — products / categories / appearance  
+3. **تنظیمات فروشگاه** → copy storefront URL (`/s/{slug}`)  
+4. Optional: **Shopify / Woo** under اتصالات خارجی (unchanged)  
+5. Optional: Widget embed on storefront via website channel origins including `:3020`  
 
-Full smoke: [vertical-slice-19.md](docs/06-build/vertical-slice-19.md).
+Full partner smoke still: [vertical-slice-19.md](docs/06-build/vertical-slice-19.md).
 
 ## AI Gateway
 

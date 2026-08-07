@@ -6,7 +6,7 @@ import {
   Home,
   LayoutDashboard,
   Inbox,
-  Store,
+  ShoppingBag,
   MoreHorizontal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,8 +14,8 @@ import { cn } from '@/lib/utils';
 const tabs = [
   { href: '/home', icon: Home, label: 'خانه', exact: true },
   { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
+  { href: '/shop', icon: ShoppingBag, label: 'فروشگاه' },
   { href: '/inbox', icon: Inbox, label: 'صندوق' },
-  { href: '/store', icon: Store, label: 'فروشگاه' },
   { href: '/onboarding', icon: MoreHorizontal, label: 'بیشتر' },
 ];
 
@@ -25,6 +25,7 @@ const morePaths = [
   '/channels',
   '/knowledge',
   '/audit',
+  '/store',
 ];
 
 export function MobileBottomNav() {
@@ -42,7 +43,9 @@ export function MobileBottomNav() {
             ? pathname === href
             : href === '/onboarding'
               ? morePaths.some((p) => pathname.startsWith(p))
-              : pathname === href || pathname.startsWith(`${href}/`);
+              : href === '/shop'
+                ? pathname === '/shop' || pathname.startsWith('/shop/')
+                : pathname === href || pathname.startsWith(`${href}/`);
 
           return (
             <Link

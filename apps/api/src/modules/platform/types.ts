@@ -86,11 +86,17 @@ export interface Product {
   tenantId: string;
   externalId?: string | null;
   sku: string;
+  slug: string;
   title: string;
   price: number;
+  compareAtPrice?: number | null;
   currency: string;
   inStock: boolean;
   description?: string;
+  images: string[];
+  categoryId?: string | null;
+  status: string;
+  source: string;
 }
 
 export interface EmployeeGuardrails {

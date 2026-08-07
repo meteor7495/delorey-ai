@@ -18,18 +18,23 @@ model Tenant {
   memberships      WorkspaceMembership[]
   sessions         Session[]
   employees        Employee[]
-  storeConnection  StoreConnection?
-  products         Product[]
-  channels         ChannelBinding[]
-  conversations    Conversation[]
-  messages         Message[]
-  auditTurns       AuditTurn[]
-  adminAudits      AdminAuditEvent[]
-  knowledgeDocs   KnowledgeDoc[]
-  knowledgeChunks KnowledgeChunk[]
-  orders           Order[]
-  aiPolicy         TenantAiPolicy?
-  aiCallEvents     AiCallEvent[]
+  storeConnection      StoreConnection?
+  products             Product[]
+  categories           Category[]
+  channels             ChannelBinding[]
+  conversations        Conversation[]
+  messages             Message[]
+  auditTurns           AuditTurn[]
+  adminAudits          AdminAuditEvent[]
+  knowledgeDocs        KnowledgeDoc[]
+  knowledgeChunks      KnowledgeChunk[]
+  orders               Order[]
+  carts                Cart[]
+  storefrontOrders     StorefrontOrder[]
+  storefrontSettings   StorefrontSettings?
+  storefrontBanners    StorefrontBanner[]
+  aiPolicy             TenantAiPolicy?
+  aiCallEvents         AiCallEvent[]
 
   @@map("tenants")
 }
@@ -112,25 +117,170 @@ model StoreConnection {
   @@map("store_connections")
 }
 
+model Category {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  parentId  String?  @map("parent_id")
+  name      String
+  slug      String
+  imageUrl  String?  @map("image_url")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([tenantId, parentId])
+  @@map("categories")
+}
+
 model Product {
-  id          String   @id @default(uuid())
-  tenantId    String   @map("tenant_id")
-  externalId  String?  @map("external_id")
-  sku         String
-  title       String
-  price       Decimal  @db.Decimal(18, 2)
-  currency    String   @default("IRR")
-  inStock     Boolean  @default(true) @map("in_stock")
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  externalId     String?  @map("external_id")
+  sku            String
+  slug           String   @default("")
+  title          String
+  price          Decimal  @db.Decimal(18, 2)
+  compareAtPrice Decimal? @map("compare_at_price") @db.Decimal(18, 2)
+  currency       String   @default("IRR")
+  inStock        Boolean  @default(true) @map("in_stock")
+  description    String?
+  images         String[] @default([])
+  categoryId     String?  @map("category_id")
+  status         String   @default("published")
+  /// native | shopify | woocommerce | mock
+  source         String   @default("mock")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  cartItems CartItem[]
+  orderItems StorefrontOrderItem[]
+
+  @@unique([tenantId, sku])
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([tenantId, externalId])
+  @@index([tenantId, categoryId])
+  @@index([tenantId, status, source])
+  @@map("products")
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  sessionId String   @map("session_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  CartItem[]
+
+  @@unique([tenantId, sessionId])
+  @@index([tenantId])
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  productId String   @map("product_id")
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+/// Native storefront orders (COD) — separate from synced Order Lookup rows
+model StorefrontOrder {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  orderNumber     String   @map("order_number")
+  status          String   @default("pending")
+  paymentMethod   String   @default("cod") @map("payment_method")
+  totalAmount     Decimal  @default(0) @map("total_amount") @db.Decimal(18, 2)
+  currency        String   @default("IRR")
+  customerName    String   @map("customer_name")
+  customerPhone   String   @map("customer_phone")
+  customerAddress String   @map("customer_address")
+  customerNote    String?  @map("customer_note")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items  StorefrontOrderItem[]
+
+  @@unique([tenantId, orderNumber])
+  @@index([tenantId, status])
+  @@index([tenantId, customerPhone])
+  @@map("storefront_orders")
+}
+
+model StorefrontOrderItem {
+  id         String  @id @default(uuid())
+  orderId    String  @map("order_id")
+  productId  String? @map("product_id")
+  sku        String
+  title      String
+  unitPrice  Decimal @map("unit_price") @db.Decimal(18, 2)
+  quantity   Int
+  lineTotal  Decimal @map("line_total") @db.Decimal(18, 2)
+
+  order   StorefrontOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@map("storefront_order_items")
+}
+
+model StorefrontSettings {
+  id              String   @id @default(uuid())
+  tenantId        String   @unique @map("tenant_id")
+  storeName       String   @map("store_name")
+  storeSlug       String   @unique @map("store_slug")
+  logoUrl         String?  @map("logo_url")
+  primaryColor    String   @default("#ef4056") @map("primary_color")
+  secondaryColor  String   @default("#0c0c0c") @map("secondary_color")
+  tagline         String?
+  codEnabled      Boolean  @default(true) @map("cod_enabled")
+  supportPhone    String?  @map("support_phone")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
-  @@unique([tenantId, sku])
-  @@index([tenantId])
-  @@index([tenantId, externalId])
-  @@map("products")
+  @@map("storefront_settings")
+}
+
+model StorefrontBanner {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  title     String
+  subtitle  String?
+  imageUrl  String?  @map("image_url")
+  href      String?
+  sortOrder Int      @default(0) @map("sort_order")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, active])
+  @@map("storefront_banners")
 }
 
 model ChannelBinding {

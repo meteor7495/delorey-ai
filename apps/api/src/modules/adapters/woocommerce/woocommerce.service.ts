@@ -206,6 +206,7 @@ export class WooCommerceAdapterService {
       const productCount = await this.store.replaceCatalog(
         tenantId,
         uniqueProducts,
+        'woocommerce',
       );
       const orderCount = await this.store.replaceOrders(tenantId, uniqueOrders);
       const syncHealth = productCount === 0 ? 'failed' : 'healthy';
@@ -346,6 +347,7 @@ export class WooCommerceAdapterService {
       await this.store.upsertSyncedProduct(
         connection.tenantId,
         normalizeWooProduct(product, currency),
+        'woocommerce',
       );
       await this.touchHealthy(connection.tenantId);
       return { ok: true, topic, action: 'product_upserted' };

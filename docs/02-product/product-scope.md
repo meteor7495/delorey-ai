@@ -122,7 +122,8 @@ Everything below **MUST** exist for MVP to be complete. “Exists” means produ
 | **Authentication** | Merchant signup/login, session security, password reset (or equivalent) | No Workspace without identity |
 | **Merchant Workspace** | Control plane for store connection, Employee config, channels, inbox, settings | Daily operations home |
 | **Tenant Isolation** | Hard separation of data, Knowledge, Memory, analytics, jobs, indexes | Non-negotiable SaaS foundation |
-| **Commerce Core** | Sync/access catalog, inventory signals, pricing, policies, orders from connected storefront | Context Before Intelligence |
+| **Commerce Core** | Sync/access catalog, inventory signals, pricing, policies, orders from connected storefront **and** native CMS catalog | Context Before Intelligence |
+| **Native Storefront + CMS** | Digikala-like public shop (`apps/storefront`) + Workspace CMS (products, categories, COD orders, banners) | Integrated package; Shopify/Woo remain optional connectors |
 | **Catalog Sync** | Reliable ingest + visible sync health/staleness | Grounded product answers |
 | **Order Lookup** | Tool for post-purchase status within guardrails | Closes support loop; proves commerce actions |
 | **Knowledge Base** | Synced facts + merchant FAQ/policy overrides + basic document upload; source attribution | Edge cases and brand policy |
@@ -144,7 +145,8 @@ Everything below **MUST** exist for MVP to be complete. “Exists” means produ
 
 | Area | Ships | Explicit non-goals |
 |------|-------|--------------------|
-| **Website Chat** | Embed on Shopify/WooCommerce (or equivalent); session; cart/page context when available; mobile-usable; handoff states | Theme designer, page builder, owning checkout |
+| **Website Chat** | Embed on native storefront and Shopify/WooCommerce; session; cart/page context when available; mobile-usable; handoff states | Free-form theme IDE |
+| **Native Storefront** | Public catalog, PDP, cart, COD checkout, order track; CMS in Workspace | Drag-drop page builder; multi-theme marketplace; PSP acquiring |
 | **Telegram** | Merchant bot; replies; product cards/links where supported; escalation alerts | Broadcast campaigns, Mini App storefront replacement |
 | **Bale** | Merchant presence; Telegram parity where API allows | Channel-forked business logic |
 | **Sales Skills** | Grounded Q&A; stock-aware recommendations; order status; confidence/policy escalation | Ungrounded “stylist” upsell; silent failure; unguarded refund/cancel mutation |
@@ -230,7 +232,7 @@ The following are **forbidden in MVP commits**, design-partner promises, and “
 | **Native Mobile App** | Mobile-usable Workspace in browser is enough. Native apps consume roadmap without proving wedge. |
 | **White Label** | Reseller/OEM requires platform maturity, billing complexity, and brand governance. |
 | **Advanced BI** | Custom report builders and warehouse exports wait. Basic dashboard is the MVP bar. |
-| **SMS / storefront builder / PSP / WMS / black-box autonomy** | Wrong category or Principles violation; integrate for context only where relevant. |
+| **SMS / free-form page builder / PSP / WMS / black-box autonomy** | PSP and WMS stay integrations. Native storefront + CMS is in-scope; drag-drop page IDE and payment acquiring stay out for now. |
 
 **Rule:** If an engineer implements an OUT item “because it was easy,” Product treats it as a defect until removed or formally re-scoped.
 
@@ -362,7 +364,7 @@ Also required: **One Brain, Multiple Channels**; **AI Assists, Humans Control**;
 | Chatbot builders / visual flow IDEs | Wrong product identity |
 | CRM / ERP systems of record | Sync insights; do not absorb |
 | Helpdesk as center of gravity | Escalation surface only |
-| Storefront design / themes | Integrate; do not design shops |
+| Storefront drag-drop IDE / multi-theme marketplace | Native storefront + CMS blocks + external connectors are in; free-form page builders stay out |
 | Marketing automation suites | Not primary surface |
 | Ads / media attribution platforms | Conversation outcomes ≠ ad platform |
 | Payment processing | Context only |

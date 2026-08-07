@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
   Home,
   LayoutDashboard,
@@ -14,23 +15,77 @@ import {
   ShieldCheck,
   LogOut,
   Sparkles,
+  ShoppingBag,
+  Package,
+  Tags,
+  ClipboardList,
+  Palette,
+  Settings,
+  Link2,
+  ChevronDown,
 } from 'lucide-react';
 import { AiStateChip } from '@delorey/ui';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { setToken } from '@/shared/api';
 
-const navItems = [
+type NavLeaf = { href: string; icon: typeof Home; label: string };
+
+const primaryNav: NavLeaf[] = [
   { href: '/home', icon: Home, label: 'خانه' },
   { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
   { href: '/onboarding', icon: ListChecks, label: 'شروع کار' },
-  { href: '/store', icon: Store, label: 'فروشگاه' },
+];
+
+const shopNav: NavLeaf[] = [
+  { href: '/shop', icon: ShoppingBag, label: 'نمای کلی' },
+  { href: '/shop/products', icon: Package, label: 'محصولات' },
+  { href: '/shop/categories', icon: Tags, label: 'دسته‌ها' },
+  { href: '/shop/orders', icon: ClipboardList, label: 'سفارش‌ها' },
+  { href: '/shop/appearance', icon: Palette, label: 'ظاهر و بنر' },
+  { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },
+];
+
+const externalNav: NavLeaf[] = [
+  { href: '/store', icon: Link2, label: 'Shopify / Woo' },
+];
+
+const aiNav: NavLeaf[] = [
   { href: '/employee', icon: Bot, label: 'کارمند فروش' },
   { href: '/channels', icon: Radio, label: 'کانال‌ها' },
   { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/knowledge', icon: BookOpen, label: 'دانش' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },
 ];
+
+function isActivePath(pathname: string, href: string) {
+  if (href === '/home' || href === '/dashboard' || href === '/shop') {
+    return pathname === href;
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function NavLink({ item, pathname }: { item: NavLeaf; pathname: string }) {
+  const active = isActivePath(pathname, item.href);
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        'relative flex items-center gap-[11px] w-full px-3 py-[9px] rounded-[9px] text-[13.5px] font-semibold transition-all duration-150 no-underline',
+        active
+          ? 'bg-[rgba(15,110,110,0.28)] text-white'
+          : 'bg-transparent text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-white',
+      )}
+    >
+      <Icon size={18} strokeWidth={active ? 2.2 : 1.9} />
+      <span className="flex-1 text-start">{item.label}</span>
+      {active && (
+        <span className="absolute start-[-10px] top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[var(--brand-400)] rounded-full" />
+      )}
+    </Link>
+  );
+}
 
 interface SidebarProps {
   tenantName: string;
@@ -40,6 +95,8 @@ interface SidebarProps {
 export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const aiOpenDefault = aiNav.some((i) => isActivePath(pathname, i.href));
+  const [aiOpen, setAiOpen] = useState(aiOpenDefault);
 
   function handleLogout() {
     setToken(null);
@@ -64,7 +121,7 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
               DeloRey
             </div>
             <div className="text-[9.5px] tracking-[0.18em] text-white/45 font-semibold">
-              AI SALES
+              COMMERCE
             </div>
           </div>
         </div>
@@ -87,35 +144,45 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
         </div>
       </div>
 
-      <div className="text-[10.5px] font-bold tracking-[0.1em] text-white/30 px-[22px] pb-2 pt-1.5 uppercase">
-        منوی اصلی
-      </div>
+      <nav className="px-2.5 flex flex-col gap-0.5 flex-1 overflow-y-auto pb-3">
+        <div className="text-[10.5px] font-bold tracking-[0.1em] text-white/30 px-[12px] pb-2 pt-1.5 uppercase">
+          منوی اصلی
+        </div>
+        {primaryNav.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} />
+        ))}
 
-      <nav className="px-2.5 flex flex-col gap-0.5 flex-1 overflow-y-auto">
-        {navItems.map(({ href, icon: Icon, label }) => {
-          const isActive =
-            href === '/home'
-              ? pathname === href
-              : pathname === href || pathname.startsWith(`${href}/`);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'relative flex items-center gap-[11px] w-full px-3 py-[9px] rounded-[9px] text-[13.5px] font-semibold transition-all duration-150 no-underline',
-                isActive
-                  ? 'bg-[rgba(15,110,110,0.28)] text-white'
-                  : 'bg-transparent text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-white',
-              )}
-            >
-              <Icon size={18} strokeWidth={isActive ? 2.2 : 1.9} />
-              <span className="flex-1 text-start">{label}</span>
-              {isActive && (
-                <span className="absolute start-[-10px] top-1/2 -translate-y-1/2 w-[3px] h-[18px] bg-[var(--brand-400)] rounded-full" />
-              )}
-            </Link>
-          );
-        })}
+        <div className="text-[10.5px] font-bold tracking-[0.1em] text-white/30 px-[12px] pb-2 pt-4 uppercase">
+          فروشگاه
+        </div>
+        {shopNav.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} />
+        ))}
+
+        <div className="text-[10.5px] font-bold tracking-[0.1em] text-white/30 px-[12px] pb-2 pt-4 uppercase">
+          اتصالات خارجی
+        </div>
+        {externalNav.map((item) => (
+          <NavLink key={item.href} item={item} pathname={pathname} />
+        ))}
+
+        <div className="pt-4">
+          <button
+            type="button"
+            onClick={() => setAiOpen((v) => !v)}
+            className="flex w-full items-center gap-2 px-[12px] pb-2 text-[10.5px] font-bold tracking-[0.1em] text-white/30 uppercase hover:text-white/50"
+          >
+            <span className="flex-1 text-start">کارمند هوش مصنوعی</span>
+            <ChevronDown
+              size={14}
+              className={cn('transition-transform', aiOpen && 'rotate-180')}
+            />
+          </button>
+          {aiOpen &&
+            aiNav.map((item) => (
+              <NavLink key={item.href} item={item} pathname={pathname} />
+            ))}
+        </div>
       </nav>
 
       <div className="p-2.5 border-t border-[rgba(255,255,255,0.07)]">

@@ -287,6 +287,7 @@ export class ShopifyAdapterService {
       const productCount = await this.store.replaceCatalog(
         tenantId,
         uniqueProducts,
+        'shopify',
       );
       const orderCount = await this.store.replaceOrders(tenantId, uniqueOrders);
 
@@ -447,7 +448,11 @@ export class ShopifyAdapterService {
         (await this.guessCurrency(connection.tenantId)) || 'IRR';
       const rows = normalizeShopifyProduct(product, currency);
       for (const row of rows) {
-        await this.store.upsertSyncedProduct(connection.tenantId, row);
+        await this.store.upsertSyncedProduct(
+          connection.tenantId,
+          row,
+          'shopify',
+        );
       }
       await this.touchHealthy(connection.tenantId);
       return {

@@ -19,6 +19,7 @@ import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { JobsModule } from './modules/jobs/jobs.module';
+import { ShopModule } from './modules/shop/shop.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -30,6 +31,7 @@ import { HealthController } from './health.controller';
     WorkspaceModule,
     EmployeeModule,
     CommerceModule,
+    ShopModule,
     KnowledgeModule,
     AnalyticsModule,
     AuditModule,
