@@ -1,37 +1,68 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { DataStore } from '../platform/data.store';
+import { ShopifyAdapterService } from '../adapters/shopify/shopify.service';
+import { WooCommerceAdapterService } from '../adapters/woocommerce/woocommerce.service';
 
 @Injectable()
 export class CommerceService {
-  constructor(private readonly store: DataStore) {}
+  constructor(
+    private readonly store: DataStore,
+    private readonly shopify: ShopifyAdapterService,
+    private readonly woo: WooCommerceAdapterService,
+  ) {}
 
   async getStore(tenantId: string) {
     const connection = await this.store.getStore(tenantId);
     if (!connection) throw new NotFoundException('Store not connected');
     const products = await this.store.productsForTenant(tenantId);
+    const apiBase = (
+      process.env.PUBLIC_API_BASE_URL ?? 'http://localhost:3001'
+    ).replace(/\/$/, '');
     return {
       ...connection,
       productCount: products.length,
-      webhookUrl: null,
-      externalConnectorsDisabled: true,
-      note: 'اتصال Shopify/WooCommerce غیرفعال است؛ از فروشگاه بومی (/shop) استفاده کنید.',
+      webhookUrl:
+        connection.platform === 'shopify' ||
+        connection.platform === 'woocommerce'
+          ? `${apiBase}/v1/webhooks/store/${connection.id}`
+          : null,
     };
   }
 
-  async requestSync(_tenantId: string) {
+  async requestSync(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection) throw new NotFoundException('Store not connected');
+    if (connection.platform === 'woocommerce') {
+      return this.woo.syncNow(tenantId);
+    }
+    if (connection.platform === 'shopify') {
+      return this.shopify.syncNow(tenantId);
+    }
     throw new BadRequestException(
-      'همگام‌سازی خارجی غیرفعال است. محصولات را از CMS فروشگاه بومی مدیریت کنید.',
+      '┘ç┘à┌»╪º┘àΓÇî╪│╪º╪▓█î ┘ü┘é╪╖ ╪¿╪▒╪º█î Shopify █î╪º WooCommerce ┘╛╪┤╪¬█î╪¿╪º┘å█î ┘à█îΓÇî╪┤┘ê╪».',
     );
   }
 
-  async registerWebhooks(_tenantId: string) {
-    throw new BadRequestException('Webhook فروشگاه خارجی غیرفعال است.');
+  async registerWebhooks(tenantId: string) {
+    const connection = await this.store.getStore(tenantId);
+    if (!connection) throw new NotFoundException('Store not connected');
+    if (connection.platform === 'woocommerce') {
+      return this.woo.ensureWebhooks(tenantId);
+    }
+    if (connection.platform === 'shopify') {
+      return this.shopify.ensureWebhooks(tenantId);
+    }
+    throw new BadRequestException('╪½╪¿╪¬ webhook ╪¿╪▒╪º█î ╪º█î┘å ┘╛┘ä╪¬┘ü╪▒┘à ┘╛╪┤╪¬█î╪¿╪º┘å█î ┘å┘à█îΓÇî╪┤┘ê╪».');
   }
 
-  async mockConnect(_tenantId: string) {
-    throw new BadRequestException(
-      'اتصال خارجی غیرفعال است. از فروشگاه بومی در Workspace استفاده کنید.',
-    );
+  async mockConnect(tenantId: string) {
+    const existing = await this.store.getStore(tenantId);
+    if (!existing) {
+      await this.store.provisionTenantDefaults(tenantId);
+    } else {
+      await this.store.upsertHealthyStore(tenantId);
+    }
+    return this.getStore(tenantId);
   }
 
   async listProducts(tenantId: string) {
@@ -74,12 +105,12 @@ export class CommerceService {
   async searchProducts(tenantId: string, query: string) {
     const q = query.trim().toLowerCase();
     const products = (await this.store.productsForTenant(tenantId)).filter(
-      (p) => p.status !== 'draft' && (p.source === 'native' || p.source === 'mock'),
+      (p) => p.status !== 'draft',
     );
     if (!q) return products.slice(0, 5);
 
     const tokens = q
-      .split(/[\s,?!.;:،؟]+/)
+      .split(/[\s,?!.;:╪î╪ƒ]+/)
       .map((t) => t.trim())
       .filter((t) => t.length >= 2);
 
@@ -93,12 +124,12 @@ export class CommerceService {
   }
 
   /**
-   * Catalog-grounded recommend — never invents SKUs.
+   * Catalog-grounded recommend ΓÇö never invents SKUs.
    * Prefers in-stock; applies simple budget filter when present.
    */
   async recommendProducts(tenantId: string, query: string) {
     const products = (await this.store.productsForTenant(tenantId)).filter(
-      (p) => p.status !== 'draft' && (p.source === 'native' || p.source === 'mock'),
+      (p) => p.status !== 'draft',
     );
     if (products.length === 0) return [];
 
@@ -125,7 +156,7 @@ export class CommerceService {
     const outStock = candidates.filter((p) => !p.inStock);
 
     const preferInStockOnly =
-      /هدیه|پیشنهاد|چی بخر|recommend|gift|suggest/i.test(q) &&
+      /┘ç╪»█î┘ç|┘╛█î╪┤┘å┘ç╪º╪»|┌å█î ╪¿╪«╪▒|recommend|gift|suggest/i.test(q) &&
       categoryTokens.length === 0;
 
     const ranked = preferInStockOnly
@@ -133,7 +164,7 @@ export class CommerceService {
       : [...inStock, ...outStock];
 
     if (ranked.length === 0 && budget != null) {
-      // Budget too tight — return empty rather than invent
+      // Budget too tight ΓÇö return empty rather than invent
       return [];
     }
 
@@ -146,31 +177,31 @@ export class CommerceService {
 
   parseBudgetIrr(query: string): number | null {
     const q = query.toLowerCase();
-    // "زیر یک میلیون" / "بودجه ۱ میلیون"
-    if (/یک\s*میلیون|1\s*میلیون|میلیون\s*تومان|1000000|۱۰۰۰۰۰۰/.test(q)) {
+    // "╪▓█î╪▒ █î┌⌐ ┘à█î┘ä█î┘ê┘å" / "╪¿┘ê╪»╪¼┘ç █▒ ┘à█î┘ä█î┘ê┘å"
+    if (/█î┌⌐\s*┘à█î┘ä█î┘ê┘å|1\s*┘à█î┘ä█î┘ê┘å|┘à█î┘ä█î┘ê┘å\s*╪¬┘ê┘à╪º┘å|1000000|█▒█░█░█░█░█░█░/.test(q)) {
       return 1_000_000;
     }
-    if (/دو\s*میلیون|2\s*میلیون/.test(q)) return 2_000_000;
-    if (/سه\s*میلیون|3\s*میلیون/.test(q)) return 3_000_000;
+    if (/╪»┘ê\s*┘à█î┘ä█î┘ê┘å|2\s*┘à█î┘ä█î┘ê┘å/.test(q)) return 2_000_000;
+    if (/╪│┘ç\s*┘à█î┘ä█î┘ê┘å|3\s*┘à█î┘ä█î┘ê┘å/.test(q)) return 3_000_000;
     const m = q.match(
-      /(?:زیر|کمتر از|تا|بودجه|under|below|max)\s*([\d۰-۹,]+)\s*(هزار|میلیون)?/i,
+      /(?:╪▓█î╪▒|┌⌐┘à╪¬╪▒ ╪º╪▓|╪¬╪º|╪¿┘ê╪»╪¼┘ç|under|below|max)\s*([\d█░-█╣,]+)\s*(┘ç╪▓╪º╪▒|┘à█î┘ä█î┘ê┘å)?/i,
     );
     if (!m) return null;
-    const raw = m[1]!.replace(/,/g, '').replace(/[۰-۹]/g, (d) =>
-      String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)),
+    const raw = m[1]!.replace(/,/g, '').replace(/[█░-█╣]/g, (d) =>
+      String('█░█▒█▓█│█┤█╡█╢█╖█╕█╣'.indexOf(d)),
     );
     let n = Number(raw);
     if (!Number.isFinite(n)) return null;
-    if (m[2]?.includes('میلیون')) n *= 1_000_000;
-    else if (m[2]?.includes('هزار')) n *= 1_000;
+    if (m[2]?.includes('┘à█î┘ä█î┘ê┘å')) n *= 1_000_000;
+    else if (m[2]?.includes('┘ç╪▓╪º╪▒')) n *= 1_000;
     return n;
   }
 
   private extractCategoryTokens(query: string): string[] {
     const map: Array<[RegExp, string[]]> = [
-      [/پیراهن|لینن|shirt/i, ['پیراهن', 'لینن', 'shirt']],
-      [/کیف|bag/i, ['کیف', 'bag']],
-      [/کفش|shoe|اسپرت/i, ['کفش', 'اسپرت', 'shoe']],
+      [/┘╛█î╪▒╪º┘ç┘å|┘ä█î┘å┘å|shirt/i, ['┘╛█î╪▒╪º┘ç┘å', '┘ä█î┘å┘å', 'shirt']],
+      [/┌⌐█î┘ü|bag/i, ['┌⌐█î┘ü', 'bag']],
+      [/┌⌐┘ü╪┤|shoe|╪º╪│┘╛╪▒╪¬/i, ['┌⌐┘ü╪┤', '╪º╪│┘╛╪▒╪¬', 'shoe']],
     ];
     const tokens: string[] = [];
     for (const [re, ts] of map) {

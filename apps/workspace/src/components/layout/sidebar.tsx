@@ -21,7 +21,6 @@ import {
   ClipboardList,
   Palette,
   Settings,
-  Link2,
   ChevronDown,
 } from 'lucide-react';
 import { AiStateChip } from '@delorey/ui';
@@ -44,10 +43,6 @@ const shopNav: NavLeaf[] = [
   { href: '/shop/orders', icon: ClipboardList, label: 'سفارش‌ها' },
   { href: '/shop/appearance', icon: Palette, label: 'ظاهر و بنر' },
   { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },
-];
-
-const externalNav: NavLeaf[] = [
-  { href: '/store', icon: Link2, label: 'Shopify / Woo' },
 ];
 
 const aiNav: NavLeaf[] = [
@@ -156,13 +151,6 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
           فروشگاه
         </div>
         {shopNav.map((item) => (
-          <NavLink key={item.href} item={item} pathname={pathname} />
-        ))}
-
-        <div className="text-[10.5px] font-bold tracking-[0.1em] text-white/30 px-[12px] pb-2 pt-4 uppercase">
-          اتصالات خارجی
-        </div>
-        {externalNav.map((item) => (
           <NavLink key={item.href} item={item} pathname={pathname} />
         ))}
 

@@ -41,7 +41,7 @@ export default function ShopOverviewPage() {
       <div className="space-y-6">
         <PageHeader
           title="فروشگاه بومی"
-          description="ویترین عمومی فروشگاه شما — جدا از اتصال Shopify/Woo"
+          description="ویترین عمومی فروشگاه شما روی پلتفرم DeloRey"
           actions={
             data?.storefrontUrl ? (
               <Button asChild variant="outline">

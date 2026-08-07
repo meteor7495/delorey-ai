@@ -25,7 +25,6 @@ const morePaths = [
   '/channels',
   '/knowledge',
   '/audit',
-  '/store',
 ];
 
 export function MobileBottomNav() {

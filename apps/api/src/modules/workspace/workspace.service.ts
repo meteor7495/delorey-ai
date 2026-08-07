@@ -11,16 +11,17 @@ export class WorkspaceService {
     const employee = await this.store.employeeForTenant(tenantId);
     const channel = await this.store.websiteChannel(tenantId);
     const products = await this.store.productsForTenant(tenantId);
+    const publishedCount = products.filter((p) => p.status !== 'draft').length;
     const escalatedCount = await this.store.countEscalated(tenantId);
     const path = await this.store.partnerPathStats(tenantId);
 
     let primaryAttention: { code: string; title: string; href: string } | null =
       null;
-    if (!store || store.syncHealth !== 'healthy') {
+    if (publishedCount === 0) {
       primaryAttention = {
-        code: 'sync_unhealthy',
-        title: 'همگام‌سازی فروشگاه نیاز به بررسی دارد',
-        href: '/store',
+        code: 'catalog_empty',
+        title: 'حداقل یک محصول در فروشگاه بومی منتشر کنید',
+        href: '/shop/products',
       };
     } else if (escalatedCount > 0) {
       primaryAttention = {
@@ -43,14 +44,15 @@ export class WorkspaceService {
     } else if (path.groundedTurns === 0) {
       primaryAttention = {
         code: 'first_chat',
-        title: 'اولین گفتگوی grounded را روی ویجت امتحان کنید',
+        title: 'اولین گفتگوی grounded را روی ویجت یا ویترین امتحان کنید',
         href: '/channels',
       };
     }
 
     const onboarding = {
-      storeConnected: Boolean(store),
-      syncHealthy: store?.syncHealth === 'healthy',
+      catalogReady: publishedCount > 0,
+      storeConnected: publishedCount > 0,
+      syncHealthy: publishedCount > 0,
       employeeConfigured: Boolean(employee && employee.status === 'active'),
       channelConnected: channel?.status === 'connected',
       knowledgeReady: path.activeKnowledge > 0,
@@ -60,8 +62,7 @@ export class WorkspaceService {
     };
 
     const partnerReady =
-      onboarding.storeConnected &&
-      onboarding.syncHealthy &&
+      onboarding.catalogReady &&
       onboarding.employeeConfigured &&
       onboarding.channelConnected &&
       onboarding.firstChatDone &&
@@ -71,9 +72,9 @@ export class WorkspaceService {
       email,
       tenant,
       employeeStatus: employee?.status ?? 'inactive',
-      syncHealth: store?.syncHealth ?? 'never',
+      syncHealth: publishedCount > 0 ? 'healthy' : (store?.syncHealth ?? 'never'),
       websiteChannelStatus: channel?.status ?? 'disconnected',
-      productCount: products.length,
+      productCount: publishedCount,
       escalatedCount,
       primaryAttention,
       onboarding,

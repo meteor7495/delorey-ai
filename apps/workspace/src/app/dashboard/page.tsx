@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   آخرین همگام‌سازی: {summary.syncLastAt ?? '—'}
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/store">فروشگاه</Link>
+                  <Link href="/shop">فروشگاه</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -137,7 +137,7 @@ export default function ShopProductsPage() {
       <div className="space-y-6">
         <PageHeader
           title="محصولات"
-          description="محصولات بومی قابل ویرایش‌اند؛ محصولات Shopify/Woo فقط‌خواندنی‌اند"
+          description="محصولات فروشگاه بومی را اینجا مدیریت کنید"
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
@@ -243,7 +243,7 @@ export default function ShopProductsPage() {
           <EmptyState
             icon={Package}
             title="هنوز محصولی نیست"
-            description="اولین محصول بومی را بسازید یا از Shopify/Woo همگام کنید"
+            description="اولین محصول را بسازید تا ویترین و کارمند AI grounded شوند"
           />
         ) : (
           <div className="space-y-2">

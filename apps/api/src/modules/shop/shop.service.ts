@@ -258,7 +258,7 @@ export class ShopService {
     const rows = await this.prisma.product.findMany({
       where: {
         tenantId,
-        ...(source ? { source } : {}),
+        source: source ?? 'native',
       },
       orderBy: { updatedAt: 'desc' },
     });
@@ -564,6 +564,7 @@ export class ShopService {
         where: {
           tenantId,
           status: 'published',
+          source: { in: ['native', 'mock'] },
         },
         orderBy: { updatedAt: 'desc' },
         take: 12,
@@ -627,6 +628,7 @@ export class ShopService {
     const where: Prisma.ProductWhereInput = {
       tenantId,
       status: 'published',
+      source: { in: ['native', 'mock'] },
       ...(categoryId ? { categoryId } : {}),
       ...(query.inStock === '1' ? { inStock: true } : {}),
       ...(query.minPrice || query.maxPrice
@@ -666,6 +668,7 @@ export class ShopService {
         tenantId: settings.tenantId,
         slug: productSlug,
         status: 'published',
+        source: { in: ['native', 'mock'] },
       },
     });
     if (!row) throw new NotFoundException('محصول پیدا نشد');
@@ -696,7 +699,12 @@ export class ShopService {
     const tenantId = settings.tenantId;
     if (!sessionId) throw new BadRequestException('sessionId الزامی است');
     const product = await this.prisma.product.findFirst({
-      where: { id: productId, tenantId, status: 'published' },
+      where: {
+        id: productId,
+        tenantId,
+        status: 'published',
+        source: { in: ['native', 'mock'] },
+      },
     });
     if (!product) throw new NotFoundException('محصول پیدا نشد');
     let cart = await this.prisma.cart.findUnique({

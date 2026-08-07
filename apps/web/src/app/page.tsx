@@ -75,7 +75,7 @@ export default function LandingPage() {
             {[
               {
                 title: 'فروشگاه بومی',
-                body: 'ویترین عمومی، سبد، COD و پیگیری سفارش — بدون وابستگی اجباری به Shopify.',
+                body: 'ویترین عمومی، سبد، COD و پیگیری سفارش روی پلتفرم DeloRey.',
               },
               {
                 title: 'کارمند فروش AI',

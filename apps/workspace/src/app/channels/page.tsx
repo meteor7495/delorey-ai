@@ -160,9 +160,9 @@ export default function ChannelsPage() {
             </pre>
             <p className="text-xs text-[var(--text-3)]">
               اسکریپت را قبل از{' '}
-              <code dir="ltr">&lt;/body&gt;</code> فروشگاه بگذارید. دامنه فروشگاه
-              باید در لیست مجاز باشد (مثلاً{' '}
-              <code dir="ltr">https://your-shop.myshopify.com</code>).
+              <code dir="ltr">&lt;/body&gt;</code> بگذارید. دامنه ویترین
+              (مثلاً{' '}
+              <code dir="ltr">http://localhost:3020</code>) باید در لیست مجاز باشد.
             </p>
             <form
               onSubmit={async (e) => {

@@ -17,16 +17,10 @@ const ITEMS: Array<{
   href: string;
 }> = [
   {
-    key: 'storeConnected',
-    label: 'اتصال فروشگاه',
-    hint: 'Mock یا Shopify / WooCommerce',
-    href: '/store',
-  },
-  {
-    key: 'syncHealthy',
-    label: 'همگام‌سازی سالم',
-    hint: 'کاتالوگ و سفارش‌ها در SoR',
-    href: '/store',
+    key: 'catalogReady',
+    label: 'کاتالوگ فروشگاه بومی',
+    hint: 'حداقل یک محصول منتشرشده',
+    href: '/shop/products',
   },
   {
     key: 'employeeConfigured',

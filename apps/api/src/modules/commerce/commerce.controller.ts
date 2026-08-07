@@ -31,49 +31,6 @@ export class CommerceController {
     return this.commerce.getStore(auth.tenantId);
   }
 
-  @Post('store/mock-connect')
-  async mockConnect(@CurrentAuth() auth: AuthContext) {
-    const store = await this.commerce.mockConnect(auth.tenantId);
-    await this.audit.recordAdmin(
-      auth,
-      'store.mock_connect',
-      'اتصال/همگام‌سازی mock فروشگاه',
-      { syncHealth: store.syncHealth },
-    );
-    return store;
-  }
-
-  @Post('store/sync')
-  async sync(@CurrentAuth() auth: AuthContext) {
-    const store = await this.commerce.requestSync(auth.tenantId);
-    await this.audit.recordAdmin(
-      auth,
-      'store.sync',
-      store.queued
-        ? 'همگام‌سازی در صف batch.sync'
-        : 'همگام‌سازی فروشگاه (هم‌زمان)',
-      {
-        platform: store.platform,
-        syncHealth: store.syncHealth,
-        queued: store.queued,
-        jobId: 'jobId' in store ? store.jobId : undefined,
-      },
-    );
-    return store;
-  }
-
-  @Post('store/webhooks/register')
-  async registerWebhooks(@CurrentAuth() auth: AuthContext) {
-    const result = await this.commerce.registerWebhooks(auth.tenantId);
-    await this.audit.recordAdmin(
-      auth,
-      'store.webhooks.register',
-      'ثبت مجدد webhookهای فروشگاه',
-      { webhookUrl: result?.webhookUrl },
-    );
-    return result;
-  }
-
   @Get('catalog/products')
   products(@CurrentAuth() auth: AuthContext) {
     return this.commerce.listProducts(auth.tenantId);

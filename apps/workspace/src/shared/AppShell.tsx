@@ -18,7 +18,6 @@ const titleMap: Record<string, string> = {
   '/shop/appearance': 'ظاهر و بنر',
   '/shop/settings': 'تنظیمات فروشگاه',
   '/shop': 'فروشگاه بومی',
-  '/store': 'Shopify / Woo',
   '/employee': 'کارمند فروش',
   '/channels': 'کانال‌ها',
   '/inbox': 'صندوق ورودی',
