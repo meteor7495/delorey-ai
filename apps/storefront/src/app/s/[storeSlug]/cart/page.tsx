@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { StoreShell } from '@/components/StoreShell';
-import { api, formatIrr, getCartSessionId } from '@/lib/api';
+import { api, getCartSessionId } from '@/lib/api';
 
 type Cart = {
   items: Array<{
@@ -38,6 +38,9 @@ export default function CartPage({
     logoUrl?: string | null;
     supportPhone?: string | null;
   } | null>(null);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
   const [cart, setCart] = useState<Cart | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +51,10 @@ export default function CartPage({
       api.storefrontGetCart(slug, sessionId),
     ]);
     setSettings(home.settings as NonNullable<typeof settings>);
+    setCategories(
+      (home.categories as Array<{ id: string; name: string; slug: string }>) ??
+        [],
+    );
     setCart(c as unknown as Cart);
   }
 
@@ -74,77 +81,111 @@ export default function CartPage({
 
   if (!settings) {
     return (
-      <main className="container py-16 text-center text-[var(--muted)]">
+      <main className="dk-container py-20 text-center text-dk-muted">
         {error ?? 'در حال بارگذاری…'}
       </main>
     );
   }
 
   return (
-    <StoreShell settings={settings}>
-      <section className="container pt-5 space-y-4">
-        <h1 className="text-xl font-extrabold">سبد خرید</h1>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+    <StoreShell settings={settings} categories={categories}>
+      <div className="dk-container py-4 lg:py-6">
+        <h1 className="text-[20px] text-zh-900 mb-4">سبد خرید</h1>
+        {error && <p className="text-zh-pink text-[14px] mb-3">{error}</p>}
+
         {!cart || cart.items.length === 0 ? (
-          <div className="card p-8 text-center text-[var(--muted)]">
-            سبد خالی است.{' '}
-            <Link href={`/s/${storeSlug}/products`} className="text-[var(--brand)] font-semibold">
-              بازگشت به محصولات
+          <div className="zh-card py-16 text-center">
+            <p className="text-zh-600 text-[14px] mb-4">سبد خرید شما خالی است!</p>
+            <Link
+              href={`/s/${storeSlug}/products`}
+              className="zh-btn-primary inline-flex px-6"
+            >
+              مشاهده کالاها
             </Link>
           </div>
         ) : (
-          <>
-            <div className="space-y-3">
+          <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+            <div className="zh-card divide-y divide-zh-100">
               {cart.items.map((item) => (
                 <div
                   key={item.id}
-                  className="card p-4 flex flex-wrap items-center justify-between gap-3"
+                  className="p-4 flex gap-3 items-start"
                 >
-                  <div>
+                  <Link
+                    href={`/s/${storeSlug}/products/${item.product.slug}`}
+                    className="shrink-0 w-20 h-20 rounded-dk border border-zh-200 overflow-hidden bg-white"
+                  >
+                    {item.product.images?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.product.images[0]}
+                        alt=""
+                        className="h-full w-full object-contain p-1"
+                      />
+                    ) : null}
+                  </Link>
+                  <div className="flex-1 min-w-0">
                     <Link
                       href={`/s/${storeSlug}/products/${item.product.slug}`}
-                      className="font-bold"
+                      className="text-[14px] text-zh-900 line-clamp-2"
                     >
                       {item.product.title}
                     </Link>
-                    <p className="text-sm text-[var(--muted)]">
-                      {formatIrr(item.product.price)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => setQty(item.product.id, item.quantity - 1)}
-                    >
-                      −
-                    </button>
-                    <span className="w-8 text-center font-bold">{item.quantity}</span>
-                    <button
-                      type="button"
-                      className="btn btn-ghost"
-                      onClick={() => setQty(item.product.id, item.quantity + 1)}
-                    >
-                      +
-                    </button>
-                    <span className="ms-3 font-extrabold text-[var(--brand)]">
-                      {formatIrr(item.lineTotal)}
-                    </span>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center border border-zh-200 rounded-dk overflow-hidden">
+                        <button
+                          type="button"
+                          className="h-8 w-8 text-zh-primary font-bold"
+                          onClick={() =>
+                            setQty(item.product.id, item.quantity - 1)
+                          }
+                        >
+                          −
+                        </button>
+                        <span className="w-8 text-center text-[14px] tnum">
+                          {item.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          className="h-8 w-8 text-zh-primary font-bold"
+                          onClick={() =>
+                            setQty(item.product.id, item.quantity + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                      <span className="text-[16px] text-zh-900 tnum">
+                        {item.lineTotal.toLocaleString('fa-IR')}{' '}
+                        <span className="text-[12px] text-zh-600">تومان</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="card p-4 flex flex-wrap items-center justify-between gap-3">
-              <span className="font-extrabold text-lg">
-                جمع: {formatIrr(cart.total)}
-              </span>
-              <Link href={`/s/${storeSlug}/checkout`} className="btn btn-brand">
-                ادامه تسویه (COD)
+
+            <aside className="zh-card p-5 h-fit sticky top-[180px]">
+              <div className="flex items-center justify-between text-[14px] mb-3">
+                <span className="text-zh-600">جمع سبد</span>
+                <span className="text-zh-900 text-[18px] tnum">
+                  {cart.total.toLocaleString('fa-IR')}{' '}
+                  <span className="text-[12px] text-zh-600">تومان</span>
+                </span>
+              </div>
+              <p className="text-[13px] text-zh-600 mb-4">
+                هزینه ارسال در مرحله بعد محاسبه می‌شود (COD).
+              </p>
+              <Link
+                href={`/s/${storeSlug}/checkout`}
+                className="zh-btn-primary w-full"
+              >
+                تایید و تکمیل سفارش
               </Link>
-            </div>
-          </>
+            </aside>
+          </div>
         )}
-      </section>
+      </div>
     </StoreShell>
   );
 }

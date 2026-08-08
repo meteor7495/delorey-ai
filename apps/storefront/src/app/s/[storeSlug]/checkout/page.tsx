@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { StoreShell } from '@/components/StoreShell';
-import { api, formatIrr, getCartSessionId } from '@/lib/api';
+import { api, getCartSessionId } from '@/lib/api';
 
 export default function CheckoutPage({
   params,
@@ -20,8 +20,10 @@ export default function CheckoutPage({
     secondaryColor: string;
     logoUrl?: string | null;
     supportPhone?: string | null;
-    codEnabled?: boolean;
   } | null>(null);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
   const [total, setTotal] = useState(0);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -40,6 +42,10 @@ export default function CheckoutPage({
           api.storefrontGetCart(slug, sessionId),
         ]);
         setSettings(home.settings as NonNullable<typeof settings>);
+        setCategories(
+          (home.categories as Array<{ id: string; name: string; slug: string }>) ??
+            [],
+        );
         setTotal(Number((cart as { total?: number }).total ?? 0));
       } catch (e) {
         setError(String(e));
@@ -70,65 +76,78 @@ export default function CheckoutPage({
 
   if (!settings) {
     return (
-      <main className="container py-16 text-center text-[var(--muted)]">
+      <main className="dk-container py-20 text-center text-zh-600">
         {error ?? 'در حال بارگذاری…'}
       </main>
     );
   }
 
   return (
-    <StoreShell settings={settings}>
-      <section className="container pt-5 max-w-xl space-y-4">
-        <h1 className="text-xl font-extrabold">تسویه حساب</h1>
-        <p className="text-sm text-[var(--muted)]">
-          پرداخت در محل (COD) · جمع سبد: {formatIrr(total)}
+    <StoreShell settings={settings} categories={categories}>
+      <div className="dk-container py-6 lg:py-8 max-w-2xl">
+        <h1 className="text-[20px] text-zh-900 mb-1">اطلاعات ارسال</h1>
+        <p className="text-[14px] text-zh-600 mb-4">
+          پرداخت در محل (COD) · مبلغ قابل پرداخت:{' '}
+          <strong className="text-zh-900 tnum">
+            {total.toLocaleString('fa-IR')} تومان
+          </strong>
         </p>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <form onSubmit={onSubmit} className="card p-5 space-y-3">
+        {error && <p className="text-zh-pink text-[14px] mb-3">{error}</p>}
+
+        <form onSubmit={onSubmit} className="zh-card p-6 space-y-4">
+          {[
+            {
+              label: 'نام گیرنده',
+              value: name,
+              set: setName,
+              required: true,
+            },
+            {
+              label: 'شماره موبایل',
+              value: phone,
+              set: setPhone,
+              required: true,
+            },
+          ].map((f) => (
+            <div key={f.label}>
+              <label className="text-[14px] text-zh-900">{f.label}</label>
+              <input
+                className="mt-1 w-full h-11 rounded-dk border border-zh-300 px-3 text-[14px] outline-none focus:border-zh-primary"
+                value={f.value}
+                onChange={(e) => f.set(e.target.value)}
+                required={f.required}
+                minLength={f.label.includes('موبایل') ? 8 : undefined}
+              />
+            </div>
+          ))}
           <div>
-            <label className="text-sm font-semibold">نام</label>
-            <input
-              className="input mt-1"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold">موبایل</label>
-            <input
-              className="input mt-1"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              minLength={8}
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold">آدرس</label>
+            <label className="text-[14px] text-zh-900">آدرس</label>
             <textarea
-              className="input mt-1 min-h-[100px]"
+              className="mt-1 w-full min-h-[110px] rounded-dk border border-zh-300 px-3 py-2 text-[14px] outline-none focus:border-zh-primary"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="text-sm font-semibold">یادداشت</label>
+            <label className="text-[14px] text-zh-900">توضیحات (اختیاری)</label>
             <input
-              className="input mt-1"
+              className="mt-1 w-full h-11 rounded-dk border border-zh-300 px-3 text-[14px] outline-none focus:border-zh-primary"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
-          <button type="submit" className="btn btn-brand w-full" disabled={busy}>
-            {busy ? 'در حال ثبت…' : 'ثبت سفارش COD'}
+          <button type="submit" disabled={busy} className="zh-btn-primary w-full">
+            {busy ? 'در حال ثبت…' : 'ثبت سفارش و پرداخت در محل'}
           </button>
-          <Link href={`/s/${storeSlug}/cart`} className="btn btn-ghost w-full">
+          <Link
+            href={`/s/${storeSlug}/cart`}
+            className="flex h-10 items-center justify-center rounded-dk border border-zh-200 text-[14px]"
+          >
             بازگشت به سبد
           </Link>
         </form>
-      </section>
+      </div>
     </StoreShell>
   );
 }

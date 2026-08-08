@@ -3,7 +3,7 @@
 import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/StoreShell';
-import { api, formatIrr } from '@/lib/api';
+import { api } from '@/lib/api';
 
 type Order = {
   orderNumber: string;
@@ -15,9 +15,18 @@ type Order = {
   items: Array<{ title: string; quantity: number; lineTotal: number }>;
 };
 
+const STATUS_FA: Record<string, string> = {
+  pending: 'در انتظار تأیید',
+  confirmed: 'تأیید شده',
+  shipped: 'ارسال شده',
+  delivered: 'تحویل شده',
+  cancelled: 'لغو شده',
+};
+
 function TrackInner({
   storeSlug,
   settings,
+  categories,
 }: {
   storeSlug: string;
   settings: {
@@ -28,6 +37,7 @@ function TrackInner({
     logoUrl?: string | null;
     supportPhone?: string | null;
   };
+  categories: Array<{ id: string; name: string; slug: string }>;
 }) {
   const search = useSearchParams();
   const [orderNumber, setOrderNumber] = useState('');
@@ -61,50 +71,72 @@ function TrackInner({
   }
 
   return (
-    <StoreShell settings={settings}>
-      <section className="container pt-5 max-w-xl space-y-4">
-        <h1 className="text-xl font-extrabold">پیگیری سفارش</h1>
-        <form onSubmit={onSubmit} className="card p-5 space-y-3">
+    <StoreShell settings={settings} categories={categories}>
+      <div className="dk-container py-4 lg:py-6 max-w-xl">
+        <h1 className="text-[18px] font-black text-dk-navy mb-4">
+          پیگیری سفارش
+        </h1>
+        <form
+          onSubmit={onSubmit}
+          className="rounded-dk-xl bg-white border border-dk-line p-5 space-y-3"
+        >
           <input
-            className="input"
+            className="w-full h-11 rounded-dk border border-dk-line px-3 text-[13px] outline-none focus:border-dk-red"
             placeholder="شماره سفارش"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
             required
           />
           <input
-            className="input"
-            placeholder="موبایل"
+            className="w-full h-11 rounded-dk border border-dk-line px-3 text-[13px] outline-none focus:border-dk-red"
+            placeholder="شماره موبایل"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             required
           />
-          <button type="submit" className="btn btn-brand w-full">
+          <button
+            type="submit"
+            className="w-full h-11 rounded-dk bg-dk-red text-white text-[13px] font-extrabold hover:bg-dk-deep"
+          >
             پیگیری
           </button>
         </form>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && (
+          <p className="mt-3 text-[12px] text-dk-red font-bold">{error}</p>
+        )}
         {order && (
-          <div className="card p-5 space-y-2 fade-up">
-            <p className="font-extrabold text-lg">{order.orderNumber}</p>
-            <p>
-              وضعیت: <strong>{order.status}</strong>
+          <div className="mt-4 rounded-dk-xl bg-white border border-dk-line p-5 space-y-2 dk-fade">
+            <p className="font-black text-dk-navy text-[16px] tnum">
+              {order.orderNumber}
             </p>
-            <p>مبلغ: {formatIrr(order.totalAmount)}</p>
-            <p className="text-sm text-[var(--muted)]">
+            <p className="text-[12px]">
+              وضعیت:{' '}
+              <strong className="text-dk-red">
+                {STATUS_FA[order.status] ?? order.status}
+              </strong>
+            </p>
+            <p className="text-[12px] tnum">
+              مبلغ: {order.totalAmount.toLocaleString('fa-IR')} تومان
+            </p>
+            <p className="text-[11px] text-dk-muted">
               {order.customerName} · {order.customerPhone}
             </p>
-            <p className="text-sm text-[var(--muted)]">{order.customerAddress}</p>
-            <ul className="text-sm pt-2 border-t border-[var(--line)]">
+            <p className="text-[11px] text-dk-muted">{order.customerAddress}</p>
+            <ul className="pt-3 mt-2 border-t border-dk-line text-[12px] space-y-1">
               {order.items.map((i, idx) => (
-                <li key={idx}>
-                  {i.title} × {i.quantity} — {formatIrr(i.lineTotal)}
+                <li key={idx} className="flex justify-between gap-2">
+                  <span>
+                    {i.title} × {i.quantity}
+                  </span>
+                  <span className="tnum font-bold">
+                    {i.lineTotal.toLocaleString('fa-IR')}
+                  </span>
                 </li>
               ))}
             </ul>
           </div>
         )}
-      </section>
+      </div>
     </StoreShell>
   );
 }
@@ -123,6 +155,9 @@ export default function TrackPage({
     logoUrl?: string | null;
     supportPhone?: string | null;
   } | null>(null);
+  const [categories, setCategories] = useState<
+    Array<{ id: string; name: string; slug: string }>
+  >([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -131,6 +166,10 @@ export default function TrackPage({
       try {
         const home = await api.storefrontHome(slug);
         setSettings(home.settings as NonNullable<typeof settings>);
+        setCategories(
+          (home.categories as Array<{ id: string; name: string; slug: string }>) ??
+            [],
+        );
       } catch (e) {
         setError(String(e));
       }
@@ -139,7 +178,7 @@ export default function TrackPage({
 
   if (!settings || !storeSlug) {
     return (
-      <main className="container py-16 text-center text-[var(--muted)]">
+      <main className="dk-container py-20 text-center text-dk-muted">
         {error ?? 'در حال بارگذاری…'}
       </main>
     );
@@ -148,12 +187,16 @@ export default function TrackPage({
   return (
     <Suspense
       fallback={
-        <main className="container py-16 text-center text-[var(--muted)]">
+        <main className="dk-container py-20 text-center text-dk-muted">
           در حال بارگذاری…
         </main>
       }
     >
-      <TrackInner storeSlug={storeSlug} settings={settings} />
+      <TrackInner
+        storeSlug={storeSlug}
+        settings={settings}
+        categories={categories}
+      />
     </Suspense>
   );
 }
