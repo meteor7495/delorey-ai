@@ -1,0 +1,391 @@
+'use client';
+
+import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FileText } from 'lucide-react';
+import type { Article, ShopCategory } from '@delorey/api-client';
+import { AppShell } from '@/shared/AppShell';
+import { api } from '@/shared/api';
+import { PageHeader } from '@/components/shared/page-header';
+import { EmptyState } from '@/components/shared/empty-state';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const selectClass =
+  'flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm';
+
+const PAGE_SIZE = 20;
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'پیش‌نویس',
+  published: 'منتشرشده',
+  archived: 'بایگانی',
+};
+
+export default function ShopArticlesPage() {
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<ShopCategory[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [q, setQ] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [slug, setSlug] = useState('');
+  const [excerpt, setExcerpt] = useState('');
+  const [content, setContent] = useState('');
+  const [featuredImageUrl, setFeaturedImageUrl] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [tags, setTags] = useState('');
+  const [status, setStatus] = useState('draft');
+  const [seoTitle, setSeoTitle] = useState('');
+  const [seoDescription, setSeoDescription] = useState('');
+
+  const refresh = useCallback(async () => {
+    const [list, categoryList] = await Promise.all([
+      api.listShopArticles({
+        q: q || undefined,
+        status: statusFilter || undefined,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      }),
+      api.listShopCategories(),
+    ]);
+    setArticles(list.items);
+    setTotal(list.total);
+    setCategories(categoryList);
+  }, [q, statusFilter, page]);
+
+  useEffect(() => {
+    refresh().catch((e) => setError(String(e)));
+  }, [refresh]);
+
+  function resetForm() {
+    setEditingId(null);
+    setTitle('');
+    setSlug('');
+    setExcerpt('');
+    setContent('');
+    setFeaturedImageUrl('');
+    setCategoryId('');
+    setTags('');
+    setStatus('draft');
+    setSeoTitle('');
+    setSeoDescription('');
+  }
+
+  async function startEdit(id: string) {
+    setError(null);
+    try {
+      const article = await api.getShopArticle(id);
+      setEditingId(article.id);
+      setTitle(article.title);
+      setSlug(article.slug);
+      setExcerpt(article.excerpt ?? '');
+      setContent(article.content ?? '');
+      setFeaturedImageUrl(article.featuredImageUrl ?? '');
+      setCategoryId(article.categoryId ?? '');
+      setTags(article.tags.join('، '));
+      setStatus(article.status);
+      setSeoTitle(article.seoTitle ?? '');
+      setSeoDescription(article.seoDescription ?? '');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'مقاله بارگذاری نشد');
+    }
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+
+    const body = {
+      title,
+      slug: slug || undefined,
+      excerpt: excerpt || null,
+      content,
+      featuredImageUrl: featuredImageUrl || null,
+      categoryId: categoryId || null,
+      tags: tags
+        .split(/[,،]/)
+        .map((t) => t.trim())
+        .filter(Boolean),
+      status,
+      seoTitle: seoTitle || null,
+      seoDescription: seoDescription || null,
+    };
+
+    try {
+      if (editingId) {
+        await api.updateShopArticle(editingId, body);
+        setMessage('مقاله به‌روزرسانی شد');
+      } else {
+        await api.createShopArticle(body);
+        setMessage('مقاله ایجاد شد');
+      }
+      resetForm();
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+    }
+  }
+
+  async function togglePublish(article: Article) {
+    setError(null);
+    try {
+      if (article.status === 'published') {
+        await api.unpublishShopArticle(article.id);
+      } else {
+        await api.publishShopArticle(article.id);
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'تغییر وضعیت انجام نشد');
+    }
+  }
+
+  async function onDelete(id: string) {
+    setError(null);
+    try {
+      await api.deleteShopArticle(id);
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'حذف نشد');
+    }
+  }
+
+  const pageCount = Math.max(Math.ceil(total / PAGE_SIZE), 1);
+
+  return (
+    <AppShell>
+      <div className="space-y-6">
+        <PageHeader
+          title="مقالات"
+          description="محتوای فروشگاه — راهنمای خرید، معرفی محصول و مطالب سئو"
+        />
+        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
+        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingId ? 'ویرایش مقاله' : 'مقاله جدید'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>عنوان</Label>
+                <Input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>اسلاگ (اختیاری)</Label>
+                <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>دسته</Label>
+                <select
+                  className={selectClass}
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                >
+                  <option value="">—</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>وضعیت</Label>
+                <select
+                  className={selectClass}
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  <option value="draft">پیش‌نویس</option>
+                  <option value="published">منتشرشده</option>
+                  <option value="archived">بایگانی</option>
+                </select>
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>خلاصه</Label>
+                <Input
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>متن مقاله</Label>
+                <textarea
+                  className="min-h-[180px] w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-3 text-sm leading-7"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="متن کامل مقاله…"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>تصویر شاخص</Label>
+                <Input
+                  value={featuredImageUrl}
+                  onChange={(e) => setFeaturedImageUrl(e.target.value)}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>برچسب‌ها (با ، جدا کنید)</Label>
+                <Input value={tags} onChange={(e) => setTags(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>عنوان سئو</Label>
+                <Input
+                  value={seoTitle}
+                  onChange={(e) => setSeoTitle(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>توضیح سئو</Label>
+                <Input
+                  value={seoDescription}
+                  onChange={(e) => setSeoDescription(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-2 sm:col-span-2">
+                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+                {editingId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    انصراف
+                  </Button>
+                )}
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex flex-wrap items-end gap-3 p-4">
+            <div className="min-w-[200px] flex-1 space-y-1.5">
+              <Label className="text-xs">جستجو</Label>
+              <Input
+                value={q}
+                onChange={(e) => {
+                  setPage(0);
+                  setQ(e.target.value);
+                }}
+                placeholder="عنوان یا برچسب"
+              />
+            </div>
+            <div className="w-40 space-y-1.5">
+              <Label className="text-xs">وضعیت</Label>
+              <select
+                className={selectClass}
+                value={statusFilter}
+                onChange={(e) => {
+                  setPage(0);
+                  setStatusFilter(e.target.value);
+                }}
+              >
+                <option value="">همه</option>
+                <option value="draft">پیش‌نویس</option>
+                <option value="published">منتشرشده</option>
+                <option value="archived">بایگانی</option>
+              </select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {articles.length === 0 ? (
+          <EmptyState
+            icon={FileText}
+            title="هنوز مقاله‌ای نیست"
+            description="مقالات به کارمند AI کمک می‌کنند به سوال‌های محتوایی هم پاسخ بدهد"
+          />
+        ) : (
+          <div className="space-y-2">
+            {articles.map((article) => (
+              <Card key={article.id}>
+                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-semibold text-[var(--text-1)]">
+                        {article.title}
+                      </span>
+                      <Badge variant="outline">
+                        {STATUS_LABELS[article.status] ?? article.status}
+                      </Badge>
+                      {article.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--text-3)]">
+                      {article.excerpt || article.slug}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => togglePublish(article)}
+                    >
+                      {article.status === 'published' ? 'لغو انتشار' : 'انتشار'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEdit(article.id)}
+                    >
+                      ویرایش
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => onDelete(article.id)}
+                    >
+                      حذف
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {total > PAGE_SIZE && (
+          <div className="flex items-center justify-between">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            >
+              قبلی
+            </Button>
+            <span className="text-xs text-[var(--text-3)]">
+              صفحه {(page + 1).toLocaleString('fa-IR')} از{' '}
+              {pageCount.toLocaleString('fa-IR')}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={page + 1 >= pageCount}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              بعدی
+            </Button>
+          </div>
+        )}
+      </div>
+    </AppShell>
+  );
+}

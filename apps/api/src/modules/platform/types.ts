@@ -101,6 +101,172 @@ export interface Product {
   source: string;
 }
 
+// ─── Commerce Core (Slice 27) ─────────────────────────────────────────
+
+export type ProductStatus = 'draft' | 'published' | 'archived';
+
+export type AttributeType =
+  | 'text'
+  | 'number'
+  | 'select'
+  | 'multi_select'
+  | 'color'
+  | 'boolean';
+
+export type AttributeDisplayType = 'dropdown' | 'swatch' | 'chip' | 'radio';
+
+export interface Attribute {
+  id: string;
+  tenantId: string;
+  name: string;
+  slug: string;
+  type: AttributeType;
+  displayType: AttributeDisplayType;
+  sortOrder: number;
+  active: boolean;
+  required: boolean;
+  values?: AttributeValue[];
+}
+
+export interface AttributeValue {
+  id: string;
+  tenantId: string;
+  attributeId: string;
+  value: string;
+  label: string | null;
+  colorHex: string | null;
+  sortOrder: number;
+}
+
+export interface VariantOption {
+  attributeId: string;
+  attributeName: string;
+  attributeValueId: string;
+  value: string;
+  label: string | null;
+}
+
+export interface ProductVariant {
+  id: string;
+  tenantId: string;
+  productId: string;
+  sku: string;
+  barcode: string | null;
+  /** Sorted attribute value ids — stable identity of the combination. */
+  optionsKey: string;
+  /** Null → inherits the product base price. */
+  price: number | null;
+  compareAtPrice: number | null;
+  costPrice: number | null;
+  weightGrams: number | null;
+  imageUrl: string | null;
+  active: boolean;
+  sortOrder: number;
+  options?: VariantOption[];
+  inventory?: InventoryLevel | null;
+}
+
+export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
+
+export interface InventoryLevel {
+  id: string;
+  tenantId: string;
+  productId: string;
+  /** Null → product-level stock for a product without variants. */
+  variantId: string | null;
+  onHand: number;
+  reserved: number;
+  /** onHand - reserved */
+  available: number;
+  lowStockThreshold: number;
+  state: StockState;
+}
+
+export type InventoryTransactionType =
+  | 'initial'
+  | 'adjustment'
+  | 'sale'
+  | 'reservation'
+  | 'reservation_release'
+  | 'return'
+  | 'restock'
+  | 'correction';
+
+export interface InventoryTransaction {
+  id: string;
+  tenantId: string;
+  inventoryLevelId: string;
+  type: InventoryTransactionType;
+  quantityDelta: number;
+  resultingOnHand: number;
+  reason: string | null;
+  referenceType: string | null;
+  referenceId: string | null;
+  actorUserId: string | null;
+  createdAt: string;
+}
+
+export type DiscountType = 'percentage' | 'fixed';
+
+export type DiscountTargetType = 'all' | 'product' | 'category' | 'variant';
+
+export interface DiscountTarget {
+  id: string;
+  discountId: string;
+  targetType: DiscountTargetType;
+  targetId: string | null;
+}
+
+export interface Discount {
+  id: string;
+  tenantId: string;
+  name: string;
+  /** Null → automatic discount with no coupon code. */
+  code: string | null;
+  type: DiscountType;
+  value: number;
+  currency: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  active: boolean;
+  usageLimit: number | null;
+  perCustomerLimit: number | null;
+  usedCount: number;
+  minCartAmount: number | null;
+  maxDiscountAmount: number | null;
+  priority: number;
+  stackable: boolean;
+  targets?: DiscountTarget[];
+}
+
+export type ArticleStatus = 'draft' | 'published' | 'archived';
+
+export interface Article {
+  id: string;
+  tenantId: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  featuredImageUrl: string | null;
+  categoryId: string | null;
+  tags: string[];
+  status: ArticleStatus;
+  authorUserId: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommerceSettings {
+  defaultCurrency: string;
+  lowStockThreshold: number;
+  allowNegativeInventory: boolean;
+  defaultProductStatus: 'draft' | 'published';
+}
+
 export interface EmployeeGuardrails {
   blockedTopics: string[];
   discountCapPercent: number;

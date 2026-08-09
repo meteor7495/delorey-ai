@@ -25,6 +25,257 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
+// ── Commerce Core types ──────────────────────────────────────────────
+// Shared between the workspace UI and any other consumer so nobody has to
+// re-derive the shapes the API already guarantees.
+
+export type StockState = 'in_stock' | 'low_stock' | 'out_of_stock';
+
+export type Paginated<T> = {
+  items: T[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
+export type ShopCategory = {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  imageUrl: string | null;
+  sortOrder: number;
+  description: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  active: boolean;
+  productCount?: number;
+};
+
+export type ProductStockSummary = {
+  onHand: number;
+  reserved: number;
+  available: number;
+  lowStockThreshold: number;
+  tracked: boolean;
+};
+
+export type ShopProduct = {
+  id: string;
+  sku: string;
+  slug: string;
+  title: string;
+  price: number;
+  compareAtPrice: number | null;
+  currency: string;
+  inStock: boolean;
+  description: string | null;
+  images: string[];
+  categoryId: string | null;
+  status: string;
+  source: string;
+  shortDescription: string | null;
+  brand: string | null;
+  costPrice: number | null;
+  barcode: string | null;
+  tags: string[];
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoKeywords: string[];
+  hasVariants: boolean;
+  variantCount?: number;
+  stock?: ProductStockSummary;
+  inventoryLevelId?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type AttributeValue = {
+  id: string;
+  attributeId: string;
+  value: string;
+  label: string | null;
+  colorHex: string | null;
+  sortOrder: number;
+};
+
+export type Attribute = {
+  id: string;
+  name: string;
+  slug: string;
+  type: string;
+  displayType: string;
+  sortOrder: number;
+  active: boolean;
+  required: boolean;
+  values: AttributeValue[];
+};
+
+export type VariantOption = {
+  attributeId: string;
+  attributeName: string;
+  attributeValueId: string;
+  value: string;
+  label: string | null;
+  colorHex?: string | null;
+};
+
+export type ProductVariant = {
+  id: string;
+  productId: string;
+  sku: string;
+  barcode: string | null;
+  optionsKey: string;
+  price: number | null;
+  effectivePrice: number;
+  compareAtPrice: number | null;
+  costPrice: number | null;
+  currency: string;
+  weightGrams: number | null;
+  imageUrl: string | null;
+  active: boolean;
+  sortOrder: number;
+  options: VariantOption[];
+  inventory: {
+    id: string;
+    onHand: number;
+    reserved: number;
+    available: number;
+    lowStockThreshold: number;
+    state: StockState;
+  } | null;
+};
+
+export type InventoryLevel = {
+  id: string;
+  productId: string;
+  variantId: string | null;
+  productTitle: string | null;
+  categoryId: string | null;
+  sku: string | null;
+  options: VariantOption[];
+  onHand: number;
+  reserved: number;
+  available: number;
+  lowStockThreshold: number;
+  state: StockState;
+  costPrice: number | null;
+};
+
+export type InventoryTransaction = {
+  id: string;
+  inventoryLevelId: string;
+  type: string;
+  quantityDelta: number;
+  resultingOnHand: number;
+  reason: string | null;
+  referenceType: string | null;
+  referenceId: string | null;
+  actorUserId: string | null;
+  createdAt: string;
+  productId: string;
+  variantId: string | null;
+  productTitle: string | null;
+  sku: string | null;
+};
+
+export type InventorySummary = {
+  productCount: number;
+  variantCount: number;
+  trackedCount: number;
+  inStock: number;
+  lowStock: number;
+  outOfStock: number;
+  inventoryValue: number;
+};
+
+export type DiscountTarget = {
+  id: string;
+  targetType: string;
+  targetId: string | null;
+};
+
+export type Discount = {
+  id: string;
+  name: string;
+  code: string | null;
+  type: 'percentage' | 'fixed';
+  value: number;
+  currency: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  active: boolean;
+  usageLimit: number | null;
+  perCustomerLimit: number | null;
+  usedCount: number;
+  minCartAmount: number | null;
+  maxDiscountAmount: number | null;
+  priority: number;
+  stackable: boolean;
+  targets: DiscountTarget[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DiscountQuote = {
+  productId: string | null;
+  variantId: string | null;
+  quantity: number;
+  currency: string;
+  unitPrice: number | null;
+  subtotal: number;
+  discountAmount: number;
+  finalPrice: number;
+  appliedDiscounts: Array<{
+    id: string;
+    name: string;
+    code: string | null;
+    type: 'percentage' | 'fixed';
+    value: number;
+    amount: number;
+  }>;
+};
+
+export type Article = {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content?: string;
+  featuredImageUrl: string | null;
+  categoryId: string | null;
+  tags: string[];
+  status: string;
+  authorUserId: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ShopProductFilters = {
+  source?: string;
+  q?: string;
+  status?: string;
+  categoryId?: string;
+  stock?: string;
+  hasVariants?: boolean;
+  sort?: string;
+  limit?: number;
+  offset?: number;
+};
+
+function toQuery(params: Record<string, unknown>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === '') continue;
+    search.set(key, String(value));
+  }
+  const qs = search.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export function createApiClient(opts: ApiClientOptions) {
   return {
     signup: (body: { email: string; password: string; workspaceName: string }) =>
@@ -509,6 +760,13 @@ export function createApiClient(opts: ApiClientOptions) {
           categoryCount: number;
           orderCount: number;
           pendingOrders: number;
+          variantCount: number;
+          attributeCount: number;
+          activeDiscounts: number;
+          publishedArticles: number;
+          lowStock: number;
+          outOfStock: number;
+          inventoryValue: number;
         };
       }>(opts, '/shop/overview'),
     shopSettings: () =>
@@ -519,16 +777,7 @@ export function createApiClient(opts: ApiClientOptions) {
         body: JSON.stringify(body),
       }),
     listShopCategories: () =>
-      request<
-        Array<{
-          id: string;
-          parentId: string | null;
-          name: string;
-          slug: string;
-          imageUrl: string | null;
-          sortOrder: number;
-        }>
-      >(opts, '/shop/categories'),
+      request<ShopCategory[]>(opts, '/shop/categories'),
     createShopCategory: (body: Record<string, unknown>) =>
       request(opts, '/shop/categories', {
         method: 'POST',
@@ -541,23 +790,251 @@ export function createApiClient(opts: ApiClientOptions) {
       }),
     deleteShopCategory: (id: string) =>
       request(opts, `/shop/categories/${id}`, { method: 'DELETE' }),
-    listShopProducts: (source?: string) =>
-      request<Array<Record<string, unknown>>>(
+    listShopProducts: (filters: ShopProductFilters = {}) =>
+      request<Paginated<ShopProduct>>(
         opts,
-        `/shop/products${source ? `?source=${encodeURIComponent(source)}` : ''}`,
+        `/shop/products${toQuery(filters as Record<string, unknown>)}`,
       ),
+    getShopProduct: (id: string) =>
+      request<ShopProduct>(opts, `/shop/products/${id}`),
     createShopProduct: (body: Record<string, unknown>) =>
-      request(opts, '/shop/products', {
+      request<ShopProduct>(opts, '/shop/products', {
         method: 'POST',
         body: JSON.stringify(body),
       }),
     updateShopProduct: (id: string, body: Record<string, unknown>) =>
-      request(opts, `/shop/products/${id}`, {
+      request<ShopProduct>(opts, `/shop/products/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(body),
       }),
     deleteShopProduct: (id: string) =>
       request(opts, `/shop/products/${id}`, { method: 'DELETE' }),
+    bulkShopProducts: (body: {
+      ids: string[];
+      action: 'publish' | 'draft' | 'delete' | 'category';
+      categoryId?: string | null;
+    }) =>
+      request<{ affected: number; action: string }>(opts, '/shop/products/bulk', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
+    // ── Attributes ───────────────────────────────────────────────────
+    listShopAttributes: (activeOnly?: boolean) =>
+      request<Attribute[]>(
+        opts,
+        `/shop/attributes${activeOnly ? '?active=true' : ''}`,
+      ),
+    getShopAttribute: (id: string) =>
+      request<Attribute>(opts, `/shop/attributes/${id}`),
+    createShopAttribute: (body: Record<string, unknown>) =>
+      request<Attribute>(opts, '/shop/attributes', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopAttribute: (id: string, body: Record<string, unknown>) =>
+      request<Attribute>(opts, `/shop/attributes/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopAttribute: (id: string) =>
+      request(opts, `/shop/attributes/${id}`, { method: 'DELETE' }),
+    addShopAttributeValue: (
+      attributeId: string,
+      body: Record<string, unknown>,
+    ) =>
+      request<Attribute>(opts, `/shop/attributes/${attributeId}/values`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopAttributeValue: (
+      valueId: string,
+      body: Record<string, unknown>,
+    ) =>
+      request<Attribute>(opts, `/shop/attribute-values/${valueId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopAttributeValue: (valueId: string) =>
+      request<Attribute>(opts, `/shop/attribute-values/${valueId}`, {
+        method: 'DELETE',
+      }),
+    listProductAttributes: (productId: string) =>
+      request<Array<{ id: string; sortOrder: number; attribute: Attribute }>>(
+        opts,
+        `/shop/products/${productId}/attributes`,
+      ),
+    setProductAttributes: (productId: string, attributeIds: string[]) =>
+      request<Array<{ id: string; sortOrder: number; attribute: Attribute }>>(
+        opts,
+        `/shop/products/${productId}/attributes`,
+        { method: 'PUT', body: JSON.stringify({ attributeIds }) },
+      ),
+
+    // ── Variants ─────────────────────────────────────────────────────
+    listProductVariants: (productId: string) =>
+      request<ProductVariant[]>(opts, `/shop/products/${productId}/variants`),
+    generateProductVariants: (
+      productId: string,
+      body: {
+        selections: Array<{ attributeId: string; valueIds: string[] }>;
+        removeMissing?: boolean;
+      },
+    ) =>
+      request<{
+        created: number;
+        removed: number;
+        unchanged: number;
+        variants: ProductVariant[];
+      }>(opts, `/shop/products/${productId}/variants/generate`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    createProductVariant: (productId: string, body: Record<string, unknown>) =>
+      request<ProductVariant>(opts, `/shop/products/${productId}/variants`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    bulkUpdateProductVariants: (
+      productId: string,
+      variants: Array<Record<string, unknown> & { id: string }>,
+    ) =>
+      request<ProductVariant[]>(
+        opts,
+        `/shop/products/${productId}/variants/bulk`,
+        { method: 'PATCH', body: JSON.stringify({ variants }) },
+      ),
+    getProductVariant: (variantId: string) =>
+      request<ProductVariant>(opts, `/shop/variants/${variantId}`),
+    updateProductVariant: (variantId: string, body: Record<string, unknown>) =>
+      request<ProductVariant>(opts, `/shop/variants/${variantId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteProductVariant: (variantId: string) =>
+      request(opts, `/shop/variants/${variantId}`, { method: 'DELETE' }),
+
+    // ── Inventory ────────────────────────────────────────────────────
+    shopInventorySummary: () =>
+      request<InventorySummary>(opts, '/shop/inventory/summary'),
+    listShopInventory: (
+      filters: {
+        q?: string;
+        categoryId?: string;
+        productId?: string;
+        state?: string;
+        limit?: number;
+        offset?: number;
+      } = {},
+    ) =>
+      request<Paginated<InventoryLevel>>(
+        opts,
+        `/shop/inventory${toQuery(filters)}`,
+      ),
+    listShopInventoryTransactions: (
+      filters: {
+        inventoryLevelId?: string;
+        productId?: string;
+        variantId?: string;
+        limit?: number;
+        offset?: number;
+      } = {},
+    ) =>
+      request<Paginated<InventoryTransaction>>(
+        opts,
+        `/shop/inventory/transactions${toQuery(filters)}`,
+      ),
+    adjustShopInventory: (body: {
+      inventoryLevelId?: string;
+      productId?: string;
+      variantId?: string;
+      delta?: number;
+      setTo?: number;
+      type?: string;
+      reason?: string | null;
+      referenceType?: string | null;
+      referenceId?: string | null;
+      lowStockThreshold?: number;
+    }) =>
+      request<InventoryLevel>(opts, '/shop/inventory/adjust', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    setShopInventoryThreshold: (id: string, lowStockThreshold: number) =>
+      request<InventoryLevel>(opts, `/shop/inventory/${id}/threshold`, {
+        method: 'PATCH',
+        body: JSON.stringify({ lowStockThreshold }),
+      }),
+
+    // ── Discounts ────────────────────────────────────────────────────
+    listShopDiscounts: () => request<Discount[]>(opts, '/shop/discounts'),
+    getShopDiscount: (id: string) =>
+      request<Discount>(opts, `/shop/discounts/${id}`),
+    createShopDiscount: (body: Record<string, unknown>) =>
+      request<Discount>(opts, '/shop/discounts', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopDiscount: (id: string, body: Record<string, unknown>) =>
+      request<Discount>(opts, `/shop/discounts/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    deleteShopDiscount: (id: string) =>
+      request(opts, `/shop/discounts/${id}`, { method: 'DELETE' }),
+    validateShopDiscountCode: (code: string, subtotal?: number) =>
+      request<{
+        valid: boolean;
+        reason: string | null;
+        discount: Discount | null;
+      }>(opts, '/shop/discounts/validate', {
+        method: 'POST',
+        body: JSON.stringify({ code, subtotal }),
+      }),
+    quoteShopDiscount: (body: {
+      productId?: string;
+      variantId?: string;
+      quantity?: number;
+      code?: string | null;
+      subtotal?: number;
+    }) =>
+      request<DiscountQuote>(opts, '/shop/discounts/quote', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
+    // ── Articles ─────────────────────────────────────────────────────
+    listShopArticles: (
+      filters: {
+        q?: string;
+        status?: string;
+        categoryId?: string;
+        limit?: number;
+        offset?: number;
+      } = {},
+    ) => request<Paginated<Article>>(opts, `/shop/articles${toQuery(filters)}`),
+    getShopArticle: (id: string) =>
+      request<Article>(opts, `/shop/articles/${id}`),
+    createShopArticle: (body: Record<string, unknown>) =>
+      request<Article>(opts, '/shop/articles', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    updateShopArticle: (id: string, body: Record<string, unknown>) =>
+      request<Article>(opts, `/shop/articles/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body),
+      }),
+    publishShopArticle: (id: string) =>
+      request<Article>(opts, `/shop/articles/${id}/publish`, {
+        method: 'POST',
+      }),
+    unpublishShopArticle: (id: string) =>
+      request<Article>(opts, `/shop/articles/${id}/unpublish`, {
+        method: 'POST',
+      }),
+    deleteShopArticle: (id: string) =>
+      request(opts, `/shop/articles/${id}`, { method: 'DELETE' }),
     listShopBanners: () =>
       request<Array<Record<string, unknown>>>(opts, '/shop/banners'),
     createShopBanner: (body: Record<string, unknown>) =>

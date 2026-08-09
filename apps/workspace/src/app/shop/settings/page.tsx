@@ -16,6 +16,10 @@ export default function ShopSettingsPage() {
   const [supportPhone, setSupportPhone] = useState('');
   const [codEnabled, setCodEnabled] = useState(true);
   const [storefrontUrl, setStorefrontUrl] = useState('');
+  const [defaultCurrency, setDefaultCurrency] = useState('IRR');
+  const [lowStockThreshold, setLowStockThreshold] = useState('5');
+  const [allowNegativeInventory, setAllowNegativeInventory] = useState(false);
+  const [defaultProductStatus, setDefaultProductStatus] = useState('draft');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -29,6 +33,10 @@ export default function ShopSettingsPage() {
         setSupportPhone(String(s.supportPhone ?? ''));
         setCodEnabled(Boolean(s.codEnabled));
         setStorefrontUrl(String(s.storefrontUrl ?? ''));
+        setDefaultCurrency(String(s.defaultCurrency ?? 'IRR'));
+        setLowStockThreshold(String(s.lowStockThreshold ?? 5));
+        setAllowNegativeInventory(Boolean(s.allowNegativeInventory));
+        setDefaultProductStatus(String(s.defaultProductStatus ?? 'draft'));
       })
       .catch((e) => setError(String(e)));
   }, []);
@@ -44,6 +52,10 @@ export default function ShopSettingsPage() {
         tagline: tagline || null,
         supportPhone: supportPhone || null,
         codEnabled,
+        defaultCurrency,
+        lowStockThreshold: Number(lowStockThreshold) || 0,
+        allowNegativeInventory,
+        defaultProductStatus,
       });
       setStorefrontUrl(String(s.storefrontUrl ?? ''));
       setStoreSlug(String(s.storeSlug ?? storeSlug));
@@ -103,6 +115,54 @@ export default function ShopSettingsPage() {
                   onChange={(e) => setCodEnabled(e.target.checked)}
                 />
                 پرداخت در محل (COD) فعال باشد
+              </label>
+              <div className="pt-2">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
+                  تنظیمات تجاری
+                </p>
+                <p className="text-xs text-[var(--text-3)]">
+                  پیش‌فرض‌هایی که هنگام ساخت محصول و محاسبه موجودی اعمال می‌شوند
+                </p>
+              </div>
+              <div className="space-y-1.5">
+                <Label>واحد پول پیش‌فرض</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
+                  value={defaultCurrency}
+                  onChange={(e) => setDefaultCurrency(e.target.value)}
+                >
+                  <option value="IRR">ریال</option>
+                  <option value="IRT">تومان</option>
+                  <option value="USD">دلار</option>
+                  <option value="EUR">یورو</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>آستانه موجودی کم</Label>
+                <Input
+                  type="number"
+                  value={lowStockThreshold}
+                  onChange={(e) => setLowStockThreshold(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>وضعیت پیش‌فرض محصول جدید</Label>
+                <select
+                  className="flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
+                  value={defaultProductStatus}
+                  onChange={(e) => setDefaultProductStatus(e.target.value)}
+                >
+                  <option value="draft">پیش‌نویس</option>
+                  <option value="published">منتشر</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={allowNegativeInventory}
+                  onChange={(e) => setAllowNegativeInventory(e.target.checked)}
+                />
+                اجازه موجودی منفی (فروش بیش از موجودی)
               </label>
               <Button type="submit">ذخیره</Button>
             </form>

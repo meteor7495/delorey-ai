@@ -2,6 +2,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { CommerceService } from '../commerce/commerce.service';
+import { CommerceRetrievalService } from '../shop/commerce-retrieval.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
@@ -75,6 +76,7 @@ export class RuntimeService {
   constructor(
     private readonly store: DataStore,
     private readonly commerce: CommerceService,
+    private readonly retrieval: CommerceRetrievalService,
     private readonly knowledge: KnowledgeService,
     private readonly gateway: AiGatewayService,
     @Inject(forwardRef(() => HandoffService))
@@ -251,18 +253,20 @@ export class RuntimeService {
     );
     if (recommendTurn) return recommendTurn;
 
-    const [matches, knowledgeHits] = await Promise.all([
-      this.commerce.searchProducts(tenantId, userText),
+    // Commerce Core returns a bounded, pre-priced slice — the model never sees
+    // the catalog and never does arithmetic on it.
+    const [grounding, knowledgeHits] = await Promise.all([
+      this.retrieval.groundTurn(tenantId, userText, { limit: 5 }),
       this.knowledge.search(tenantId, userText),
     ]);
 
     const citations: Citation[] = [
-      ...matches.slice(0, 3).map(
+      ...grounding.products.slice(0, 3).map(
         (m): Citation => ({
           type: 'product',
           sku: m.sku,
           title: m.title,
-          price: m.price,
+          price: m.finalPrice,
         }),
       ),
       ...knowledgeHits.slice(0, 3).map(
@@ -289,14 +293,9 @@ export class RuntimeService {
         discountCapPercent: guardrails.discountCapPercent,
         restrictedMutations: guardrails.restrictedMutations,
       },
-      matches: matches.slice(0, 5).map((m) => ({
-        sku: m.sku,
-        title: m.title,
-        price: m.price,
-        currency: m.currency,
-        inStock: m.inStock,
-        description: m.description ?? null,
-      })),
+      matches: grounding.products,
+      promotions: grounding.promotions,
+      articles: grounding.articles,
       knowledge: knowledgeHits.slice(0, 5).map((h) => ({
         docId: h.doc.id,
         title: h.doc.title,
@@ -309,6 +308,8 @@ export class RuntimeService {
     const system = [
       'You are a DeloRey AI Sales Employee. Answer only from CONTEXT_JSON.',
       'Never invent SKUs, prices, stock, policies, or order status.',
+      'matches[].finalPrice is authoritative and already includes every applicable discount — quote it verbatim and never recalculate it.',
+      'matches[].availabilityLabel is authoritative for stock — never infer availability from quantities.',
       'Prefer Persian if employee.language is fa.',
       'When answering from knowledge, cite sourceAttribution.',
       `Never offer discounts above ${guardrails.discountCapPercent}%. Never process refunds or order cancellations.`,
@@ -356,7 +357,7 @@ export class RuntimeService {
     }
 
     let decision = 'answer_empty_catalog';
-    if (matches.length) decision = 'answer_grounded';
+    if (grounding.products.length) decision = 'answer_grounded';
     else if (knowledgeHits.length) decision = 'answer_knowledge';
     if (completion.mode === 'live') decision = `${decision}:live`;
     else if (completion.meter.fallbackReason) {
@@ -407,7 +408,7 @@ export class RuntimeService {
       return result;
     }
 
-    const picks = await this.commerce.recommendProducts(tenantId, userText);
+    const picks = await this.recommendFromCommerceCore(tenantId, userText);
     if (picks.length === 0) {
       const result: TurnResult = {
         reply:
@@ -423,15 +424,18 @@ export class RuntimeService {
       type: 'product' as const,
       sku: p.sku,
       title: p.title,
-      price: p.price,
+      price: p.finalPrice,
     }));
 
     const lines = picks.map((p) => {
-      const stock = p.inStock ? 'موجود' : 'ناموجود — الان قابل سفارش نیست';
-      const why = p.inStock
-        ? 'از کاتالوگ همگام‌شده'
-        : 'در کاتالوگ هست ولی موجودی ندارد';
-      return `• ${p.title} (${p.sku}) — ${p.price.toLocaleString('fa-IR')} ${p.currency} — ${stock}\n  دلیل: ${why}`;
+      const discounted = p.discountAmount > 0;
+      const price = discounted
+        ? `${p.finalPrice.toLocaleString('fa-IR')} ${p.currency} (به‌جای ${p.listPrice.toLocaleString('fa-IR')})`
+        : `${p.finalPrice.toLocaleString('fa-IR')} ${p.currency}`;
+      const why = discounted
+        ? `تخفیف فعال: ${p.appliedDiscounts.map((d) => d.name).join('، ')}`
+        : 'از کاتالوگ فروشگاه';
+      return `• ${p.title} (${p.sku}) — ${price} — ${p.availabilityLabel}\n  دلیل: ${why}`;
     });
 
     const result: TurnResult = {
@@ -441,6 +445,29 @@ export class RuntimeService {
     };
     await this.audit(tenantId, conversationId, result.decision, citations);
     return result;
+  }
+
+  /**
+   * Ranking happens here; pricing and stock come from Commerce Core already
+   * resolved so a recommendation can never quote a stale number.
+   */
+  private async recommendFromCommerceCore(tenantId: string, userText: string) {
+    const budget = this.commerce.parseBudgetIrr(userText.toLowerCase());
+    const candidates = await this.retrieval.searchProducts(tenantId, userText, {
+      limit: 20,
+    });
+
+    const affordable =
+      budget == null
+        ? candidates
+        : candidates.filter((p) => p.finalPrice <= budget);
+    if (affordable.length === 0) return [];
+
+    const available = affordable.filter(
+      (p) => p.availability !== 'out_of_stock',
+    );
+    const ranked = available.length > 0 ? available : affordable;
+    return ranked.slice(0, 3);
   }
 
   private async tryOrderLookup(

@@ -8,6 +8,8 @@
     "start": "node dist/main.js",
     "lint": "echo \"lint: api stub\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
@@ -37,6 +39,7 @@
     "@types/node": "^22.15.30",
     "@types/uuid": "^10.0.0",
     "prisma": "^6.10.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.10"
   }
 }

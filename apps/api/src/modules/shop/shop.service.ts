@@ -7,17 +7,8 @@ import { Prisma } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { PrismaService } from '../platform/prisma.service';
-
-function toSlug(input: string, fallback: string): string {
-  const ascii = input
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80);
-  if (ascii) return ascii;
-  return `item-${fallback.slice(0, 8)}`;
-}
+import { toSlug } from './domain';
+import { InventoryService } from './inventory.service';
 
 function mapProduct(row: {
   id: string;
@@ -35,6 +26,15 @@ function mapProduct(row: {
   categoryId: string | null;
   status: string;
   source: string;
+  shortDescription?: string | null;
+  brand?: string | null;
+  costPrice?: Prisma.Decimal | null;
+  barcode?: string | null;
+  tags?: string[];
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoKeywords?: string[];
+  hasVariants?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }) {
@@ -55,9 +55,68 @@ function mapProduct(row: {
     categoryId: row.categoryId,
     status: row.status,
     source: row.source,
+    shortDescription: row.shortDescription ?? null,
+    brand: row.brand ?? null,
+    costPrice: row.costPrice != null ? Number(row.costPrice) : null,
+    barcode: row.barcode ?? null,
+    tags: row.tags ?? [],
+    seoTitle: row.seoTitle ?? null,
+    seoDescription: row.seoDescription ?? null,
+    seoKeywords: row.seoKeywords ?? [],
+    hasVariants: row.hasVariants ?? false,
     createdAt: row.createdAt?.toISOString(),
     updatedAt: row.updatedAt?.toISOString(),
   };
+}
+
+export interface ProductWriteInput {
+  sku?: string;
+  title?: string;
+  slug?: string;
+  price?: number;
+  compareAtPrice?: number | null;
+  currency?: string;
+  inStock?: boolean;
+  description?: string | null;
+  images?: string[];
+  categoryId?: string | null;
+  status?: 'draft' | 'published';
+  shortDescription?: string | null;
+  brand?: string | null;
+  costPrice?: number | null;
+  barcode?: string | null;
+  tags?: string[];
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoKeywords?: string[];
+  /** Product-level stock, only used while the product has no variants. */
+  onHand?: number;
+  lowStockThreshold?: number;
+}
+
+export interface ProductFilters {
+  source?: string;
+  q?: string;
+  status?: string;
+  categoryId?: string;
+  /** in_stock | out_of_stock */
+  stock?: string;
+  hasVariants?: boolean;
+  sort?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface CategoryWriteInput {
+  name?: string;
+  slug?: string;
+  parentId?: string | null;
+  imageUrl?: string | null;
+  sortOrder?: number;
+  description?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  active?: boolean;
 }
 
 @Injectable()
@@ -65,6 +124,7 @@ export class ShopService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly store: DataStore,
+    private readonly inventory: InventoryService,
   ) {}
 
   private storefrontBase() {
@@ -77,21 +137,46 @@ export class ShopService {
 
   async getOverview(tenantId: string) {
     const settings = await this.store.ensureStorefrontSettings(tenantId);
-    const [productCount, categoryCount, orderCount, pendingOrders] =
-      await Promise.all([
-        this.prisma.product.count({
-          where: { tenantId, source: 'native' },
-        }),
-        this.prisma.category.count({ where: { tenantId } }),
-        this.prisma.storefrontOrder.count({ where: { tenantId } }),
-        this.prisma.storefrontOrder.count({
-          where: { tenantId, status: 'pending' },
-        }),
-      ]);
+    const [
+      productCount,
+      categoryCount,
+      orderCount,
+      pendingOrders,
+      variantCount,
+      attributeCount,
+      activeDiscounts,
+      publishedArticles,
+      inventory,
+    ] = await Promise.all([
+      this.prisma.product.count({ where: { tenantId, source: 'native' } }),
+      this.prisma.category.count({ where: { tenantId } }),
+      this.prisma.storefrontOrder.count({ where: { tenantId } }),
+      this.prisma.storefrontOrder.count({
+        where: { tenantId, status: 'pending' },
+      }),
+      this.prisma.productVariant.count({ where: { tenantId } }),
+      this.prisma.attribute.count({ where: { tenantId } }),
+      this.prisma.discount.count({ where: { tenantId, active: true } }),
+      this.prisma.article.count({ where: { tenantId, status: 'published' } }),
+      this.inventory.summary(tenantId),
+    ]);
+
     return {
       settings: this.mapSettings(settings),
       storefrontUrl: `${this.storefrontBase()}/s/${settings.storeSlug}`,
-      stats: { productCount, categoryCount, orderCount, pendingOrders },
+      stats: {
+        productCount,
+        categoryCount,
+        orderCount,
+        pendingOrders,
+        variantCount,
+        attributeCount,
+        activeDiscounts,
+        publishedArticles,
+        lowStock: inventory.lowStock,
+        outOfStock: inventory.outOfStock,
+        inventoryValue: inventory.inventoryValue,
+      },
     };
   }
 
@@ -114,9 +199,25 @@ export class ShopService {
       tagline?: string | null;
       codEnabled?: boolean;
       supportPhone?: string | null;
+      defaultCurrency?: string;
+      lowStockThreshold?: number;
+      allowNegativeInventory?: boolean;
+      defaultProductStatus?: string;
     },
   ) {
     await this.store.ensureStorefrontSettings(tenantId);
+    if (
+      patch.defaultProductStatus &&
+      !['draft', 'published'].includes(patch.defaultProductStatus)
+    ) {
+      throw new BadRequestException('وضعیت پیش‌فرض محصول نامعتبر است');
+    }
+    if (
+      patch.lowStockThreshold != null &&
+      (!Number.isInteger(patch.lowStockThreshold) || patch.lowStockThreshold < 0)
+    ) {
+      throw new BadRequestException('آستانه موجودی کم نامعتبر است');
+    }
     if (patch.storeSlug) {
       const slug = toSlug(patch.storeSlug, tenantId);
       const clash = await this.prisma.storefrontSettings.findFirst({
@@ -137,6 +238,10 @@ export class ShopService {
         codEnabled: patch.codEnabled,
         supportPhone:
           patch.supportPhone === undefined ? undefined : patch.supportPhone,
+        defaultCurrency: patch.defaultCurrency,
+        lowStockThreshold: patch.lowStockThreshold,
+        allowNegativeInventory: patch.allowNegativeInventory,
+        defaultProductStatus: patch.defaultProductStatus,
       },
     });
     return {
@@ -148,36 +253,35 @@ export class ShopService {
   // ─── Categories ────────────────────────────────────────────────────
 
   async listCategories(tenantId: string) {
-    const rows = await this.prisma.category.findMany({
-      where: { tenantId },
-      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
-    });
+    const [rows, productCounts] = await Promise.all([
+      this.prisma.category.findMany({
+        where: { tenantId },
+        orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      }),
+      this.prisma.product.groupBy({
+        by: ['categoryId'],
+        where: { tenantId, categoryId: { not: null } },
+        _count: { _all: true },
+      }),
+    ]);
+    const counts = new Map(
+      productCounts.map((c) => [c.categoryId as string, c._count._all]),
+    );
     return rows.map((r) => ({
-      id: r.id,
-      parentId: r.parentId,
-      name: r.name,
-      slug: r.slug,
-      imageUrl: r.imageUrl,
-      sortOrder: r.sortOrder,
+      ...this.mapCategory(r),
+      productCount: counts.get(r.id) ?? 0,
     }));
   }
 
-  async createCategory(
-    tenantId: string,
-    body: {
-      name?: string;
-      slug?: string;
-      parentId?: string | null;
-      imageUrl?: string | null;
-      sortOrder?: number;
-    },
-  ) {
+  async createCategory(tenantId: string, body: CategoryWriteInput) {
     const name = (body.name ?? '').trim();
     if (!name) throw new BadRequestException('نام دسته الزامی است');
     const slug = await this.uniqueCategorySlug(
       tenantId,
       body.slug || toSlug(name, uuid()),
     );
+    if (body.parentId) await this.assertCategoryExists(tenantId, body.parentId);
+
     const row = await this.prisma.category.create({
       data: {
         tenantId,
@@ -186,37 +290,33 @@ export class ShopService {
         parentId: body.parentId || null,
         imageUrl: body.imageUrl || null,
         sortOrder: body.sortOrder ?? 0,
+        description: body.description ?? null,
+        seoTitle: body.seoTitle ?? null,
+        seoDescription: body.seoDescription ?? null,
+        active: body.active ?? true,
       },
     });
-    return {
-      id: row.id,
-      parentId: row.parentId,
-      name: row.name,
-      slug: row.slug,
-      imageUrl: row.imageUrl,
-      sortOrder: row.sortOrder,
-    };
+    return this.mapCategory(row);
   }
 
-  async updateCategory(
-    tenantId: string,
-    id: string,
-    body: {
-      name?: string;
-      slug?: string;
-      parentId?: string | null;
-      imageUrl?: string | null;
-      sortOrder?: number;
-    },
-  ) {
+  async updateCategory(tenantId: string, id: string, body: CategoryWriteInput) {
     const existing = await this.prisma.category.findFirst({
       where: { id, tenantId },
     });
     if (!existing) throw new NotFoundException('دسته پیدا نشد');
+
     let slug = existing.slug;
     if (body.slug) {
       slug = await this.uniqueCategorySlug(tenantId, body.slug, id);
     }
+    if (body.parentId) {
+      if (body.parentId === id) {
+        throw new BadRequestException('دسته نمی‌تواند والد خودش باشد');
+      }
+      await this.assertCategoryExists(tenantId, body.parentId);
+      await this.assertNoCycle(tenantId, id, body.parentId);
+    }
+
     const row = await this.prisma.category.update({
       where: { id },
       data: {
@@ -227,16 +327,20 @@ export class ShopService {
         imageUrl:
           body.imageUrl === undefined ? existing.imageUrl : body.imageUrl,
         sortOrder: body.sortOrder ?? existing.sortOrder,
+        description:
+          body.description === undefined
+            ? existing.description
+            : body.description,
+        seoTitle:
+          body.seoTitle === undefined ? existing.seoTitle : body.seoTitle,
+        seoDescription:
+          body.seoDescription === undefined
+            ? existing.seoDescription
+            : body.seoDescription,
+        active: body.active ?? existing.active,
       },
     });
-    return {
-      id: row.id,
-      parentId: row.parentId,
-      name: row.name,
-      slug: row.slug,
-      imageUrl: row.imageUrl,
-      sortOrder: row.sortOrder,
-    };
+    return this.mapCategory(row);
   }
 
   async deleteCategory(tenantId: string, id: string) {
@@ -252,35 +356,141 @@ export class ShopService {
     return { ok: true };
   }
 
-  // ─── Products CMS ──────────────────────────────────────────────────
-
-  async listCmsProducts(tenantId: string, source?: string) {
-    const rows = await this.prisma.product.findMany({
-      where: {
-        tenantId,
-        source: source ?? 'native',
-      },
-      orderBy: { updatedAt: 'desc' },
-    });
-    return rows.map(mapProduct);
+  private mapCategory(row: {
+    id: string;
+    parentId: string | null;
+    name: string;
+    slug: string;
+    imageUrl: string | null;
+    sortOrder: number;
+    description: string | null;
+    seoTitle: string | null;
+    seoDescription: string | null;
+    active: boolean;
+  }) {
+    return {
+      id: row.id,
+      parentId: row.parentId,
+      name: row.name,
+      slug: row.slug,
+      imageUrl: row.imageUrl,
+      sortOrder: row.sortOrder,
+      description: row.description,
+      seoTitle: row.seoTitle,
+      seoDescription: row.seoDescription,
+      active: row.active,
+    };
   }
 
-  async createNativeProduct(
+  private async assertCategoryExists(tenantId: string, id: string) {
+    const found = await this.prisma.category.count({ where: { tenantId, id } });
+    if (found === 0) throw new BadRequestException('دسته والد پیدا نشد');
+  }
+
+  /** Walks up the tree so a category cannot become its own ancestor. */
+  private async assertNoCycle(
     tenantId: string,
-    body: {
-      sku?: string;
-      title?: string;
-      slug?: string;
-      price?: number;
-      compareAtPrice?: number | null;
-      currency?: string;
-      inStock?: boolean;
-      description?: string | null;
-      images?: string[];
-      categoryId?: string | null;
-      status?: 'draft' | 'published';
-    },
+    id: string,
+    parentId: string,
   ) {
+    let cursor: string | null = parentId;
+    const seen = new Set<string>([id]);
+    while (cursor) {
+      if (seen.has(cursor)) {
+        throw new BadRequestException('ساختار دسته‌بندی حلقه ایجاد می‌کند');
+      }
+      seen.add(cursor);
+      const parent: { parentId: string | null } | null =
+        await this.prisma.category.findFirst({
+          where: { id: cursor, tenantId },
+          select: { parentId: true },
+        });
+      cursor = parent?.parentId ?? null;
+    }
+  }
+
+  // ─── Products CMS ──────────────────────────────────────────────────
+
+  async listCmsProducts(tenantId: string, filters: ProductFilters = {}) {
+    const limit = Math.min(Math.max(filters.limit ?? 25, 1), 100);
+    const offset = Math.max(filters.offset ?? 0, 0);
+
+    const where: Prisma.ProductWhereInput = {
+      tenantId,
+      source: filters.source ?? 'native',
+    };
+    if (filters.status) where.status = filters.status;
+    if (filters.categoryId) where.categoryId = filters.categoryId;
+    if (filters.hasVariants != null) where.hasVariants = filters.hasVariants;
+    if (filters.stock === 'in_stock') where.inStock = true;
+    if (filters.stock === 'out_of_stock') where.inStock = false;
+    if (filters.q) {
+      const q = filters.q.trim();
+      where.OR = [
+        { title: { contains: q, mode: 'insensitive' } },
+        { sku: { contains: q, mode: 'insensitive' } },
+        { barcode: { contains: q, mode: 'insensitive' } },
+        { brand: { contains: q, mode: 'insensitive' } },
+        { tags: { has: q } },
+      ];
+    }
+
+    const [rows, total] = await Promise.all([
+      this.prisma.product.findMany({
+        where,
+        orderBy: this.productOrderBy(filters.sort),
+        skip: offset,
+        take: limit,
+        include: {
+          inventoryLevels: {
+            select: { onHand: true, reserved: true, lowStockThreshold: true },
+          },
+          _count: { select: { variants: true } },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return {
+      items: rows.map((row) => ({
+        ...mapProduct(row),
+        variantCount: row._count.variants,
+        stock: this.summarizeStock(row.inventoryLevels),
+      })),
+      total,
+      limit,
+      offset,
+    };
+  }
+
+  async getCmsProduct(tenantId: string, id: string) {
+    const row = await this.prisma.product.findFirst({
+      where: { id, tenantId },
+      include: {
+        inventoryLevels: {
+          select: {
+            id: true,
+            variantId: true,
+            onHand: true,
+            reserved: true,
+            lowStockThreshold: true,
+          },
+        },
+        _count: { select: { variants: true } },
+      },
+    });
+    if (!row) throw new NotFoundException('محصول پیدا نشد');
+
+    const productLevel = row.inventoryLevels.find((l) => l.variantId === null);
+    return {
+      ...mapProduct(row),
+      variantCount: row._count.variants,
+      stock: this.summarizeStock(row.inventoryLevels),
+      inventoryLevelId: productLevel?.id ?? null,
+    };
+  }
+
+  async createNativeProduct(tenantId: string, body: ProductWriteInput) {
     const sku = (body.sku ?? '').trim();
     const title = (body.title ?? '').trim();
     if (!sku) throw new BadRequestException('SKU الزامی است');
@@ -288,12 +498,17 @@ export class ShopService {
     if (body.price == null || Number.isNaN(body.price)) {
       throw new BadRequestException('قیمت الزامی است');
     }
+    if (body.categoryId) await this.assertCategoryExists(tenantId, body.categoryId);
+
+    const settings = await this.inventory.commerceSettings(tenantId);
     const slug = await this.uniqueProductSlug(
       tenantId,
       body.slug || toSlug(title, sku),
     );
+
+    let created;
     try {
-      const row = await this.prisma.product.create({
+      created = await this.prisma.product.create({
         data: {
           tenantId,
           sku,
@@ -304,16 +519,24 @@ export class ShopService {
             body.compareAtPrice != null
               ? new Prisma.Decimal(body.compareAtPrice)
               : null,
-          currency: body.currency ?? 'IRR',
+          currency: body.currency ?? settings.defaultCurrency,
           inStock: body.inStock ?? true,
           description: body.description ?? null,
           images: body.images ?? [],
           categoryId: body.categoryId || null,
           status: body.status ?? 'published',
           source: 'native',
+          shortDescription: body.shortDescription ?? null,
+          brand: body.brand ?? null,
+          costPrice:
+            body.costPrice != null ? new Prisma.Decimal(body.costPrice) : null,
+          barcode: body.barcode ?? null,
+          tags: body.tags ?? [],
+          seoTitle: body.seoTitle ?? null,
+          seoDescription: body.seoDescription ?? null,
+          seoKeywords: body.seoKeywords ?? [],
         },
       });
-      return mapProduct(row);
     } catch (e) {
       if (
         e instanceof Prisma.PrismaClientKnownRequestError &&
@@ -323,24 +546,26 @@ export class ShopService {
       }
       throw e;
     }
+
+    // Every product is tracked from creation so stock reads never 404.
+    await this.inventory.ensureLevel(tenantId, created.id, null);
+    if (body.onHand != null || body.lowStockThreshold != null) {
+      await this.inventory.adjust(tenantId, {
+        productId: created.id,
+        setTo: body.onHand ?? 0,
+        lowStockThreshold: body.lowStockThreshold,
+        type: 'initial',
+        reason: 'موجودی اولیه محصول',
+      });
+    }
+
+    return this.getCmsProduct(tenantId, created.id);
   }
 
   async updateNativeProduct(
     tenantId: string,
     id: string,
-    body: {
-      sku?: string;
-      title?: string;
-      slug?: string;
-      price?: number;
-      compareAtPrice?: number | null;
-      currency?: string;
-      inStock?: boolean;
-      description?: string | null;
-      images?: string[];
-      categoryId?: string | null;
-      status?: 'draft' | 'published';
-    },
+    body: ProductWriteInput,
   ) {
     const existing = await this.prisma.product.findFirst({
       where: { id, tenantId },
@@ -351,37 +576,84 @@ export class ShopService {
         'محصول همگام‌سازی‌شده فقط‌خواندنی است؛ از CMS بومی ویرایش کنید یا محصول native بسازید',
       );
     }
+    if (body.categoryId) await this.assertCategoryExists(tenantId, body.categoryId);
+
     let slug = existing.slug;
     if (body.slug) slug = await this.uniqueProductSlug(tenantId, body.slug, id);
-    const row = await this.prisma.product.update({
-      where: { id },
-      data: {
-        sku: body.sku?.trim() ?? existing.sku,
-        slug,
-        title: body.title?.trim() ?? existing.title,
-        price:
-          body.price != null ? new Prisma.Decimal(body.price) : existing.price,
-        compareAtPrice:
-          body.compareAtPrice === undefined
-            ? existing.compareAtPrice
-            : body.compareAtPrice == null
-              ? null
-              : new Prisma.Decimal(body.compareAtPrice),
-        currency: body.currency ?? existing.currency,
-        inStock: body.inStock ?? existing.inStock,
-        description:
-          body.description === undefined
-            ? existing.description
-            : body.description,
-        images: body.images ?? existing.images,
-        categoryId:
-          body.categoryId === undefined
-            ? existing.categoryId
-            : body.categoryId || null,
-        status: body.status ?? existing.status,
-      },
-    });
-    return mapProduct(row);
+
+    try {
+      await this.prisma.product.update({
+        where: { id },
+        data: {
+          sku: body.sku?.trim() ?? existing.sku,
+          slug,
+          title: body.title?.trim() ?? existing.title,
+          price:
+            body.price != null
+              ? new Prisma.Decimal(body.price)
+              : existing.price,
+          compareAtPrice:
+            body.compareAtPrice === undefined
+              ? existing.compareAtPrice
+              : body.compareAtPrice == null
+                ? null
+                : new Prisma.Decimal(body.compareAtPrice),
+          currency: body.currency ?? existing.currency,
+          inStock: body.inStock ?? existing.inStock,
+          description:
+            body.description === undefined
+              ? existing.description
+              : body.description,
+          images: body.images ?? existing.images,
+          categoryId:
+            body.categoryId === undefined
+              ? existing.categoryId
+              : body.categoryId || null,
+          status: body.status ?? existing.status,
+          shortDescription:
+            body.shortDescription === undefined
+              ? existing.shortDescription
+              : body.shortDescription,
+          brand: body.brand === undefined ? existing.brand : body.brand,
+          costPrice:
+            body.costPrice === undefined
+              ? existing.costPrice
+              : body.costPrice == null
+                ? null
+                : new Prisma.Decimal(body.costPrice),
+          barcode: body.barcode === undefined ? existing.barcode : body.barcode,
+          tags: body.tags ?? existing.tags,
+          seoTitle:
+            body.seoTitle === undefined ? existing.seoTitle : body.seoTitle,
+          seoDescription:
+            body.seoDescription === undefined
+              ? existing.seoDescription
+              : body.seoDescription,
+          seoKeywords: body.seoKeywords ?? existing.seoKeywords,
+        },
+      });
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new BadRequestException('SKU یا اسلاگ تکراری است');
+      }
+      throw e;
+    }
+
+    // Variant-level stock is owned by the variants, not the product row.
+    if (!existing.hasVariants && body.onHand != null) {
+      await this.inventory.adjust(tenantId, {
+        productId: id,
+        setTo: body.onHand,
+        lowStockThreshold: body.lowStockThreshold,
+        type: 'adjustment',
+        reason: 'ویرایش محصول',
+      });
+    }
+
+    return this.getCmsProduct(tenantId, id);
   }
 
   async deleteNativeProduct(tenantId: string, id: string) {
@@ -394,6 +666,90 @@ export class ShopService {
     }
     await this.prisma.product.delete({ where: { id } });
     return { ok: true };
+  }
+
+  /** Status / category / delete applied to a selection in one request. */
+  async bulkProducts(
+    tenantId: string,
+    input: {
+      ids: string[];
+      action: 'publish' | 'draft' | 'delete' | 'category';
+      categoryId?: string | null;
+    },
+  ) {
+    const ids = [...new Set(input.ids.filter(Boolean))];
+    if (ids.length === 0) {
+      throw new BadRequestException('هیچ محصولی انتخاب نشده است');
+    }
+
+    const owned = await this.prisma.product.findMany({
+      where: { tenantId, id: { in: ids }, source: 'native' },
+      select: { id: true },
+    });
+    if (owned.length === 0) {
+      throw new BadRequestException('محصول بومی معتبری انتخاب نشده است');
+    }
+    const ownedIds = owned.map((p) => p.id);
+
+    if (input.action === 'delete') {
+      const result = await this.prisma.product.deleteMany({
+        where: { tenantId, id: { in: ownedIds } },
+      });
+      return { affected: result.count, action: input.action };
+    }
+
+    if (input.action === 'category') {
+      if (input.categoryId) {
+        await this.assertCategoryExists(tenantId, input.categoryId);
+      }
+      const result = await this.prisma.product.updateMany({
+        where: { tenantId, id: { in: ownedIds } },
+        data: { categoryId: input.categoryId || null },
+      });
+      return { affected: result.count, action: input.action };
+    }
+
+    const result = await this.prisma.product.updateMany({
+      where: { tenantId, id: { in: ownedIds } },
+      data: { status: input.action === 'publish' ? 'published' : 'draft' },
+    });
+    return { affected: result.count, action: input.action };
+  }
+
+  private productOrderBy(sort?: string): Prisma.ProductOrderByWithRelationInput {
+    switch (sort) {
+      case 'title_asc':
+        return { title: 'asc' };
+      case 'title_desc':
+        return { title: 'desc' };
+      case 'price_asc':
+        return { price: 'asc' };
+      case 'price_desc':
+        return { price: 'desc' };
+      case 'created_asc':
+        return { createdAt: 'asc' };
+      case 'created_desc':
+        return { createdAt: 'desc' };
+      default:
+        return { updatedAt: 'desc' };
+    }
+  }
+
+  private summarizeStock(
+    levels: Array<{ onHand: number; reserved: number; lowStockThreshold: number }>,
+  ) {
+    if (levels.length === 0) {
+      return { onHand: 0, reserved: 0, available: 0, lowStockThreshold: 0, tracked: false };
+    }
+    const onHand = levels.reduce((sum, l) => sum + l.onHand, 0);
+    const reserved = levels.reduce((sum, l) => sum + l.reserved, 0);
+    return {
+      onHand,
+      reserved,
+      available: onHand - reserved,
+      lowStockThreshold: Math.max(...levels.map((l) => l.lowStockThreshold)),
+      tracked: true,
+    };
   }
 
   // ─── Banners ───────────────────────────────────────────────────────
@@ -840,6 +1196,10 @@ export class ShopService {
     tagline: string | null;
     codEnabled: boolean;
     supportPhone: string | null;
+    defaultCurrency?: string;
+    lowStockThreshold?: number;
+    allowNegativeInventory?: boolean;
+    defaultProductStatus?: string;
   }) {
     return {
       id: row.id,
@@ -852,6 +1212,10 @@ export class ShopService {
       tagline: row.tagline,
       codEnabled: row.codEnabled,
       supportPhone: row.supportPhone,
+      defaultCurrency: row.defaultCurrency ?? 'IRR',
+      lowStockThreshold: row.lowStockThreshold ?? 5,
+      allowNegativeInventory: row.allowNegativeInventory ?? false,
+      defaultProductStatus: row.defaultProductStatus ?? 'draft',
     };
   }
 

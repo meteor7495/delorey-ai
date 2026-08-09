@@ -22,6 +22,10 @@ import {
   Palette,
   Settings,
   ChevronDown,
+  SlidersHorizontal,
+  Boxes,
+  Percent,
+  FileText,
 } from 'lucide-react';
 import { AiStateChip } from '@delorey/ui';
 import { cn } from '@/lib/utils';
@@ -39,7 +43,11 @@ const primaryNav: NavLeaf[] = [
 const shopNav: NavLeaf[] = [
   { href: '/shop', icon: ShoppingBag, label: 'نمای کلی' },
   { href: '/shop/products', icon: Package, label: 'محصولات' },
+  { href: '/shop/attributes', icon: SlidersHorizontal, label: 'ویژگی‌ها' },
+  { href: '/shop/inventory', icon: Boxes, label: 'موجودی' },
+  { href: '/shop/discounts', icon: Percent, label: 'تخفیف‌ها' },
   { href: '/shop/categories', icon: Tags, label: 'دسته‌ها' },
+  { href: '/shop/articles', icon: FileText, label: 'مقالات' },
   { href: '/shop/orders', icon: ClipboardList, label: 'سفارش‌ها' },
   { href: '/shop/appearance', icon: Palette, label: 'ظاهر و بنر' },
   { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },

@@ -8,11 +8,14 @@ import {
   Post,
   Put,
   Query,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import {
   IsArray,
   IsBoolean,
+  IsIn,
+  IsInt,
   IsNumber,
   IsOptional,
   IsString,
@@ -24,6 +27,7 @@ import {
   SessionAuthGuard,
   type AuthContext,
 } from '../platform/auth.guard';
+import { CommerceRuleFilter } from './commerce-rule.filter';
 import { ShopService } from './shop.service';
 
 class ProductDto {
@@ -70,8 +74,65 @@ class ProductDto {
   categoryId?: string | null;
 
   @IsOptional()
-  @IsString()
+  @IsIn(['draft', 'published'])
   status?: 'draft' | 'published';
+
+  @IsOptional()
+  @IsString()
+  shortDescription?: string | null;
+
+  @IsOptional()
+  @IsString()
+  brand?: string | null;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  costPrice?: number | null;
+
+  @IsOptional()
+  @IsString()
+  barcode?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
+
+  @IsOptional()
+  @IsString()
+  seoTitle?: string | null;
+
+  @IsOptional()
+  @IsString()
+  seoDescription?: string | null;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  seoKeywords?: string[];
+
+  @IsOptional()
+  @IsInt()
+  onHand?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  lowStockThreshold?: number;
+}
+
+class BulkProductsDto {
+  @IsArray()
+  @IsString({ each: true })
+  ids!: string[];
+
+  @IsIn(['publish', 'draft', 'delete', 'category'])
+  action!: 'publish' | 'draft' | 'delete' | 'category';
+
+  @IsOptional()
+  @IsString()
+  categoryId?: string | null;
 }
 
 class CategoryDto {
@@ -94,6 +155,22 @@ class CategoryDto {
   @IsOptional()
   @IsNumber()
   sortOrder?: number;
+
+  @IsOptional()
+  @IsString()
+  description?: string | null;
+
+  @IsOptional()
+  @IsString()
+  seoTitle?: string | null;
+
+  @IsOptional()
+  @IsString()
+  seoDescription?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
 }
 
 class SettingsDto {
@@ -128,6 +205,23 @@ class SettingsDto {
   @IsOptional()
   @IsString()
   supportPhone?: string | null;
+
+  @IsOptional()
+  @IsString()
+  defaultCurrency?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  lowStockThreshold?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowNegativeInventory?: boolean;
+
+  @IsOptional()
+  @IsIn(['draft', 'published'])
+  defaultProductStatus?: string;
 }
 
 class BannerDto {
@@ -163,6 +257,7 @@ class OrderStatusDto {
 
 @Controller('shop')
 @UseGuards(SessionAuthGuard)
+@UseFilters(CommerceRuleFilter)
 export class ShopCmsController {
   constructor(
     private readonly shop: ShopService,
@@ -249,8 +344,47 @@ export class ShopCmsController {
   products(
     @CurrentAuth() auth: AuthContext,
     @Query('source') source?: string,
+    @Query('q') q?: string,
+    @Query('status') status?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('stock') stock?: string,
+    @Query('hasVariants') hasVariants?: string,
+    @Query('sort') sort?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.shop.listCmsProducts(auth.tenantId, source);
+    return this.shop.listCmsProducts(auth.tenantId, {
+      source,
+      q,
+      status,
+      categoryId,
+      stock,
+      hasVariants:
+        hasVariants === undefined ? undefined : hasVariants === 'true',
+      sort,
+      limit: limit ? Number(limit) : undefined,
+      offset: offset ? Number(offset) : undefined,
+    });
+  }
+
+  @Get('products/:id')
+  product(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    return this.shop.getCmsProduct(auth.tenantId, id);
+  }
+
+  @Post('products/bulk')
+  async bulkProducts(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: BulkProductsDto,
+  ) {
+    const result = await this.shop.bulkProducts(auth.tenantId, dto);
+    await this.audit.recordAdmin(
+      auth,
+      'shop.product.bulk',
+      `عملیات گروهی «${dto.action}» روی ${result.affected} محصول`,
+      { action: dto.action, ids: dto.ids, affected: result.affected },
+    );
+    return result;
   }
 
   @Post('products')

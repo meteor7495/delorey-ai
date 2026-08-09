@@ -2,7 +2,16 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ExternalLink, Package, Tags, ClipboardList } from 'lucide-react';
+import {
+  ExternalLink,
+  Package,
+  Tags,
+  ClipboardList,
+  Boxes,
+  AlertTriangle,
+  Percent,
+  FileText,
+} from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
@@ -19,6 +28,13 @@ export default function ShopOverviewPage() {
       categoryCount: number;
       orderCount: number;
       pendingOrders: number;
+      variantCount: number;
+      attributeCount: number;
+      activeDiscounts: number;
+      publishedArticles: number;
+      lowStock: number;
+      outOfStock: number;
+      inventoryValue: number;
     };
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +80,7 @@ export default function ShopOverviewPage() {
               <StatCard
                 title="محصولات بومی"
                 value={String(data.stats.productCount)}
+                description={`${data.stats.variantCount} تنوع · ${data.stats.attributeCount} ویژگی`}
                 icon={Package}
               />
               <StatCard
@@ -74,12 +91,29 @@ export default function ShopOverviewPage() {
               <StatCard
                 title="سفارش‌ها"
                 value={String(data.stats.orderCount)}
+                description={`${data.stats.pendingOrders} در انتظار`}
                 icon={ClipboardList}
               />
               <StatCard
-                title="در انتظار"
-                value={String(data.stats.pendingOrders)}
-                icon={ClipboardList}
+                title="ارزش انبار"
+                value={data.stats.inventoryValue.toLocaleString('fa-IR')}
+                icon={Boxes}
+              />
+              <StatCard
+                title="رو به اتمام"
+                value={String(data.stats.lowStock)}
+                description={`${data.stats.outOfStock} ناموجود`}
+                icon={AlertTriangle}
+              />
+              <StatCard
+                title="تخفیف‌های فعال"
+                value={String(data.stats.activeDiscounts)}
+                icon={Percent}
+              />
+              <StatCard
+                title="مقالات منتشرشده"
+                value={String(data.stats.publishedArticles)}
+                icon={FileText}
               />
             </div>
 
@@ -100,6 +134,18 @@ export default function ShopOverviewPage() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   <Button asChild size="sm">
                     <Link href="/shop/products">مدیریت محصولات</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/shop/attributes">ویژگی‌ها</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/shop/inventory">موجودی</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/shop/discounts">تخفیف‌ها</Link>
+                  </Button>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href="/shop/articles">مقالات</Link>
                   </Button>
                   <Button asChild size="sm" variant="outline">
                     <Link href="/shop/categories">دسته‌ها</Link>

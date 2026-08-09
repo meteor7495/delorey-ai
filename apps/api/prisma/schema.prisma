@@ -40,6 +40,16 @@ model Tenant {
   aiPolicy             TenantAiPolicy?
   aiCallEvents         AiCallEvent[]
   accessRequests       AccessRequest[]
+  attributes             Attribute[]
+  attributeValues        AttributeValue[]
+  productAttributes      ProductAttribute[]
+  productVariants        ProductVariant[]
+  variantAttributeValues VariantAttributeValue[]
+  inventoryLevels        InventoryLevel[]
+  inventoryTransactions  InventoryTransaction[]
+  discounts              Discount[]
+  discountTargets        DiscountTarget[]
+  articles               Article[]
 
   @@map("tenants")
 }
@@ -145,20 +155,25 @@ model StoreConnection {
 }
 
 model Category {
-  id        String   @id @default(uuid())
-  tenantId  String   @map("tenant_id")
-  parentId  String?  @map("parent_id")
-  name      String
-  slug      String
-  imageUrl  String?  @map("image_url")
-  sortOrder Int      @default(0) @map("sort_order")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  parentId       String?  @map("parent_id")
+  name           String
+  slug           String
+  imageUrl       String?  @map("image_url")
+  description    String?
+  seoTitle       String?  @map("seo_title")
+  seoDescription String?  @map("seo_description")
+  active         Boolean  @default(true)
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
   children Category[] @relation("CategoryTree")
   products Product[]
+  articles Article[]
 
   @@unique([tenantId, slug])
   @@index([tenantId])
@@ -176,10 +191,21 @@ model Product {
   price          Decimal  @db.Decimal(18, 2)
   compareAtPrice Decimal? @map("compare_at_price") @db.Decimal(18, 2)
   currency       String   @default("IRR")
+  /// Derived projection of inventory availability — kept for storefront + AI reads
   inStock        Boolean  @default(true) @map("in_stock")
   description    String?
+  shortDescription String? @map("short_description")
+  brand          String?
+  costPrice      Decimal? @map("cost_price") @db.Decimal(18, 2)
+  barcode        String?
+  tags           String[] @default([])
+  seoTitle       String?  @map("seo_title")
+  seoDescription String?  @map("seo_description")
+  seoKeywords    String[] @default([]) @map("seo_keywords")
+  hasVariants    Boolean  @default(false) @map("has_variants")
   images         String[] @default([])
   categoryId     String?  @map("category_id")
+  /// draft | published | archived (archived = soft delete)
   status         String   @default("published")
   /// native | shopify | woocommerce | mock
   source         String   @default("mock")
@@ -190,6 +216,9 @@ model Product {
   category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   cartItems CartItem[]
   orderItems StorefrontOrderItem[]
+  attributes      ProductAttribute[]
+  variants        ProductVariant[]
+  inventoryLevels InventoryLevel[]
 
   @@unique([tenantId, sku])
   @@unique([tenantId, slug])
@@ -219,15 +248,19 @@ model CartItem {
   id        String   @id @default(uuid())
   cartId    String   @map("cart_id")
   productId String   @map("product_id")
+  /// Null → simple product. Variant-aware cart lines land with storefront wiring.
+  variantId String?  @map("variant_id")
   quantity  Int      @default(1)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
   @@unique([cartId, productId])
   @@index([cartId])
+  @@index([variantId])
   @@map("cart_items")
 }
 
@@ -260,6 +293,8 @@ model StorefrontOrderItem {
   id         String  @id @default(uuid())
   orderId    String  @map("order_id")
   productId  String? @map("product_id")
+  /// Null → simple product line
+  variantId  String? @map("variant_id")
   sku        String
   title      String
   unitPrice  Decimal @map("unit_price") @db.Decimal(18, 2)
@@ -268,8 +303,10 @@ model StorefrontOrderItem {
 
   order   StorefrontOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
+  @@index([variantId])
   @@map("storefront_order_items")
 }
 
@@ -284,6 +321,12 @@ model StorefrontSettings {
   tagline         String?
   codEnabled      Boolean  @default(true) @map("cod_enabled")
   supportPhone    String?  @map("support_phone")
+  /// Commerce settings — defaults consumed by the Commerce Core domain layer
+  defaultCurrency        String  @default("IRR") @map("default_currency")
+  lowStockThreshold      Int     @default(5) @map("low_stock_threshold")
+  allowNegativeInventory Boolean @default(false) @map("allow_negative_inventory")
+  /// draft | published
+  defaultProductStatus   String  @default("draft") @map("default_product_status")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -504,6 +547,263 @@ model AiModelBinding {
 
   @@index([providerId, enabled])
   @@map("ai_model_bindings")
+}
+
+/// ---------------------------------------------------------------------------
+/// Commerce Core (Slice 27) — attributes, variants, inventory, discounts,
+/// articles. Extends the native Shop catalog; never a parallel catalog.
+/// ---------------------------------------------------------------------------
+
+/// Tenant-configurable product attribute (Color, Size, Storage, Volume, …)
+model Attribute {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  slug        String
+  /// text | number | select | multi_select | color | boolean
+  type        String   @default("select")
+  /// dropdown | swatch | chip | radio
+  displayType String   @default("dropdown") @map("display_type")
+  sortOrder   Int      @default(0) @map("sort_order")
+  active      Boolean  @default(true)
+  required    Boolean  @default(false)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant            Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  values            AttributeValue[]
+  productAttributes ProductAttribute[]
+  variantValues     VariantAttributeValue[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([tenantId, active])
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  attributeId String   @map("attribute_id")
+  value       String
+  label       String?
+  /// Swatch hex for color-typed attributes
+  colorHex    String?  @map("color_hex")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant        Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attribute     Attribute               @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  variantValues VariantAttributeValue[]
+
+  @@unique([attributeId, value])
+  @@index([tenantId])
+  @@index([attributeId])
+  @@map("attribute_values")
+}
+
+/// Which attributes a product uses to build its variant matrix
+model ProductAttribute {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  productId   String   @map("product_id")
+  attributeId String   @map("attribute_id")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, attributeId])
+  @@index([tenantId])
+  @@index([productId])
+  @@map("product_attributes")
+}
+
+/// One purchasable combination. `optionsKey` = sorted attributeValueId join —
+/// makes duplicate combinations impossible at the DB level.
+model ProductVariant {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  productId      String   @map("product_id")
+  sku            String
+  barcode        String?
+  optionsKey     String   @map("options_key")
+  /// Null → inherits Product.price (see domain/pricing.ts)
+  price          Decimal? @db.Decimal(18, 2)
+  compareAtPrice Decimal? @map("compare_at_price") @db.Decimal(18, 2)
+  costPrice      Decimal? @map("cost_price") @db.Decimal(18, 2)
+  weightGrams    Int?     @map("weight_grams")
+  imageUrl       String?  @map("image_url")
+  active         Boolean  @default(true)
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant             Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product            Product                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributeValues    VariantAttributeValue[]
+  inventoryLevel     InventoryLevel?
+  cartItems          CartItem[]
+  orderItems         StorefrontOrderItem[]
+
+  @@unique([tenantId, sku])
+  @@unique([productId, optionsKey])
+  @@index([tenantId])
+  @@index([productId])
+  @@index([tenantId, active])
+  @@map("product_variants")
+}
+
+model VariantAttributeValue {
+  id               String @id @default(uuid())
+  tenantId         String @map("tenant_id")
+  variantId        String @map("variant_id")
+  attributeId      String @map("attribute_id")
+  attributeValueId String @map("attribute_value_id")
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  variant        ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  attribute      Attribute      @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeValue AttributeValue @relation(fields: [attributeValueId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, attributeId])
+  @@index([tenantId])
+  @@index([attributeValueId])
+  @@map("variant_attribute_values")
+}
+
+/// Stock per variant, or per product when the product has no variants.
+/// available = onHand - reserved (domain/inventory.ts)
+model InventoryLevel {
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  productId         String   @map("product_id")
+  /// Null → product-level stock. Partial unique index keeps it one row per product.
+  variantId         String?  @unique @map("variant_id")
+  onHand            Int      @default(0) @map("on_hand")
+  reserved          Int      @default(0)
+  lowStockThreshold Int      @default(5) @map("low_stock_threshold")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  product      Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant      ProductVariant?        @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  transactions InventoryTransaction[]
+
+  @@index([tenantId])
+  @@index([tenantId, productId])
+  @@map("inventory_levels")
+}
+
+/// Append-only stock ledger — every quantity change is auditable
+model InventoryTransaction {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  inventoryLevelId String   @map("inventory_level_id")
+  /// initial | adjustment | sale | reservation | reservation_release | return | restock | correction
+  type             String
+  quantityDelta    Int      @map("quantity_delta")
+  resultingOnHand  Int      @map("resulting_on_hand")
+  reason           String?
+  /// order | variant | import | manual
+  referenceType    String?  @map("reference_type")
+  referenceId      String?  @map("reference_id")
+  actorUserId      String?  @map("actor_user_id")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  inventoryLevel InventoryLevel @relation(fields: [inventoryLevelId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([inventoryLevelId, createdAt])
+  @@map("inventory_transactions")
+}
+
+/// Discounts never overwrite prices — effective price is computed server-side
+model Discount {
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  name              String
+  /// Null → automatic discount (no coupon code)
+  code              String?
+  /// percentage | fixed
+  type              String
+  value             Decimal   @db.Decimal(18, 2)
+  currency          String    @default("IRR")
+  startsAt          DateTime? @map("starts_at")
+  endsAt            DateTime? @map("ends_at")
+  active            Boolean   @default(true)
+  usageLimit        Int?      @map("usage_limit")
+  perCustomerLimit  Int?      @map("per_customer_limit")
+  usedCount         Int       @default(0) @map("used_count")
+  minCartAmount     Decimal?  @map("min_cart_amount") @db.Decimal(18, 2)
+  /// Maximum discount protection for percentage discounts
+  maxDiscountAmount Decimal?  @map("max_discount_amount") @db.Decimal(18, 2)
+  priority          Int       @default(0)
+  stackable         Boolean   @default(false)
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  tenant  Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  targets DiscountTarget[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([tenantId, active, startsAt, endsAt])
+  @@map("discounts")
+}
+
+model DiscountTarget {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  discountId String   @map("discount_id")
+  /// all | product | category | variant
+  targetType String   @map("target_type")
+  /// Null when targetType = all
+  targetId   String?  @map("target_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  discount Discount @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@unique([discountId, targetType, targetId])
+  @@index([tenantId])
+  @@index([discountId])
+  @@map("discount_targets")
+}
+
+/// Storefront content — distinct from KnowledgeDoc (AI FAQ / policy SoR)
+model Article {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  title            String
+  slug             String
+  excerpt          String?
+  content          String    @default("")
+  featuredImageUrl String?   @map("featured_image_url")
+  categoryId       String?   @map("category_id")
+  tags             String[]  @default([])
+  /// draft | published | archived
+  status           String    @default("draft")
+  authorUserId     String?   @map("author_user_id")
+  seoTitle         String?   @map("seo_title")
+  seoDescription   String?   @map("seo_description")
+  publishedAt      DateTime? @map("published_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, categoryId])
+  @@map("articles")
 }
 
 /// Append-only Gateway call ledger (Provider Layer observability / cost)
