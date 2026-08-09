@@ -1,15 +1,16 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Tags } from 'lucide-react';
+import { Plus, Tags } from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 type Category = {
   id: string;
@@ -26,6 +27,7 @@ export default function ShopCategoriesPage() {
   const [slug, setSlug] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
@@ -43,6 +45,24 @@ export default function ShopCategoriesPage() {
     setImageUrl('');
   }
 
+  function openCreate() {
+    reset();
+    setDialogOpen(true);
+  }
+
+  function openEdit(c: Category) {
+    setEditingId(c.id);
+    setName(c.name);
+    setSlug(c.slug);
+    setImageUrl(c.imageUrl ?? '');
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    reset();
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
@@ -54,7 +74,7 @@ export default function ShopCategoriesPage() {
       };
       if (editingId) await api.updateShopCategory(editingId, body);
       else await api.createShopCategory(body);
-      reset();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد');
@@ -64,41 +84,56 @@ export default function ShopCategoriesPage() {
   return (
     <AppShell>
       <div className="space-y-6">
-        <PageHeader title="دسته‌ها" description="ساختار دسته‌بندی ویترین" />
+        <PageHeader
+          title="دسته‌ها"
+          description="ساختار دسته‌بندی ویترین"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              دسته جدید
+            </Button>
+          }
+        />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'ویرایش دسته' : 'دسته جدید'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>نام</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>اسلاگ</Label>
-                <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>تصویر</Label>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={reset}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش دسته' : 'دسته جدید'}
+        >
+          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>نام</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>اسلاگ</Label>
+              <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>تصویر</Label>
+              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+            </div>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         {categories.length === 0 ? (
-          <EmptyState icon={Tags} title="دسته‌ای نیست" />
+          <EmptyState
+            icon={Tags}
+            title="دسته‌ای نیست"
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="ms-1 h-4 w-4" />
+                دسته جدید
+              </Button>
+            }
+          />
         ) : (
           <div className="space-y-2">
             {categories.map((c) => (
@@ -109,16 +144,7 @@ export default function ShopCategoriesPage() {
                     <p className="text-xs text-[var(--text-3)]">{c.slug}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingId(c.id);
-                        setName(c.name);
-                        setSlug(c.slug);
-                        setImageUrl(c.imageUrl ?? '');
-                      }}
-                    >
+                    <Button size="sm" variant="outline" onClick={() => openEdit(c)}>
                       ویرایش
                     </Button>
                     <Button

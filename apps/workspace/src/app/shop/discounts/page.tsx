@@ -1,17 +1,18 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Percent } from 'lucide-react';
+import { Percent, Plus } from 'lucide-react';
 import type { Discount, ShopCategory, ShopProduct } from '@delorey/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const selectClass =
   'flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm';
@@ -29,6 +30,7 @@ export default function ShopDiscountsPage() {
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -79,7 +81,12 @@ export default function ShopDiscountsPage() {
     setTargetId('');
   }
 
-  function startEdit(discount: Discount) {
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function openEdit(discount: Discount) {
     setEditingId(discount.id);
     setName(discount.name);
     setCode(discount.code ?? '');
@@ -108,6 +115,12 @@ export default function ShopDiscountsPage() {
       setScope(target.targetType as TargetScope);
       setTargetId(target.targetId ?? '');
     }
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    resetForm();
   }
 
   async function onSubmit(e: FormEvent) {
@@ -142,7 +155,7 @@ export default function ShopDiscountsPage() {
         await api.createShopDiscount(body);
         setMessage('تخفیف ایجاد شد');
       }
-      resetForm();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد');
@@ -185,170 +198,180 @@ export default function ShopDiscountsPage() {
         <PageHeader
           title="تخفیف‌ها"
           description="قوانین تخفیف که هم ویترین و هم کارمند AI از همین‌جا قیمت نهایی را می‌گیرند"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              تخفیف جدید
+            </Button>
+          }
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'ویرایش تخفیف' : 'تخفیف جدید'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش تخفیف' : 'تخفیف جدید'}
+          size="lg"
+        >
+          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>نام</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>کد (خالی = خودکار)</Label>
+              <Input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="NOWRUZ1404"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>نوع</Label>
+              <select
+                className={selectClass}
+                value={type}
+                onChange={(e) =>
+                  setType(e.target.value as 'percentage' | 'fixed')
+                }
+              >
+                <option value="percentage">درصدی</option>
+                <option value="fixed">مبلغ ثابت</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>{type === 'percentage' ? 'درصد' : 'مبلغ (ریال)'}</Label>
+              <Input
+                type="number"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>شروع</Label>
+              <Input
+                type="date"
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>پایان</Label>
+              <Input
+                type="date"
+                value={endsAt}
+                onChange={(e) => setEndsAt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>حداقل مبلغ سبد</Label>
+              <Input
+                type="number"
+                value={minCartAmount}
+                onChange={(e) => setMinCartAmount(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>سقف تخفیف</Label>
+              <Input
+                type="number"
+                value={maxDiscountAmount}
+                onChange={(e) => setMaxDiscountAmount(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>محدودیت استفاده</Label>
+              <Input
+                type="number"
+                value={usageLimit}
+                onChange={(e) => setUsageLimit(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>اولویت</Label>
+              <Input
+                type="number"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>دامنه</Label>
+              <select
+                className={selectClass}
+                value={scope}
+                onChange={(e) => {
+                  setScope(e.target.value as TargetScope);
+                  setTargetId('');
+                }}
+              >
+                <option value="all">همه محصولات</option>
+                <option value="product">یک محصول</option>
+                <option value="category">یک دسته</option>
+              </select>
+            </div>
+            {scope !== 'all' && (
               <div className="space-y-1.5">
-                <Label>نام</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>کد (خالی = خودکار)</Label>
-                <Input
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="NOWRUZ1404"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>نوع</Label>
+                <Label>{scope === 'product' ? 'محصول' : 'دسته'}</Label>
                 <select
                   className={selectClass}
-                  value={type}
-                  onChange={(e) =>
-                    setType(e.target.value as 'percentage' | 'fixed')
-                  }
-                >
-                  <option value="percentage">درصدی</option>
-                  <option value="fixed">مبلغ ثابت</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>{type === 'percentage' ? 'درصد' : 'مبلغ (ریال)'}</Label>
-                <Input
-                  type="number"
-                  value={value}
-                  onChange={(e) => setValue(e.target.value)}
+                  value={targetId}
+                  onChange={(e) => setTargetId(e.target.value)}
                   required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>شروع</Label>
-                <Input
-                  type="date"
-                  value={startsAt}
-                  onChange={(e) => setStartsAt(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>پایان</Label>
-                <Input
-                  type="date"
-                  value={endsAt}
-                  onChange={(e) => setEndsAt(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>حداقل مبلغ سبد</Label>
-                <Input
-                  type="number"
-                  value={minCartAmount}
-                  onChange={(e) => setMinCartAmount(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>سقف تخفیف</Label>
-                <Input
-                  type="number"
-                  value={maxDiscountAmount}
-                  onChange={(e) => setMaxDiscountAmount(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>محدودیت استفاده</Label>
-                <Input
-                  type="number"
-                  value={usageLimit}
-                  onChange={(e) => setUsageLimit(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>اولویت</Label>
-                <Input
-                  type="number"
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>دامنه</Label>
-                <select
-                  className={selectClass}
-                  value={scope}
-                  onChange={(e) => {
-                    setScope(e.target.value as TargetScope);
-                    setTargetId('');
-                  }}
                 >
-                  <option value="all">همه محصولات</option>
-                  <option value="product">یک محصول</option>
-                  <option value="category">یک دسته</option>
+                  <option value="">انتخاب کنید</option>
+                  {(scope === 'product' ? products : categories).map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {'title' in item ? item.title : item.name}
+                    </option>
+                  ))}
                 </select>
               </div>
-              {scope !== 'all' && (
-                <div className="space-y-1.5">
-                  <Label>{scope === 'product' ? 'محصول' : 'دسته'}</Label>
-                  <select
-                    className={selectClass}
-                    value={targetId}
-                    onChange={(e) => setTargetId(e.target.value)}
-                    required
-                  >
-                    <option value="">انتخاب کنید</option>
-                    {(scope === 'product' ? products : categories).map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {'title' in item ? item.title : item.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-              <div className="flex items-center gap-4 sm:col-span-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={stackable}
-                    onChange={(e) => setStackable(e.target.checked)}
-                  />
-                  قابل ترکیب با تخفیف‌های دیگر
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={(e) => setActive(e.target.checked)}
-                  />
-                  فعال
-                </label>
-              </div>
-              <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            )}
+            <div className="flex items-center gap-4 sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={stackable}
+                  onChange={(e) => setStackable(e.target.checked)}
+                />
+                قابل ترکیب با تخفیف‌های دیگر
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                />
+                فعال
+              </label>
+            </div>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         {discounts.length === 0 ? (
           <EmptyState
             icon={Percent}
             title="هنوز تخفیفی ثبت نشده"
             description="اولین قانون تخفیف را بسازید تا در ویترین و پاسخ‌های AI اعمال شود"
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="ms-1 h-4 w-4" />
+                تخفیف جدید
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-2">
@@ -388,7 +411,7 @@ export default function ShopDiscountsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => startEdit(discount)}
+                      onClick={() => openEdit(discount)}
                     >
                       ویرایش
                     </Button>

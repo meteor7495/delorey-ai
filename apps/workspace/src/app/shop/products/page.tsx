@@ -1,18 +1,19 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Package } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 import type { ShopCategory, ShopProduct } from '@delorey/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { VariantManager } from '@/components/shop/variant-manager';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const selectClass =
   'flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm';
@@ -35,7 +36,8 @@ export default function ShopProductsPage() {
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkCategoryId, setBulkCategoryId] = useState('');
-  const [variantsFor, setVariantsFor] = useState<string | null>(null);
+  const [variantsFor, setVariantsFor] = useState<ShopProduct | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sku, setSku] = useState('');
@@ -101,7 +103,17 @@ export default function ShopProductsPage() {
     setSeoDescription('');
   }
 
-  function startEdit(p: ShopProduct) {
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    resetForm();
+  }
+
+  function openEdit(p: ShopProduct) {
     if (p.source !== 'native') {
       setError('محصول همگام‌سازی‌شده فقط‌خواندنی است');
       return;
@@ -127,7 +139,7 @@ export default function ShopProductsPage() {
     setImageUrl(p.images?.[0] ?? '');
     setSeoTitle(p.seoTitle ?? '');
     setSeoDescription(p.seoDescription ?? '');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setDialogOpen(true);
   }
 
   async function onSubmit(e: FormEvent) {
@@ -174,7 +186,7 @@ export default function ShopProductsPage() {
         await api.createShopProduct(body);
         setMessage('محصول بومی ایجاد شد');
       }
-      resetForm();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد');
@@ -225,183 +237,206 @@ export default function ShopProductsPage() {
         <PageHeader
           title="محصولات"
           description="محصولات فروشگاه بومی، تنوع‌ها، قیمت و موجودی"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              محصول جدید
+            </Button>
+          }
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'ویرایش محصول' : 'محصول جدید'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>SKU</Label>
-                <Input
-                  value={sku}
-                  onChange={(e) => setSku(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>عنوان</Label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>اسلاگ (اختیاری)</Label>
-                <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>برند</Label>
-                <Input
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>قیمت (ریال)</Label>
-                <Input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>قیمت قبلی</Label>
-                <Input
-                  type="number"
-                  value={compareAtPrice}
-                  onChange={(e) => setCompareAtPrice(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>قیمت تمام‌شده</Label>
-                <Input
-                  type="number"
-                  value={costPrice}
-                  onChange={(e) => setCostPrice(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>بارکد</Label>
-                <Input
-                  value={barcode}
-                  onChange={(e) => setBarcode(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>دسته</Label>
-                <select
-                  className={selectClass}
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  <option value="">—</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>وضعیت</Label>
-                <select
-                  className={selectClass}
-                  value={status}
-                  onChange={(e) =>
-                    setStatus(e.target.value as 'draft' | 'published')
-                  }
-                >
-                  <option value="published">منتشر</option>
-                  <option value="draft">پیش‌نویس</option>
-                </select>
-              </div>
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش محصول' : 'محصول جدید'}
+          size="xl"
+        >
+          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>SKU</Label>
+              <Input
+                value={sku}
+                onChange={(e) => setSku(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>عنوان</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>اسلاگ (اختیاری)</Label>
+              <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>برند</Label>
+              <Input
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>قیمت (ریال)</Label>
+              <Input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>قیمت قبلی</Label>
+              <Input
+                type="number"
+                value={compareAtPrice}
+                onChange={(e) => setCompareAtPrice(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>قیمت تمام‌شده</Label>
+              <Input
+                type="number"
+                value={costPrice}
+                onChange={(e) => setCostPrice(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>بارکد</Label>
+              <Input
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>دسته</Label>
+              <select
+                className={selectClass}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">—</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>وضعیت</Label>
+              <select
+                className={selectClass}
+                value={status}
+                onChange={(e) =>
+                  setStatus(e.target.value as 'draft' | 'published')
+                }
+              >
+                <option value="published">منتشر</option>
+                <option value="draft">پیش‌نویس</option>
+              </select>
+            </div>
 
-              {editing?.hasVariants ? (
-                <p className="text-xs text-[var(--text-3)] sm:col-span-2">
-                  موجودی این محصول توسط تنوع‌های آن مدیریت می‌شود.
-                </p>
-              ) : (
-                <>
-                  <div className="space-y-1.5">
-                    <Label>موجودی</Label>
-                    <Input
-                      type="number"
-                      value={onHand}
-                      onChange={(e) => setOnHand(e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>آستانه موجودی کم</Label>
-                    <Input
-                      type="number"
-                      value={lowStockThreshold}
-                      onChange={(e) => setLowStockThreshold(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
+            {editing?.hasVariants ? (
+              <p className="text-xs text-[var(--text-3)] sm:col-span-2">
+                موجودی این محصول توسط تنوع‌های آن مدیریت می‌شود.
+              </p>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>موجودی</Label>
+                  <Input
+                    type="number"
+                    value={onHand}
+                    onChange={(e) => setOnHand(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>آستانه موجودی کم</Label>
+                  <Input
+                    type="number"
+                    value={lowStockThreshold}
+                    onChange={(e) => setLowStockThreshold(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>توضیح کوتاه</Label>
-                <Input
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>توضیح کامل</Label>
-                <textarea
-                  className="min-h-[120px] w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-3 text-sm leading-7"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>برچسب‌ها (با ، جدا کنید)</Label>
-                <Input value={tags} onChange={(e) => setTags(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>آدرس تصویر</Label>
-                <Input
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>عنوان سئو</Label>
-                <Input
-                  value={seoTitle}
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>توضیح سئو</Label>
-                <Input
-                  value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)}
-                />
-              </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>توضیح کوتاه</Label>
+              <Input
+                value={shortDescription}
+                onChange={(e) => setShortDescription(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>توضیح کامل</Label>
+              <textarea
+                className="min-h-[120px] w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-3 text-sm leading-7"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>برچسب‌ها (با ، جدا کنید)</Label>
+              <Input value={tags} onChange={(e) => setTags(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>آدرس تصویر</Label>
+              <Input
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>عنوان سئو</Label>
+              <Input
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>توضیح سئو</Label>
+              <Input
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+              />
+            </div>
 
-              <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
+
+        <FormDialog
+          open={!!variantsFor}
+          onOpenChange={(open) => {
+            if (!open) setVariantsFor(null);
+          }}
+          title={variantsFor ? `تنوع‌های «${variantsFor.title}»` : 'تنوع‌ها'}
+          size="xl"
+        >
+          {variantsFor && (
+            <VariantManager
+              productId={variantsFor.id}
+              basePrice={variantsFor.price}
+              onChanged={() => {
+                refresh().catch((e) => setError(String(e)));
+              }}
+            />
+          )}
+        </FormDialog>
 
         <Card>
           <CardContent className="flex flex-wrap items-end gap-3 p-4">
@@ -531,12 +566,18 @@ export default function ShopProductsPage() {
             icon={Package}
             title="هنوز محصولی نیست"
             description="اولین محصول را بسازید تا ویترین و کارمند AI grounded شوند"
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="ms-1 h-4 w-4" />
+                محصول جدید
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-2">
             {products.map((p) => (
               <Card key={p.id}>
-                <CardContent className="space-y-3 p-4">
+                <CardContent className="p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
                       {p.source === 'native' && (
@@ -576,16 +617,14 @@ export default function ShopProductsPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() =>
-                              setVariantsFor(variantsFor === p.id ? null : p.id)
-                            }
+                            onClick={() => setVariantsFor(p)}
                           >
-                            {variantsFor === p.id ? 'بستن تنوع‌ها' : 'تنوع‌ها'}
+                            تنوع‌ها
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => startEdit(p)}
+                            onClick={() => openEdit(p)}
                           >
                             ویرایش
                           </Button>
@@ -600,16 +639,6 @@ export default function ShopProductsPage() {
                       )}
                     </div>
                   </div>
-
-                  {variantsFor === p.id && (
-                    <VariantManager
-                      productId={p.id}
-                      basePrice={p.price}
-                      onChanged={() => {
-                        refresh().catch((e) => setError(String(e)));
-                      }}
-                    />
-                  )}
                 </CardContent>
               </Card>
             ))}

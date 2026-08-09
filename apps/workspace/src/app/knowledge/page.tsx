@@ -6,12 +6,13 @@ import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Plus } from 'lucide-react';
 
 type KnowledgeDoc = {
   id: string;
@@ -42,6 +43,7 @@ export default function KnowledgePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   async function refresh() {
     const [list, status] = await Promise.all([
@@ -62,6 +64,25 @@ export default function KnowledgePage() {
     setBodyText('');
     setSourceAttribution('سیاست فروشگاه');
     setDocType('faq');
+  }
+
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function openEdit(d: KnowledgeDoc) {
+    setEditingId(d.id);
+    setTitle(d.title);
+    setBodyText(d.bodyText);
+    setSourceAttribution(d.sourceAttribution);
+    setDocType(d.docType === 'policy_override' ? 'policy_override' : 'faq');
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    resetForm();
   }
 
   async function onSubmit(e: FormEvent) {
@@ -86,7 +107,7 @@ export default function KnowledgePage() {
         });
         setMessage('پرسش متداول ذخیره و ایندکس شد');
       }
-      resetForm();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد. دوباره تلاش کنید.');
@@ -99,6 +120,12 @@ export default function KnowledgePage() {
         <PageHeader
           title="دانش فروشگاه"
           description="پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              سند جدید
+            </Button>
+          }
         />
 
         {index && (
@@ -119,63 +146,59 @@ export default function KnowledgePage() {
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {editingId ? 'ویرایش سند' : 'افزودن پرسش متداول / سیاست'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>نوع</Label>
-                <select
-                  className="flex h-9 w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
-                  value={docType}
-                  onChange={(e) =>
-                    setDocType(e.target.value as 'faq' | 'policy_override')
-                  }
-                >
-                  <option value="faq">پرسش متداول</option>
-                  <option value="policy_override">سیاست / بازنویسی</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>عنوان</Label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>متن</Label>
-                <textarea
-                  className="flex min-h-[100px] w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm"
-                  value={bodyText}
-                  onChange={(e) => setBodyText(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>منبع</Label>
-                <Input
-                  value={sourceAttribution}
-                  onChange={(e) => setSourceAttribution(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'افزودن'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش سند' : 'افزودن پرسش متداول / سیاست'}
+          size="lg"
+        >
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>نوع</Label>
+              <select
+                className="flex h-9 w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
+                value={docType}
+                onChange={(e) =>
+                  setDocType(e.target.value as 'faq' | 'policy_override')
+                }
+              >
+                <option value="faq">پرسش متداول</option>
+                <option value="policy_override">سیاست / بازنویسی</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>عنوان</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>متن</Label>
+              <textarea
+                className="flex min-h-[100px] w-full rounded-[var(--r-sm)] border border-[var(--border-color)] bg-[var(--surface)] px-3 py-2 text-sm"
+                value={bodyText}
+                onChange={(e) => setBodyText(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>منبع</Label>
+              <Input
+                value={sourceAttribution}
+                onChange={(e) => setSourceAttribution(e.target.value)}
+                required
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'افزودن'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         <Card>
           <CardHeader>
@@ -187,6 +210,12 @@ export default function KnowledgePage() {
                 icon={BookOpen}
                 title="سندی نیست"
                 description="دمو معمولاً دو پرسش متداول پیش‌فرض دارد."
+                action={
+                  <Button onClick={openCreate}>
+                    <Plus className="ms-1 h-4 w-4" />
+                    سند جدید
+                  </Button>
+                }
               />
             ) : (
               <div className="divide-y divide-[var(--border-color)]">
@@ -209,17 +238,7 @@ export default function KnowledgePage() {
                           type="button"
                           size="sm"
                           variant="outline"
-                          onClick={() => {
-                            setEditingId(d.id);
-                            setTitle(d.title);
-                            setBodyText(d.bodyText);
-                            setSourceAttribution(d.sourceAttribution);
-                            setDocType(
-                              d.docType === 'policy_override'
-                                ? 'policy_override'
-                                : 'faq',
-                            );
-                          }}
+                          onClick={() => openEdit(d)}
                         >
                           ویرایش
                         </Button>

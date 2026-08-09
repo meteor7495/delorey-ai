@@ -1,17 +1,18 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Plus } from 'lucide-react';
 import type { Article, ShopCategory } from '@delorey/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const selectClass =
   'flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm';
@@ -33,6 +34,7 @@ export default function ShopArticlesPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
@@ -79,7 +81,17 @@ export default function ShopArticlesPage() {
     setSeoDescription('');
   }
 
-  async function startEdit(id: string) {
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    resetForm();
+  }
+
+  async function openEdit(id: string) {
     setError(null);
     try {
       const article = await api.getShopArticle(id);
@@ -94,7 +106,7 @@ export default function ShopArticlesPage() {
       setStatus(article.status);
       setSeoTitle(article.seoTitle ?? '');
       setSeoDescription(article.seoDescription ?? '');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setDialogOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'مقاله بارگذاری نشد');
     }
@@ -129,7 +141,7 @@ export default function ShopArticlesPage() {
         await api.createShopArticle(body);
         setMessage('مقاله ایجاد شد');
       }
-      resetForm();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد');
@@ -168,108 +180,112 @@ export default function ShopArticlesPage() {
         <PageHeader
           title="مقالات"
           description="محتوای فروشگاه — راهنمای خرید، معرفی محصول و مطالب سئو"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              مقاله جدید
+            </Button>
+          }
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'ویرایش مقاله' : 'مقاله جدید'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>عنوان</Label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>اسلاگ (اختیاری)</Label>
-                <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>دسته</Label>
-                <select
-                  className={selectClass}
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(e.target.value)}
-                >
-                  <option value="">—</option>
-                  {categories.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>وضعیت</Label>
-                <select
-                  className={selectClass}
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                >
-                  <option value="draft">پیش‌نویس</option>
-                  <option value="published">منتشرشده</option>
-                  <option value="archived">بایگانی</option>
-                </select>
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>خلاصه</Label>
-                <Input
-                  value={excerpt}
-                  onChange={(e) => setExcerpt(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5 sm:col-span-2">
-                <Label>متن مقاله</Label>
-                <textarea
-                  className="min-h-[180px] w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-3 text-sm leading-7"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="متن کامل مقاله…"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>تصویر شاخص</Label>
-                <Input
-                  value={featuredImageUrl}
-                  onChange={(e) => setFeaturedImageUrl(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>برچسب‌ها (با ، جدا کنید)</Label>
-                <Input value={tags} onChange={(e) => setTags(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>عنوان سئو</Label>
-                <Input
-                  value={seoTitle}
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>توضیح سئو</Label>
-                <Input
-                  value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)}
-                />
-              </div>
-              <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش مقاله' : 'مقاله جدید'}
+          size="xl"
+        >
+          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>عنوان</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>اسلاگ (اختیاری)</Label>
+              <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>دسته</Label>
+              <select
+                className={selectClass}
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">—</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>وضعیت</Label>
+              <select
+                className={selectClass}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="draft">پیش‌نویس</option>
+                <option value="published">منتشرشده</option>
+                <option value="archived">بایگانی</option>
+              </select>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>خلاصه</Label>
+              <Input
+                value={excerpt}
+                onChange={(e) => setExcerpt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>متن مقاله</Label>
+              <textarea
+                className="min-h-[180px] w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-3 text-sm leading-7"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="متن کامل مقاله…"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>تصویر شاخص</Label>
+              <Input
+                value={featuredImageUrl}
+                onChange={(e) => setFeaturedImageUrl(e.target.value)}
+                placeholder="https://..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>برچسب‌ها (با ، جدا کنید)</Label>
+              <Input value={tags} onChange={(e) => setTags(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>عنوان سئو</Label>
+              <Input
+                value={seoTitle}
+                onChange={(e) => setSeoTitle(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>توضیح سئو</Label>
+              <Input
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         <Card>
           <CardContent className="flex flex-wrap items-end gap-3 p-4">
@@ -308,6 +324,12 @@ export default function ShopArticlesPage() {
             icon={FileText}
             title="هنوز مقاله‌ای نیست"
             description="مقالات به کارمند AI کمک می‌کنند به سوال‌های محتوایی هم پاسخ بدهد"
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="ms-1 h-4 w-4" />
+                مقاله جدید
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-2">
@@ -343,7 +365,7 @@ export default function ShopArticlesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => startEdit(article.id)}
+                      onClick={() => openEdit(article.id)}
                     >
                       ویرایش
                     </Button>

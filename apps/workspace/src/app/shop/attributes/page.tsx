@@ -7,11 +7,12 @@ import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 const selectClass =
   'flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm';
@@ -36,6 +37,7 @@ export default function ShopAttributesPage() {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -65,13 +67,24 @@ export default function ShopAttributesPage() {
     setActive(true);
   }
 
-  function startEdit(attribute: Attribute) {
+  function openCreate() {
+    resetForm();
+    setDialogOpen(true);
+  }
+
+  function openEdit(attribute: Attribute) {
     setEditingId(attribute.id);
     setName(attribute.name);
     setType(attribute.type);
     setDisplayType(attribute.displayType);
     setRequired(attribute.required);
     setActive(attribute.active);
+    setDialogOpen(true);
+  }
+
+  function closeDialog() {
+    setDialogOpen(false);
+    resetForm();
   }
 
   async function onSubmit(e: FormEvent) {
@@ -87,7 +100,7 @@ export default function ShopAttributesPage() {
         await api.createShopAttribute(body);
         setMessage('ویژگی ایجاد شد');
       }
-      resetForm();
+      closeDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ذخیره نشد');
@@ -139,88 +152,98 @@ export default function ShopAttributesPage() {
         <PageHeader
           title="ویژگی‌ها"
           description="ویژگی‌هایی مثل رنگ و سایز که تنوع محصولات از آن‌ها ساخته می‌شود"
+          actions={
+            <Button onClick={openCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              ویژگی جدید
+            </Button>
+          }
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'ویرایش ویژگی' : 'ویژگی جدید'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>نام</Label>
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="مثلاً رنگ"
-                  required
+        <FormDialog
+          open={dialogOpen}
+          onOpenChange={(open) => (open ? setDialogOpen(true) : closeDialog())}
+          title={editingId ? 'ویرایش ویژگی' : 'ویژگی جدید'}
+          size="lg"
+        >
+          <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>نام</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="مثلاً رنگ"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>نوع</Label>
+              <select
+                className={selectClass}
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+              >
+                {Object.entries(TYPE_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>نمایش در ویترین</Label>
+              <select
+                className={selectClass}
+                value={displayType}
+                onChange={(e) => setDisplayType(e.target.value)}
+              >
+                {Object.entries(DISPLAY_LABELS).map(([key, label]) => (
+                  <option key={key} value={key}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-4 pt-6">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={required}
+                  onChange={(e) => setRequired(e.target.checked)}
                 />
-              </div>
-              <div className="space-y-1.5">
-                <Label>نوع</Label>
-                <select
-                  className={selectClass}
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>نمایش در ویترین</Label>
-                <select
-                  className={selectClass}
-                  value={displayType}
-                  onChange={(e) => setDisplayType(e.target.value)}
-                >
-                  {Object.entries(DISPLAY_LABELS).map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-4 pt-6">
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={required}
-                    onChange={(e) => setRequired(e.target.checked)}
-                  />
-                  الزامی
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={active}
-                    onChange={(e) => setActive(e.target.checked)}
-                  />
-                  فعال
-                </label>
-              </div>
-              <div className="flex gap-2 sm:col-span-2">
-                <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    انصراف
-                  </Button>
-                )}
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                الزامی
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={active}
+                  onChange={(e) => setActive(e.target.checked)}
+                />
+                فعال
+              </label>
+            </div>
+            <div className="flex gap-2 sm:col-span-2">
+              <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         {attributes.length === 0 ? (
           <EmptyState
             icon={SlidersHorizontal}
             title="هنوز ویژگی‌ای تعریف نشده"
             description="ویژگی بسازید تا بتوانید برای محصولات تنوع تولید کنید"
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="ms-1 h-4 w-4" />
+                ویژگی جدید
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-3">
@@ -255,7 +278,7 @@ export default function ShopAttributesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => startEdit(attribute)}
+                          onClick={() => openEdit(attribute)}
                         >
                           ویرایش
                         </Button>

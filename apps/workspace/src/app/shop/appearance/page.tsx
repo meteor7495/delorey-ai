@@ -1,9 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { Plus } from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,6 +33,7 @@ export default function ShopAppearancePage() {
   const [logoUrl, setLogoUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [bannerDialogOpen, setBannerDialogOpen] = useState(false);
 
   async function refresh() {
     const [b, s] = await Promise.all([
@@ -47,6 +50,23 @@ export default function ShopAppearancePage() {
   useEffect(() => {
     refresh().catch((e) => setError(String(e)));
   }, []);
+
+  function resetBannerForm() {
+    setTitle('');
+    setSubtitle('');
+    setImageUrl('');
+    setHref('');
+  }
+
+  function openBannerCreate() {
+    resetBannerForm();
+    setBannerDialogOpen(true);
+  }
+
+  function closeBannerDialog() {
+    setBannerDialogOpen(false);
+    resetBannerForm();
+  }
 
   async function saveColors(e: FormEvent) {
     e.preventDefault();
@@ -75,10 +95,7 @@ export default function ShopAppearancePage() {
         href: href || null,
         active: true,
       });
-      setTitle('');
-      setSubtitle('');
-      setImageUrl('');
-      setHref('');
+      closeBannerDialog();
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'بنر ذخیره نشد');
@@ -91,6 +108,12 @@ export default function ShopAppearancePage() {
         <PageHeader
           title="ظاهر و بنر"
           description="رنگ‌ها و بنرهای صفحهٔ اول ویترین"
+          actions={
+            <Button onClick={openBannerCreate}>
+              <Plus className="ms-1 h-4 w-4" />
+              بنر جدید
+            </Button>
+          }
         />
         {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
         {message && <p className="text-sm text-[var(--success)]">{message}</p>}
@@ -137,32 +160,39 @@ export default function ShopAppearancePage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>بنر جدید</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={addBanner} className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label>عنوان</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>زیرعنوان</Label>
-                <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>تصویر</Label>
-                <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>لینک</Label>
-                <Input value={href} onChange={(e) => setHref(e.target.value)} />
-              </div>
+        <FormDialog
+          open={bannerDialogOpen}
+          onOpenChange={(open) =>
+            open ? setBannerDialogOpen(true) : closeBannerDialog()
+          }
+          title="بنر جدید"
+          size="lg"
+        >
+          <form onSubmit={addBanner} className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>عنوان</Label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+            </div>
+            <div className="space-y-1.5">
+              <Label>زیرعنوان</Label>
+              <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>تصویر</Label>
+              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>لینک</Label>
+              <Input value={href} onChange={(e) => setHref(e.target.value)} />
+            </div>
+            <div className="flex gap-2 sm:col-span-2">
               <Button type="submit">افزودن بنر</Button>
-            </form>
-          </CardContent>
-        </Card>
+              <Button type="button" variant="outline" onClick={closeBannerDialog}>
+                انصراف
+              </Button>
+            </div>
+          </form>
+        </FormDialog>
 
         <div className="space-y-2">
           {banners.map((b) => (
