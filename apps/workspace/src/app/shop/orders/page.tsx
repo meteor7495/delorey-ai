@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { useEffect, useState } from 'react';
 import { ClipboardList } from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
@@ -27,14 +28,13 @@ const statuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 export default function ShopOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
     setOrders((await api.listShopOrders()) as unknown as Order[]);
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   return (
@@ -44,7 +44,6 @@ export default function ShopOrdersPage() {
           title="سفارش‌های ویترین"
           description="سفارش‌های ثبت‌شده از فروشگاه بومی (COD)"
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         {orders.length === 0 ? (
           <EmptyState
@@ -77,8 +76,11 @@ export default function ShopOrdersPage() {
                       onChange={(e) =>
                         api
                           .updateShopOrderStatus(o.id, e.target.value)
-                          .then(refresh)
-                          .catch((err) => setError(String(err)))
+                          .then(() => {
+                            toastSuccess('وضعیت سفارش به‌روزرسانی شد');
+                            return refresh();
+                          })
+                          .catch((err) => toastFromError(err))
                       }
                     >
                       {statuses.map((s) => (

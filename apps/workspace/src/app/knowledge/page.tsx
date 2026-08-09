@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { knowledgeDocTypeLabel, knowledgeStatusLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
@@ -40,8 +41,6 @@ export default function KnowledgePage() {
   const [bodyText, setBodyText] = useState('');
   const [sourceAttribution, setSourceAttribution] = useState('سیاست فروشگاه');
   const [docType, setDocType] = useState<'faq' | 'policy_override'>('faq');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -55,7 +54,7 @@ export default function KnowledgePage() {
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   function resetForm() {
@@ -87,8 +86,6 @@ export default function KnowledgePage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     try {
       if (editingId) {
         await api.updateKnowledgeDoc(editingId, {
@@ -97,7 +94,7 @@ export default function KnowledgePage() {
           sourceAttribution,
           docType,
         });
-        setMessage('به‌روزرسانی شد و دوباره ایندکس شد');
+        toastSuccess('به‌روزرسانی شد و دوباره ایندکس شد');
       } else {
         await api.createKnowledgeDoc({
           docType,
@@ -105,12 +102,12 @@ export default function KnowledgePage() {
           bodyText,
           sourceAttribution,
         });
-        setMessage('پرسش متداول ذخیره و ایندکس شد');
+        toastSuccess('پرسش متداول ذخیره و ایندکس شد');
       }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد. دوباره تلاش کنید.');
+      toastFromError(err, 'ذخیره نشد. دوباره تلاش کنید.');
     }
   }
 
@@ -143,8 +140,6 @@ export default function KnowledgePage() {
           </Card>
         )}
 
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <FormDialog
           open={dialogOpen}
@@ -247,8 +242,13 @@ export default function KnowledgePage() {
                           size="sm"
                           variant="outline"
                           onClick={async () => {
-                            await api.deleteKnowledgeDoc(d.id);
-                            await refresh();
+                            try {
+                              await api.deleteKnowledgeDoc(d.id);
+                              toastSuccess('سند حذف شد');
+                              await refresh();
+                            } catch (err) {
+                              toastFromError(err, 'حذف نشد');
+                            }
                           }}
                         >
                           حذف

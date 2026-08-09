@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
@@ -20,8 +21,6 @@ export default function ShopSettingsPage() {
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
   const [allowNegativeInventory, setAllowNegativeInventory] = useState(false);
   const [defaultProductStatus, setDefaultProductStatus] = useState('draft');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -38,13 +37,11 @@ export default function ShopSettingsPage() {
         setAllowNegativeInventory(Boolean(s.allowNegativeInventory));
         setDefaultProductStatus(String(s.defaultProductStatus ?? 'draft'));
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => toastFromError(e));
   }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     try {
       const s = await api.updateShopSettings({
         storeName,
@@ -59,9 +56,9 @@ export default function ShopSettingsPage() {
       });
       setStorefrontUrl(String(s.storefrontUrl ?? ''));
       setStoreSlug(String(s.storeSlug ?? storeSlug));
-      setMessage('تنظیمات ذخیره شد');
+      toastSuccess('تنظیمات ذخیره شد');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
@@ -72,8 +69,6 @@ export default function ShopSettingsPage() {
           title="تنظیمات فروشگاه"
           description="اسلاگ عمومی، COD و اطلاعات تماس"
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <Card>
           <CardHeader>

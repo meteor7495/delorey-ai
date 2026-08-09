@@ -1,5 +1,6 @@
 'use client';
 
+import { toastFromError } from '@/lib/notify';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -54,7 +55,6 @@ export default function InboxClient() {
   } | null>(null);
   const [ownership, setOwnership] = useState('ai_owned');
   const [reply, setReply] = useState('');
-  const [error, setError] = useState<string | null>(null);
 
   const loadList = useCallback(async () => {
     const list = await api.listInbox(filter ?? undefined);
@@ -77,7 +77,7 @@ export default function InboxClient() {
   }, []);
 
   useEffect(() => {
-    loadList().catch((e) => setError(String(e)));
+    loadList().catch((e) => toastFromError(e));
   }, [loadList]);
 
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function InboxClient() {
       setPacket(null);
       return;
     }
-    loadThread(selectedId).catch((e) => setError(String(e)));
+    loadThread(selectedId).catch((e) => toastFromError(e));
     const t = setInterval(() => {
       loadThread(selectedId).catch(() => undefined);
       loadList().catch(() => undefined);
@@ -128,7 +128,6 @@ export default function InboxClient() {
           title="صندوق ورودی"
           description="گفتگوها · تحویل به انسان · بدون تیکت"
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <div className="flex flex-wrap gap-1.5">
           <Button

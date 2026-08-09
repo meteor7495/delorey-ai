@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { FileText, Plus } from 'lucide-react';
 import type { Article, ShopCategory } from '@delorey/api-client';
@@ -32,8 +33,6 @@ export default function ShopArticlesPage() {
   const [page, setPage] = useState(0);
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,7 +63,7 @@ export default function ShopArticlesPage() {
   }, [q, statusFilter, page]);
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, [refresh]);
 
   function resetForm() {
@@ -92,7 +91,6 @@ export default function ShopArticlesPage() {
   }
 
   async function openEdit(id: string) {
-    setError(null);
     try {
       const article = await api.getShopArticle(id);
       setEditingId(article.id);
@@ -108,14 +106,12 @@ export default function ShopArticlesPage() {
       setSeoDescription(article.seoDescription ?? '');
       setDialogOpen(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'مقاله بارگذاری نشد');
+      toastFromError(err, 'مقاله بارگذاری نشد');
     }
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
 
     const body = {
       title,
@@ -136,39 +132,40 @@ export default function ShopArticlesPage() {
     try {
       if (editingId) {
         await api.updateShopArticle(editingId, body);
-        setMessage('مقاله به‌روزرسانی شد');
+        toastSuccess('مقاله به‌روزرسانی شد');
       } else {
         await api.createShopArticle(body);
-        setMessage('مقاله ایجاد شد');
+        toastSuccess('مقاله ایجاد شد');
       }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
   async function togglePublish(article: Article) {
-    setError(null);
     try {
       if (article.status === 'published') {
         await api.unpublishShopArticle(article.id);
+        toastSuccess('انتشار لغو شد');
       } else {
         await api.publishShopArticle(article.id);
+        toastSuccess('مقاله منتشر شد');
       }
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'تغییر وضعیت انجام نشد');
+      toastFromError(err, 'تغییر وضعیت انجام نشد');
     }
   }
 
   async function onDelete(id: string) {
-    setError(null);
     try {
       await api.deleteShopArticle(id);
+      toastSuccess('مقاله حذف شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'حذف نشد');
+      toastFromError(err, 'حذف نشد');
     }
   }
 
@@ -187,8 +184,6 @@ export default function ShopArticlesPage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <FormDialog
           open={dialogOpen}

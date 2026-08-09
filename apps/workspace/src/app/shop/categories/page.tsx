@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { Plus, Tags } from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
@@ -28,14 +29,13 @@ export default function ShopCategoriesPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
     setCategories(await api.listShopCategories());
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   function reset() {
@@ -65,19 +65,23 @@ export default function ShopCategoriesPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       const body = {
         name,
         slug: slug || undefined,
         imageUrl: imageUrl || null,
       };
-      if (editingId) await api.updateShopCategory(editingId, body);
-      else await api.createShopCategory(body);
+      if (editingId) {
+        await api.updateShopCategory(editingId, body);
+        toastSuccess('دسته به‌روزرسانی شد');
+      } else {
+        await api.createShopCategory(body);
+        toastSuccess('دسته ایجاد شد');
+      }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
@@ -94,7 +98,6 @@ export default function ShopCategoriesPage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <FormDialog
           open={dialogOpen}
@@ -154,7 +157,7 @@ export default function ShopCategoriesPage() {
                         api
                           .deleteShopCategory(c.id)
                           .then(refresh)
-                          .catch((e) => setError(String(e)))
+                          .catch((e) => toastFromError(e))
                       }
                     >
                       حذف

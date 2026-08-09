@@ -1,5 +1,6 @@
 'use client';
 
+import { toastFromError } from '@/lib/notify';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -56,7 +57,6 @@ export default function AuditClient() {
   const [total, setTotal] = useState(0);
   const [detail, setDetail] = useState<AuditDetail | null>(null);
   const [adminDetail, setAdminDetail] = useState<AdminDetail | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const loadList = useCallback(async () => {
     if (tab === 'admin') {
@@ -80,7 +80,7 @@ export default function AuditClient() {
   }, [days, decision, conversationId, tab, action]);
 
   useEffect(() => {
-    loadList().catch((e) => setError(String(e)));
+    loadList().catch((e) => toastFromError(e));
   }, [loadList]);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function AuditClient() {
     api
       .getAuditTurn(selectedId)
       .then(setDetail)
-      .catch((e) => setError(String(e)));
+      .catch((e) => toastFromError(e));
   }, [selectedId, tab]);
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function AuditClient() {
     api
       .getAdminAudit(selectedAdminId)
       .then(setAdminDetail)
-      .catch((e) => setError(String(e)));
+      .catch((e) => toastFromError(e));
   }, [selectedAdminId, tab]);
 
   function setTab(next: Tab) {
@@ -134,7 +134,6 @@ export default function AuditClient() {
           title="ممیزی"
           description="نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت"
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <div className="flex flex-wrap gap-1.5">
           <Button

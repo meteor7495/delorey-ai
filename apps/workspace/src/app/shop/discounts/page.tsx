@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { Percent, Plus } from 'lucide-react';
 import type { Discount, ShopCategory, ShopProduct } from '@delorey/api-client';
@@ -28,8 +29,6 @@ export default function ShopDiscountsPage() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [products, setProducts] = useState<ShopProduct[]>([]);
   const [categories, setCategories] = useState<ShopCategory[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -60,7 +59,7 @@ export default function ShopDiscountsPage() {
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   function resetForm() {
@@ -125,8 +124,6 @@ export default function ShopDiscountsPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
 
     const body = {
       name,
@@ -150,25 +147,24 @@ export default function ShopDiscountsPage() {
     try {
       if (editingId) {
         await api.updateShopDiscount(editingId, body);
-        setMessage('تخفیف به‌روزرسانی شد');
+        toastSuccess('تخفیف به‌روزرسانی شد');
       } else {
         await api.createShopDiscount(body);
-        setMessage('تخفیف ایجاد شد');
+        toastSuccess('تخفیف ایجاد شد');
       }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
   async function onDelete(id: string) {
-    setError(null);
     try {
       await api.deleteShopDiscount(id);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'حذف نشد');
+      toastFromError(err, 'حذف نشد');
     }
   }
 
@@ -205,8 +201,6 @@ export default function ShopDiscountsPage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <FormDialog
           open={dialogOpen}

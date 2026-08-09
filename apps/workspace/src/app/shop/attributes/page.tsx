@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { SlidersHorizontal, Trash2, Plus } from 'lucide-react';
 import type { Attribute } from '@delorey/api-client';
@@ -35,8 +36,6 @@ const DISPLAY_LABELS: Record<string, string> = {
 
 export default function ShopAttributesPage() {
   const [attributes, setAttributes] = useState<Attribute[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -55,7 +54,7 @@ export default function ShopAttributesPage() {
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   function resetForm() {
@@ -89,38 +88,35 @@ export default function ShopAttributesPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     try {
       const body = { name, type, displayType, required, active };
       if (editingId) {
         await api.updateShopAttribute(editingId, body);
-        setMessage('ویژگی به‌روزرسانی شد');
+        toastSuccess('ویژگی به‌روزرسانی شد');
       } else {
         await api.createShopAttribute(body);
-        setMessage('ویژگی ایجاد شد');
+        toastSuccess('ویژگی ایجاد شد');
       }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
   async function onDelete(id: string) {
-    setError(null);
     try {
       await api.deleteShopAttribute(id);
+      toastSuccess('ویژگی حذف شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'حذف نشد');
+      toastFromError(err, 'حذف نشد');
     }
   }
 
   async function onAddValue(attributeId: string) {
     const draft = valueDrafts[attributeId];
     if (!draft?.value.trim()) return;
-    setError(null);
     try {
       await api.addShopAttributeValue(attributeId, {
         value: draft.value.trim(),
@@ -130,19 +126,20 @@ export default function ShopAttributesPage() {
         ...prev,
         [attributeId]: { value: '', colorHex: '' },
       }));
+      toastSuccess('مقدار افزوده شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'مقدار اضافه نشد');
+      toastFromError(err, 'مقدار اضافه نشد');
     }
   }
 
   async function onDeleteValue(valueId: string) {
-    setError(null);
     try {
       await api.deleteShopAttributeValue(valueId);
+      toastSuccess('مقدار حذف شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'مقدار حذف نشد');
+      toastFromError(err, 'مقدار حذف نشد');
     }
   }
 
@@ -159,8 +156,6 @@ export default function ShopAttributesPage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <FormDialog
           open={dialogOpen}

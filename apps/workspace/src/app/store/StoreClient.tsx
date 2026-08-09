@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -41,8 +42,6 @@ export default function StoreClient() {
   const [wooSiteUrl, setWooSiteUrl] = useState('');
   const [wooKey, setWooKey] = useState('');
   const [wooSecret, setWooSecret] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const isLivePlatform =
@@ -71,40 +70,33 @@ export default function StoreClient() {
       if (s?.platform === 'woocommerce' && s.shopDomain) {
         setWooSiteUrl(String(s.shopDomain));
       }
-      setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'خطا');
+      toastFromError(e, 'خطا');
     }
   }
 
   useEffect(() => {
     load();
     if (search.get('shopify') === 'connected') {
-      setMessage('Shopify متصل شد — همگام‌سازی را تازه کنید.');
+      toastSuccess('Shopify متصل شد — همگام‌سازی را تازه کنید.');
     }
   }, [search]);
 
   async function onShopifyToken(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       await api.connectShopify({
         shopDomain: shopDomain.trim(),
         accessToken: accessToken.trim(),
       });
       setAccessToken('');
-      setMessage(
+      toastSuccess(
         'Shopify متصل شد — همگام‌سازی در صف است؛ چند ثانیه بعد تازه کنید.',
       );
       await load();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'اتصال Shopify برقرار نشد. دامنه و توکن را بررسی کنید.',
-      );
+      toastFromError(err, 'اتصال Shopify برقرار نشد. دامنه و توکن را بررسی کنید.');
     } finally {
       setBusy(false);
     }
@@ -113,18 +105,13 @@ export default function StoreClient() {
   async function onShopifyOAuth(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
     try {
       const { authorizeUrl } = await api.startShopifyOAuth({
         shopDomain: shopDomain.trim(),
       });
       window.location.href = authorizeUrl;
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'شروع OAuth ممکن نیست. کلیدهای اپ Shopify را تنظیم کنید.',
-      );
+      toastFromError(err, 'شروع OAuth ممکن نیست. کلیدهای اپ Shopify را تنظیم کنید.');
       setBusy(false);
     }
   }
@@ -132,8 +119,6 @@ export default function StoreClient() {
   async function onWooConnect(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       await api.connectWooCommerce({
         siteUrl: wooSiteUrl.trim(),
@@ -142,16 +127,12 @@ export default function StoreClient() {
       });
       setWooKey('');
       setWooSecret('');
-      setMessage(
+      toastSuccess(
         'WooCommerce متصل شد — همگام‌سازی در صف است؛ چند ثانیه بعد تازه کنید.',
       );
       await load();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'اتصال WooCommerce برقرار نشد. آدرس و کلیدها را بررسی کنید.',
-      );
+      toastFromError(err, 'اتصال WooCommerce برقرار نشد. آدرس و کلیدها را بررسی کنید.');
     } finally {
       setBusy(false);
     }
@@ -174,8 +155,6 @@ export default function StoreClient() {
             </CardContent>
           </Card>
         ) : null}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <Card>
           <CardHeader>
@@ -217,21 +196,16 @@ export default function StoreClient() {
                   disabled={busy}
                   onClick={async () => {
                     setBusy(true);
-                    setError(null);
                     try {
                       const res = await api.syncStore();
-                      setMessage(
+                      toastSuccess(
                         res && (res as { queued?: boolean }).queued
                           ? 'همگام‌سازی در صف قرار گرفت — چند ثانیه بعد تازه کنید.'
                           : 'همگام‌سازی انجام شد.',
                       );
                       await load();
                     } catch (err) {
-                      setError(
-                        err instanceof Error
-                          ? err.message
-                          : 'همگام‌سازی ناموفق بود.',
-                      );
+                      toastFromError(err, 'همگام‌سازی ناموفق بود.');
                     } finally {
                       setBusy(false);
                     }
@@ -245,21 +219,16 @@ export default function StoreClient() {
                   disabled={busy}
                   onClick={async () => {
                     setBusy(true);
-                    setError(null);
                     try {
                       const res = await api.registerStoreWebhooks();
-                      setMessage(
+                      toastSuccess(
                         res?.webhookUrl
                           ? `Webhook ثبت شد: ${res.webhookUrl}`
                           : 'ثبت webhook انجام شد.',
                       );
                       await load();
                     } catch (err) {
-                      setError(
-                        err instanceof Error
-                          ? err.message
-                          : 'ثبت webhook ناموفق بود.',
-                      );
+                      toastFromError(err, 'ثبت webhook ناموفق بود.');
                     } finally {
                       setBusy(false);
                     }
@@ -401,13 +370,12 @@ export default function StoreClient() {
               disabled={busy}
               onClick={async () => {
                 setBusy(true);
-                setError(null);
                 try {
                   await api.mockConnectStore();
-                  setMessage('فروشگاه دمو همگام شد.');
+                  toastSuccess('فروشگاه دمو همگام شد.');
                   await load();
                 } catch (err) {
-                  setError(err instanceof Error ? err.message : 'خطا');
+                  toastFromError(err, 'خطا');
                 } finally {
                   setBusy(false);
                 }

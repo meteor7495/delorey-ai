@@ -1,5 +1,6 @@
 'use client';
 
+import { toastFromError } from '@/lib/notify';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
@@ -37,7 +38,6 @@ export default function ShopOverviewPage() {
       inventoryValue: number;
     };
   } | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -49,7 +49,7 @@ export default function ShopOverviewPage() {
           stats: d.stats,
         }),
       )
-      .catch((e) => setError(String(e)));
+      .catch((e) => toastFromError(e));
   }, []);
 
   return (
@@ -70,9 +70,6 @@ export default function ShopOverviewPage() {
           }
         />
 
-        {error && (
-          <p className="text-sm text-[var(--danger)]">{error}</p>
-        )}
 
         {data && (
           <>

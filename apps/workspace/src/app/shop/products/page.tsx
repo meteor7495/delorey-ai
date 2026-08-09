@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastWarning, toastFromError } from '@/lib/notify';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Package, Plus } from 'lucide-react';
 import type { ShopCategory, ShopProduct } from '@delorey/api-client';
@@ -25,8 +26,6 @@ export default function ShopProductsPage() {
   const [categories, setCategories] = useState<ShopCategory[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -78,7 +77,7 @@ export default function ShopProductsPage() {
   }, [q, statusFilter, categoryFilter, stockFilter, sort, page]);
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, [refresh]);
 
   function resetForm() {
@@ -115,7 +114,7 @@ export default function ShopProductsPage() {
 
   function openEdit(p: ShopProduct) {
     if (p.source !== 'native') {
-      setError('محصول همگام‌سازی‌شده فقط‌خواندنی است');
+      toastWarning('محصول همگام‌سازی‌شده فقط‌خواندنی است');
       return;
     }
     setEditingId(p.id);
@@ -144,8 +143,6 @@ export default function ShopProductsPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
 
     const editing = products.find((p) => p.id === editingId);
     const body: Record<string, unknown> = {
@@ -181,44 +178,41 @@ export default function ShopProductsPage() {
     try {
       if (editingId) {
         await api.updateShopProduct(editingId, body);
-        setMessage('محصول به‌روزرسانی شد');
+        toastSuccess('محصول به‌روزرسانی شد');
       } else {
         await api.createShopProduct(body);
-        setMessage('محصول بومی ایجاد شد');
+        toastSuccess('محصول بومی ایجاد شد');
       }
       closeDialog();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
   async function onDelete(id: string) {
-    setError(null);
     try {
       await api.deleteShopProduct(id);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'حذف نشد');
+      toastFromError(err, 'حذف نشد');
     }
   }
 
   async function runBulk(action: 'publish' | 'draft' | 'delete' | 'category') {
-    setError(null);
-    setMessage(null);
     try {
       const result = await api.bulkShopProducts({
         ids: selectedIds,
         action,
         categoryId: action === 'category' ? bulkCategoryId || null : undefined,
       });
-      setMessage(
+      toastSuccess(
         `${result.affected.toLocaleString('fa-IR')} محصول به‌روزرسانی شد`,
       );
       setSelectedIds([]);
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'عملیات گروهی انجام نشد');
+      toastFromError(err, 'عملیات گروهی انجام نشد');
     }
   }
 
@@ -244,8 +238,6 @@ export default function ShopProductsPage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <FormDialog
           open={dialogOpen}
@@ -432,7 +424,7 @@ export default function ShopProductsPage() {
               productId={variantsFor.id}
               basePrice={variantsFor.price}
               onChanged={() => {
-                refresh().catch((e) => setError(String(e)));
+                refresh().catch((e) => toastFromError(e));
               }}
             />
           )}

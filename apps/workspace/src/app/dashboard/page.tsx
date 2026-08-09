@@ -1,5 +1,6 @@
 'use client';
 
+import { toastFromError } from '@/lib/notify';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
@@ -46,7 +47,6 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [gaps, setGaps] = useState<Gaps | null>(null);
   const [revenue, setRevenue] = useState<Revenue | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -58,9 +58,8 @@ export default function DashboardPage() {
         setSummary(s);
         setGaps(g);
         setRevenue(r);
-        setError(null);
       })
-      .catch((e) => setError(String(e)));
+      .catch((e) => toastFromError(e));
   }, [days]);
 
   return (
@@ -85,7 +84,6 @@ export default function DashboardPage() {
           }
         />
 
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         {revenue && (
           <div className="grid gap-3 kpi-grid-responsive">

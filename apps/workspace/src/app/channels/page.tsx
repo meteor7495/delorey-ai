@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { aiStateLabel, channelStatusLabel, decisionLabel } from '@delorey/ui';
 import { AppShell } from '@/shared/AppShell';
@@ -33,8 +34,6 @@ export default function ChannelsPage() {
   const [baleToken, setBaleToken] = useState('');
   const [tgSimText, setTgSimText] = useState('SHIRT-001 موجوده؟');
   const [baleSimText, setBaleSimText] = useState('پیراهن لینن موجوده؟');
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   async function refresh() {
     const [w, t, b] = await Promise.all([
@@ -54,75 +53,57 @@ export default function ChannelsPage() {
 
   async function onConnectTelegram(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     try {
       const res = await api.connectTelegram(
         tgToken || '0000000000:DEV_MOCK_TOKEN_SLICE03_LOCAL',
       );
-      setMessage(
+      toastSuccess(
         `تلگرام متصل شد @${res.botUsername ?? 'bot'} · وب‌هوک آماده است`,
       );
       await refresh();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'اتصال تلگرام برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.',
-      );
+      toastFromError(err, 'اتصال تلگرام برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.');
     }
   }
 
   async function onConnectBale(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    setMessage(null);
     try {
       const res = await api.connectBale(
         baleToken || '0000000000:DEV_MOCK_TOKEN_SLICE04_BALE',
       );
-      setMessage(`بله متصل شد @${res.botUsername ?? 'bot'} · وب‌هوک آماده است`);
+      toastSuccess(`بله متصل شد @${res.botUsername ?? 'bot'} · وب‌هوک آماده است`);
       await refresh();
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'اتصال بله برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.',
-      );
+      toastFromError(err, 'اتصال بله برقرار نشد. توکن را بررسی کنید و دوباره تلاش کنید.');
     }
   }
 
   async function onSimulateTelegram(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       const res = await api.simulateTelegram({ text: tgSimText });
-      setMessage(
+      toastSuccess(
         res.duplicate
           ? 'تلگرام: به‌روزرسانی تکراری نادیده گرفته شد'
           : `تلگرام → ${decisionLabel(String(res.decision))}: ${res.reply?.slice(0, 120)}`,
       );
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'شبیه‌سازی تلگرام ناموفق بود.',
-      );
+      toastFromError(err, 'شبیه‌سازی تلگرام ناموفق بود.');
     }
   }
 
   async function onSimulateBale(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       const res = await api.simulateBale({ text: baleSimText });
-      setMessage(
+      toastSuccess(
         res.duplicate
           ? 'بله: به‌روزرسانی تکراری نادیده گرفته شد'
           : `بله → ${decisionLabel(String(res.decision))}: ${res.reply?.slice(0, 120)}`,
       );
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'شبیه‌سازی بله ناموفق بود.',
-      );
+      toastFromError(err, 'شبیه‌سازی بله ناموفق بود.');
     }
   }
 
@@ -133,8 +114,6 @@ export default function ChannelsPage() {
           title="کانال‌ها"
           description="وبسایت · تلگرام · بله — یک مغز (Runtime)"
         />
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <Card>
           <CardHeader>
@@ -167,8 +146,6 @@ export default function ChannelsPage() {
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
-                setError(null);
-                setMessage(null);
                 try {
                   const origins = originsText
                     .split(/[\n,]+/)
@@ -177,13 +154,9 @@ export default function ChannelsPage() {
                   const res = await api.updateWebsiteOrigins(origins);
                   setWebsite(res);
                   setOriginsText(res.allowedOrigins.join('\n'));
-                  setMessage('دامنه‌های مجاز ویجت ذخیره شد.');
+                  toastSuccess('دامنه‌های مجاز ویجت ذخیره شد.');
                 } catch (err) {
-                  setError(
-                    err instanceof Error
-                      ? err.message
-                      : 'ذخیره دامنه‌ها ناموفق بود.',
-                  );
+                  toastFromError(err, 'ذخیره دامنه‌ها ناموفق بود.');
                 }
               }}
               className="space-y-3 border-t border-[var(--border-color)] pt-4"

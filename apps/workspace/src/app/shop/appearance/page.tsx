@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { AppShell } from '@/shared/AppShell';
@@ -31,8 +32,6 @@ export default function ShopAppearancePage() {
   const [primaryColor, setPrimaryColor] = useState('#ef4056');
   const [secondaryColor, setSecondaryColor] = useState('#0c0c0c');
   const [logoUrl, setLogoUrl] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [bannerDialogOpen, setBannerDialogOpen] = useState(false);
 
   async function refresh() {
@@ -48,7 +47,7 @@ export default function ShopAppearancePage() {
   }
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, []);
 
   function resetBannerForm() {
@@ -70,23 +69,21 @@ export default function ShopAppearancePage() {
 
   async function saveColors(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       await api.updateShopSettings({
         primaryColor,
         secondaryColor,
         logoUrl: logoUrl || null,
       });
-      setMessage('ظاهر ذخیره شد');
+      toastSuccess('ظاهر ذخیره شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     }
   }
 
   async function addBanner(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     try {
       await api.createShopBanner({
         title,
@@ -96,9 +93,10 @@ export default function ShopAppearancePage() {
         active: true,
       });
       closeBannerDialog();
+      toastSuccess('بنر افزوده شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'بنر ذخیره نشد');
+      toastFromError(err, 'بنر ذخیره نشد');
     }
   }
 
@@ -115,8 +113,6 @@ export default function ShopAppearancePage() {
             </Button>
           }
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         <Card>
           <CardHeader>
@@ -210,8 +206,11 @@ export default function ShopAppearancePage() {
                   onClick={() =>
                     api
                       .deleteShopBanner(b.id)
-                      .then(refresh)
-                      .catch((e) => setError(String(e)))
+                      .then(() => {
+                        toastSuccess('بنر حذف شد');
+                        return refresh();
+                      })
+                      .catch((e) => toastFromError(e))
                   }
                 >
                   حذف

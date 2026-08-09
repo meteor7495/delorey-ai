@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastWarning, toastFromError } from '@/lib/notify';
 import { useCallback, useEffect, useState } from 'react';
 import { Wand2 } from 'lucide-react';
 import type { Attribute, ProductVariant } from '@delorey/api-client';
@@ -31,8 +32,6 @@ export function VariantManager({
   const [selected, setSelected] = useState<Record<string, string[]>>({});
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(async () => {
@@ -74,7 +73,7 @@ export function VariantManager({
   }, [productId]);
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, [refresh]);
 
   function toggleAttribute(attributeId: string) {
@@ -99,13 +98,12 @@ export function VariantManager({
 
   async function saveAttributes() {
     setBusy(true);
-    setError(null);
     try {
       await api.setProductAttributes(productId, assigned);
-      setMessage('ویژگی‌های محصول ذخیره شد');
+      toastSuccess('ویژگی‌های محصول ذخیره شد');
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره نشد');
+      toastFromError(err, 'ذخیره نشد');
     } finally {
       setBusy(false);
     }
@@ -113,8 +111,6 @@ export function VariantManager({
 
   async function generate() {
     setBusy(true);
-    setError(null);
-    setMessage(null);
     try {
       const selections = assigned
         .map((attributeId) => ({
@@ -124,20 +120,20 @@ export function VariantManager({
         .filter((s) => s.valueIds.length > 0);
 
       if (selections.length === 0) {
-        setError('حداقل یک مقدار ویژگی انتخاب کنید');
+        toastWarning('حداقل یک مقدار ویژگی انتخاب کنید');
         return;
       }
 
       const result = await api.generateProductVariants(productId, {
         selections,
       });
-      setMessage(
+      toastSuccess(
         `${result.created.toLocaleString('fa-IR')} تنوع ساخته شد، ${result.unchanged.toLocaleString('fa-IR')} تنوع بدون تغییر`,
       );
       await refresh();
       onChanged?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'تولید تنوع انجام نشد');
+      toastFromError(err, 'تولید تنوع انجام نشد');
     } finally {
       setBusy(false);
     }
@@ -145,7 +141,6 @@ export function VariantManager({
 
   async function saveVariants() {
     setBusy(true);
-    setError(null);
     try {
       const payload = variants.map((variant) => {
         const draft = drafts[variant.id];
@@ -157,31 +152,28 @@ export function VariantManager({
         };
       });
       await api.bulkUpdateProductVariants(productId, payload);
-      setMessage('تنوع‌ها ذخیره شد');
+      toastSuccess('تنوع‌ها ذخیره شد');
       await refresh();
       onChanged?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'ذخیره تنوع‌ها انجام نشد');
+      toastFromError(err, 'ذخیره تنوع‌ها انجام نشد');
     } finally {
       setBusy(false);
     }
   }
 
   async function removeVariant(variantId: string) {
-    setError(null);
     try {
       await api.deleteProductVariant(variantId);
       await refresh();
       onChanged?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'حذف نشد');
+      toastFromError(err, 'حذف نشد');
     }
   }
 
   return (
     <div className="space-y-4 rounded-md border border-[var(--border-color)] bg-[var(--surface-2)] p-4">
-      {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-      {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
       {attributes.length === 0 ? (
         <p className="text-sm text-[var(--text-3)]">

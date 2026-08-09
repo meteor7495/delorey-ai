@@ -1,5 +1,6 @@
 'use client';
 
+import { toastFromError } from '@/lib/notify';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Loader2, Sparkles } from 'lucide-react';
@@ -15,13 +16,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('demo1234');
   const [workspaceName, setWorkspaceName] = useState('فروشگاه من');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
       const res =
         mode === 'login'
@@ -30,7 +29,7 @@ export default function LoginPage() {
       setToken(res.token);
       router.push('/home');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'خطا');
+      toastFromError(err, 'خطا');
     } finally {
       setLoading(false);
     }
@@ -156,10 +155,6 @@ export default function LoginPage() {
                   style={{ background: 'rgba(255,255,255,0.05)' }}
                 />
               </div>
-            )}
-
-            {error && (
-              <p className="text-[12px] text-[var(--danger)]">{error}</p>
             )}
 
             <Button

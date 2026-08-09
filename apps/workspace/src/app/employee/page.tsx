@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
@@ -19,9 +20,6 @@ export default function EmployeePage() {
   const [discountCap, setDiscountCap] = useState(10);
   const [onBlockedTopic, setOnBlockedTopic] = useState(true);
   const [onDiscountCap, setOnDiscountCap] = useState(true);
-  const [saved, setSaved] = useState(false);
-  const [guardSaved, setGuardSaved] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     api
@@ -40,38 +38,44 @@ export default function EmployeePage() {
           setOnDiscountCap(g.escalationRules?.onDiscountAboveCap !== false);
         }
       })
-      .catch((err) => setError(String(err)));
+      .catch((err) => toastFromError(err));
   }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
-    await api.updateEmployee({
-      name,
-      tone,
-      status,
-      skills: { order_status: orderStatus, recommend },
-    });
-    setSaved(true);
+    try {
+      await api.updateEmployee({
+        name,
+        tone,
+        status,
+        skills: { order_status: orderStatus, recommend },
+      });
+      toastSuccess('ذخیره شد');
+    } catch (err) {
+      toastFromError(err, 'ذخیره نشد');
+    }
   }
 
   async function onGuardrailsSubmit(e: FormEvent) {
     e.preventDefault();
-    setError(null);
     const blockedTopics = blockedTopicsText
       .split(/[\n,]+/)
       .map((t) => t.trim())
       .filter(Boolean);
-    await api.updateEmployeeGuardrails({
-      blockedTopics,
-      discountCapPercent: Number(discountCap),
-      escalationRules: {
-        onBlockedTopic,
-        onDiscountAboveCap: onDiscountCap,
-        onCustomerRequest: true,
-      },
-    });
-    setGuardSaved(true);
+    try {
+      await api.updateEmployeeGuardrails({
+        blockedTopics,
+        discountCapPercent: Number(discountCap),
+        escalationRules: {
+          onBlockedTopic,
+          onDiscountAboveCap: onDiscountCap,
+          onCustomerRequest: true,
+        },
+      });
+      toastSuccess('محدودیت‌ها ذخیره شد');
+    } catch (err) {
+      toastFromError(err, 'ذخیره نشد');
+    }
   }
 
   return (
@@ -81,7 +85,6 @@ export default function EmployeePage() {
           title="کارمند فروش"
           description="این تنظیمات در Runtime اعمال می‌شوند — تزئینی نیستند."
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
 
         <Card>
           <CardHeader>
@@ -127,9 +130,6 @@ export default function EmployeePage() {
               </label>
               <div className="flex items-center gap-3">
                 <Button type="submit">ذخیره</Button>
-                {saved && (
-                  <span className="text-sm text-[var(--success)]">ذخیره شد.</span>
-                )}
               </div>
             </form>
           </CardContent>
@@ -186,11 +186,6 @@ export default function EmployeePage() {
               </p>
               <div className="flex items-center gap-3">
                 <Button type="submit">ذخیره محدودیت‌ها</Button>
-                {guardSaved && (
-                  <span className="text-sm text-[var(--success)]">
-                    محدودیت‌ها ذخیره شد.
-                  </span>
-                )}
               </div>
             </form>
           </CardContent>

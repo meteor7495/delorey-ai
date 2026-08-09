@@ -1,5 +1,6 @@
 'use client';
 
+import { toastSuccess, toastWarning, toastFromError } from '@/lib/notify';
 import { useCallback, useEffect, useState } from 'react';
 import { Boxes, AlertTriangle, PackageX, Wallet } from 'lucide-react';
 import type {
@@ -53,8 +54,6 @@ export default function ShopInventoryPage() {
   const [page, setPage] = useState(0);
   const [q, setQ] = useState('');
   const [state, setState] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [historyFor, setHistoryFor] = useState<string | null>(null);
@@ -76,7 +75,7 @@ export default function ShopInventoryPage() {
   }, [q, state, page]);
 
   useEffect(() => {
-    refresh().catch((e) => setError(String(e)));
+    refresh().catch((e) => toastFromError(e));
   }, [refresh]);
 
   async function onAdjust(level: InventoryLevel, mode: 'set' | 'delta') {
@@ -84,11 +83,9 @@ export default function ShopInventoryPage() {
     if (raw === undefined || raw === '') return;
     const amount = Number(raw);
     if (Number.isNaN(amount)) {
-      setError('مقدار وارد شده عدد نیست');
+      toastWarning('مقدار وارد شده عدد نیست');
       return;
     }
-    setError(null);
-    setMessage(null);
     try {
       await api.adjustShopInventory({
         inventoryLevelId: level.id,
@@ -97,11 +94,11 @@ export default function ShopInventoryPage() {
         reason: 'ویرایش از پنل موجودی',
       });
       setDrafts((prev) => ({ ...prev, [level.id]: '' }));
-      setMessage('موجودی به‌روزرسانی شد');
+      toastSuccess('موجودی به‌روزرسانی شد');
       await refresh();
       if (historyFor === level.id) await loadHistory(level.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'به‌روزرسانی نشد');
+      toastFromError(err, 'به‌روزرسانی نشد');
     }
   }
 
@@ -123,7 +120,7 @@ export default function ShopInventoryPage() {
     try {
       await loadHistory(inventoryLevelId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'تاریخچه بارگذاری نشد');
+      toastFromError(err, 'تاریخچه بارگذاری نشد');
     }
   }
 
@@ -136,8 +133,6 @@ export default function ShopInventoryPage() {
           title="موجودی"
           description="موجودی محصولات و تنوع‌ها با تاریخچه کامل تغییرات"
         />
-        {error && <p className="text-sm text-[var(--danger)]">{error}</p>}
-        {message && <p className="text-sm text-[var(--success)]">{message}</p>}
 
         {summary && (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
