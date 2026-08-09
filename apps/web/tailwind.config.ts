@@ -19,17 +19,17 @@ module.exports = {
       },
       keyframes: {
         fadeUp: {
-          from: { opacity: '0', transform: 'translateY(16px)' },
+          from: { opacity: '0', transform: 'translateY(18px)' },
           to: { opacity: '1', transform: 'none' },
         },
         drift: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '0%, 100%': { transform: 'translate3d(0, 0, 0)' },
+          '50%': { transform: 'translate3d(0, -14px, 0)' },
         },
       },
       animation: {
-        fadeUp: 'fadeUp 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both',
-        drift: 'drift 7s ease-in-out infinite',
+        fadeUp: 'fadeUp 0.75s cubic-bezier(0.22, 0.7, 0.28, 1) both',
+        drift: 'drift 8s ease-in-out infinite',
       },
     },
   },
