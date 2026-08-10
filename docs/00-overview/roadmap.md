@@ -7,37 +7,37 @@
 | **Version** | 1.0 |
 | **Status** | Active |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 20, 2026 |
-| **Related Documents** | [Vision](./vision.md) · [Lean Canvas](./lean-canvas.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Vision](./vision.md) · [Product Positioning](./product-positioning.md) · [Lean Canvas](./lean-canvas.md) |
 
 ### Phase Summary
 
 | Phase | Name | Timeline (target) | Outcome |
 |-------|------|-------------------|---------|
 | **Phase 0** | Discovery | Weeks 1–4 | Problem validated; design partners committed |
-| **Phase 1** | MVP | Weeks 5–14 | Core product live with first paying merchants |
+| **Phase 1** | MVP | Weeks 5–14 | Core shop + channels live with first paying merchants |
 | **Phase 2** | Beta | Weeks 15–26 | Self-serve onboarding; product-market fit signal |
-| **Phase 3** | Growth | Months 7–18 | Public launch; channel and automation expansion |
+| **Phase 3** | Growth | Months 7–18 | Public launch; channel and AI add-on expansion |
 | **Phase 4** | Platform | Months 18–36 | API, ecosystem, and scale infrastructure |
 
 ---
 
 ## Product Strategy
 
-DeloRey AI is built as a **commerce operating layer**, not a chatbot builder. The roadmap follows a strict sequence: prove the problem, prove the agent works on real revenue, prove merchants will pay, then expand channels and platform capabilities.
+DeloRey is built as a **unified commerce platform** (native storefront + ops), not a chatbot builder and not an AI-only wrapper. The roadmap follows: prove the shop works, prove multi-channel orders stay coherent, prove merchants pay for the platform, then expand AI add-ons and channels.
 
 ### Roadmap philosophy
 
-1. **Revenue before reach.** Every phase must demonstrate measurable commerce outcomes — conversion lift, cart recovery, or support hours saved — before we add channels or features.
-2. **Depth before breadth.** One storefront integration, one agent type, and three channels (web, Telegram, Bale) must work reliably before Instagram, WhatsApp, or multi-agent orchestration.
-3. **Context over cleverness.** Features that deepen commerce data integration (catalog, orders, policies) outrank features that add conversational flair without business grounding.
-4. **Merchant trust is the product.** Guardrails, escalation, audit logs, and human override ship with MVP — not as enterprise add-ons.
-5. **Ship to learn, not to impress.** Phases have explicit exit criteria and kill signals. We expand scope only when the current phase's metrics are met.
+1. **Shop before automation.** Native storefront + order hub must create value with AI off.
+2. **Unification before reach.** One catalog and order book across website + Telegram + Bale before adding more surfaces casually.
+3. **Depth before breadth.** Complete storefront gaps (variants, discounts, inventory, payment path) before theme-marketplace theater.
+4. **Merchant trust is the product.** When AI is sold, guardrails, escalation, and audit ship with it.
+5. **Ship to learn, not to impress.** Phases have exit criteria; expand only when metrics are met.
 
 ### Strategic arc
 
 ```
-Discovery → Prove agent works → Prove merchants pay → Public launch & expand → Platform & ecosystem
+Discovery → Prove shop + orders → Prove merchants pay → AI add-on scale → Platform & ecosystem
 ```
 
 ---

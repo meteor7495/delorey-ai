@@ -7,12 +7,12 @@
 | **Version** | 0.1 |
 | **Status** | Draft — execution handbook for reaching Product-Market Fit; not a marketing plan and not a sales playbook |
 | **Owner** | Founder / Growth |
-| **Last Updated** | July 22, 2026 |
-| **Related Documents** | [Market Research](./market-research.md) · [Pricing Strategy](./pricing-strategy.md) · [Business Plan](./business-plan.md) · [Product Moat](./product-moat.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Vision](../00-overview/vision.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Market Research](./market-research.md) · [Pricing Strategy](./pricing-strategy.md) · [Business Plan](./business-plan.md) · [Product Moat](./product-moat.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
 
-**Purpose of this document:** Define exactly how DeloRey AI finds its first customers, validates Product-Market Fit (PMF), converts pilots into paying merchants, and only then scales. Every recommendation prioritizes **learning over growth**. Where evidence does not yet exist, claims are marked **Hypothesis**.
+**Purpose of this document:** Define exactly how DeloRey finds its first customers, validates Product-Market Fit (PMF), converts pilots into paying merchants, and only then scales. Every recommendation prioritizes **learning over growth**. Where evidence does not yet exist, claims are marked **Hypothesis**.
 
-**Product under study:** DeloRey AI — AI Commerce Platform (SaaS), primary product **AI Sales Employee**. Deployment: Cloud SaaS. Primary geography: Iran. Target: small and medium online shops. Verticals: Fashion, Cosmetics, Accessories, Electronics, Home Products, Gift Shops. Primary channels: Website, Telegram, Bale. Current stage: **Pre-MVP**.
+**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified order ops across Website, Telegram, and Bale. **Add-on:** AI Sales Employee. Deployment: Cloud SaaS. Primary geography: Iran. Target: small and medium online shops. Current stage: **Pre-MVP / early build**. See [Product Positioning](../00-overview/product-positioning.md).
 
 **Evidence discipline (same taxonomy as Market Research):**
 
@@ -240,15 +240,16 @@ Breadth (more countries, Instagram, every vertical, paid ads) before depth (one 
 
 ## Current positioning
 
-**DeloRey AI is an AI Sales Employee for online shops** — a commerce-grounded agent that sells and supports on Website, Telegram, and Bale using live catalog, inventory, pricing, and policy data, with measurable revenue impact.
+**DeloRey is the unified shop platform for Iranian online merchants** — native storefront (سایت‌ساز) + one Workspace for catalog and orders across Website, Telegram, and Bale — so the manager is not lost across tools. **AI Sales Employee is an optional add-on** grounded in that same commerce data.
 
-**Explicit non-positioning:** Not a CRM. Not a website builder. Not a helpdesk. Not a chatbot builder.
+**Explicit non-positioning:** Not a CRM. Not a helpdesk. Not a chatbot builder. Not a free-form drag-drop website IDE / theme marketplace.
 
 ## Category
 
 | Preferred category language | Avoid |
 |----------------------------|-------|
-| AI Commerce Platform / AI Sales Employee | Chatbot, GPT wrapper, inbox tool |
+| Commerce platform / سایت‌ساز + omnichannel ops | Chatbot, GPT wrapper, “just AI” |
+| Optional AI Sales Employee add-on | AI-only product with no shop |
 | Commerce operating layer (internal / later) | Marketing automation suite |
 
 Category creation is expensive. Early GTM uses language merchants already understand: **“AI employee that answers customers and helps close sales.”**
@@ -285,7 +286,7 @@ Doing nothing (human founder inbox) remains the **primary competitor**.
 
 ## Unique positioning statement
 
-> For Iranian online shops in question-heavy categories, DeloRey AI is the **AI Sales Employee** that answers customers on Website, Telegram, and Bale using your real catalog and orders — so you recover sales after hours without risking a wrong answer that damages the brand.
+> For Iranian online shops, DeloRey is the **سایت‌ساز and ops hub** where website + Telegram + Bale sales stay in one catalog and order book — so the manager is not confused. When you need it, add an **AI Sales Employee** on the same data to answer customers without risking brand-damaging wrong answers.
 
 ---
 

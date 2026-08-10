@@ -9,20 +9,20 @@
 | **Version** | 0.2 |
 | **Status** | Draft — pending Founder, CTO, and Product review |
 | **Owner** | Founder |
-| **Last Updated** | July 20, 2026 |
-| **Related Documents** | [Vision](../00-overview/vision.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](./product-moat.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](./product-moat.md) |
 
 ---
 
 # Executive Summary
 
-DeloRey AI is an **AI Commerce Operating System (Commerce OS)** — an operating layer for modern businesses that deploy **AI Employees** to sell, support, and run day-to-day operations across the channels customers already use. It is not a website builder, CRM, helpdesk, or chatbot platform. It is the system that connects live catalog, order, policy, and business knowledge to every conversation and workflow, so each reply and action reflects what the business actually sells and promises.
+DeloRey is a **unified commerce platform** for Iranian online shops: a **native storefront (سایت‌ساز)** plus multi-channel selling and **one Workspace** so orders and catalog stay coherent whether the buyer came from the website, Telegram, Bale, or later Instagram. It is not a CRM, helpdesk, chatbot builder, or free-form page-builder IDE. The **AI Sales Employee** is an **optional add-on** sold to merchants who want automation on top of that same commerce truth — not the only path to product value.
 
-**Why it exists:** Iranian online shops — fashion, cosmetics, accessories, electronics, home goods, and small D2C brands — lose revenue when pre-purchase questions go unanswered on the website, Telegram, or Bale. Founders and small teams cannot staff 24/7 coverage across fragmented inboxes. Generic chatbots scale but hallucinate product details and cannot act on orders. Existing live chat and helpdesk tools treat conversations as support tickets, not commerce events. DeloRey AI closes that gap by grounding AI Employees in real commerce data and measuring impact in conversions recovered, support hours saved, and objections surfaced — not message volume alone.
+**Why it exists:** SMB shop managers are lost across tools — site here, messaging elsewhere, orders in spreadsheets. They lose revenue to silence and fragmentation. DeloRey closes that gap with one shop + ops hub, and offers grounded AI when the merchant needs coverage without hiring a night shift.
 
-**Who it serves:** SMB online merchants with active storefronts (Shopify, WooCommerce, or comparable platforms), 50–5,000 SKUs, and at least one messaging channel beyond the website. The initial ideal customer is a growth-stage D2C shop doing meaningful online volume but without a dedicated omnichannel support team. The buyer is typically the founder or head of e-commerce; daily users are support leads and store managers who monitor Telegram, Bale, and web chat. Online commerce is the primary wedge; the same AI Employee architecture is designed to expand later into service businesses and enterprise companies.
+**Who it serves:** SMB online merchants (fashion, cosmetics, accessories, electronics, home, gifts / D2C) who need a coherent place to sell online and via messaging. Buyer: founder or head of e-commerce. Daily users: store managers and support leads.
 
-**Why now:** Frontier language models can hold natural commerce dialogues in Persian and English, but accuracy without business context remains unacceptable for product and policy questions. Structured commerce integrations, channel APIs (Telegram, Bale), and a composable AI Employee Runtime (LLM → Context Engine → Skills → Guardrails) have matured enough to build a Commerce OS — not a generic FAQ bot. Iranian shoppers already buy through messaging apps; merchants already feel the pain of slow replies. Global incumbents under-invest in Bale, Telegram-first workflows, and Persian-language commerce grounding. The window is open for a regional-first Commerce OS to prove ROI with online SMBs, then expand across industries and internationally with the same architecture.
+**Why now:** Messaging-first buying is already how Iranian shoppers behave; native storefront + channel adapters can meet them without five vendors. AI quality is good enough to *optionally* automate answers — but only when grounded in the same catalog the shop already runs in DeloRey. See [Product Positioning](../00-overview/product-positioning.md).
 
 ---
 

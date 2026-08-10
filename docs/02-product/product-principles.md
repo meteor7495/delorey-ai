@@ -7,18 +7,20 @@
 | **Version** | 0.1 |
 | **Status** | Active — mandatory reference for all product decisions |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 20, 2026 |
-| **Related Documents** | [Vision](../00-overview/vision.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](../01-business/product-moat.md) · [Business Plan](../01-business/business-plan.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Product Moat](../01-business/product-moat.md) · [Business Plan](../01-business/business-plan.md) |
 
 ---
 
 ## Executive Summary
 
-Product Principles are the constitution of DeloRey AI. They define what the product is allowed to become, what it must refuse to become, and how Product, Design, and Engineering decide when those two collide.
+Product Principles are the constitution of DeloRey. They define what the product is allowed to become, what it must refuse to become, and how Product, Design, and Engineering decide when those two collide.
+
+**Identity reminder:** Primary product is **native storefront + unified ops**; **AI Sales Employee is an optional add-on**. See [Product Positioning](../00-overview/product-positioning.md).
 
 This document is **not** a PRD. A PRD describes a specific feature: problem, scope, acceptance criteria, edge cases. Principles sit above PRDs. They are the filter every PRD must pass before work starts. If a feature violates a principle, the feature is redesigned or rejected — even if it looks impressive in a demo, even if a competitor ships it, even if a merchant asks for it once.
 
-This document is **not** a roadmap. A roadmap sequences delivery. Principles do not care about quarter. They care about integrity: whether the next change strengthens an AI Employee platform for online commerce, or dilutes it into something else.
+This document is **not** a roadmap. A roadmap sequences delivery. Principles do not care about quarter. They care about integrity: whether the next change strengthens a coherent commerce platform for online shops (with optional AI), or dilutes it into something else.
 
 ### How they guide the organization
 
@@ -44,7 +46,7 @@ DeloRey AI is an **AI Commerce Operating System**: a multi-tenant, API-first, AI
 | **Chatbot builder** | Generic bot trees and prompt playgrounds optimize for “conversation coverage,” not commerce outcomes. Merchants who need a toy can find one elsewhere. |
 | **CRM** | We store customer context required for conversations and attribution. We do not become the system of record for pipelines, deals, and sales stages. |
 | **Helpdesk** | Tickets are a failure mode and an escalation surface — not the product center of gravity. Conversations are commerce events, not queue items. |
-| **Website builder (drag-drop page IDE)** | Free-form page builders are out. We ship a **native Digikala-like storefront** with CMS blocks (catalog, banners, COD) plus Shopify/Woo connectors — not a theme marketplace IDE. |
+| **Website builder (drag-drop page IDE)** | Free-form page builders and theme marketplaces are out. We **do** ship a **native Digikala-like storefront (سایت‌ساز)** with CMS — that is the primary product. Shopify/Woo remain optional connectors. |
 | **Marketing automation monster** | Campaign blasts, drip sequences, and audience builders are out of scope until they are clearly subordinate to AI Employee outcomes. |
 | **Everything app** | Breadth without depth produces a wrapper. We deepen commerce conversation operations before we expand category. |
 

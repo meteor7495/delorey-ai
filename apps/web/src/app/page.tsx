@@ -16,7 +16,7 @@ function PlanCard({ plan }: { plan: Plan }) {
         <span className="mb-4 inline-flex w-fit rounded-lg bg-teal-bright px-2.5 py-1 text-[11px] font-black text-ink">
           {plan.category === 'site'
             ? 'پیشنهادی برای اکثر فروشگاه‌ها'
-            : 'هستهٔ محصول DeloRey'}
+            : 'آفر اختیاری'}
         </span>
       ) : (
         <span className="mb-4 inline-flex h-[26px]" aria-hidden />
@@ -69,43 +69,43 @@ function PlanCard({ plan }: { plan: Plan }) {
 
 const FEATURES = [
   {
-    title: 'فروشگاه بومی',
-    body: 'ویترین عمومی، سبد، پرداخت در محل و پیگیری سفارش — بدون ابزارهای پراکنده.',
+    title: 'سایت‌ساز بومی',
+    body: 'ویترین عمومی، سبد، پرداخت در محل و پیگیری سفارش — هستهٔ محصول برای فروشگاه شما.',
   },
   {
-    title: 'کارمند فروش AI',
-    body: 'پاسخ grounded روی موجودی و قیمت واقعی؛ وب، تلگرام و بله با یک مغز مشترک.',
+    title: 'سفارش از همه کانال‌ها',
+    body: 'وب، تلگرام و بله روی یک کاتالوگ و یک دفتر سفارش؛ مدیر فروشگاه سردرگم نمی‌شود.',
   },
   {
-    title: 'اینباکس یکپارچه',
-    body: 'گفتگوهای همه کانال‌ها در یک جا؛ تحویل به انسان وقتی لازم است.',
+    title: 'Workspace یکپارچه',
+    body: 'محصول، موجودی، ظاهر فروشگاه و سفارش‌ها زیر یک سقف برای مدیریت روزانه.',
   },
   {
-    title: 'دانش و گاردریل',
-    body: 'سیاست‌ها و سقف‌ها را شما تعریف می‌کنید؛ AI داخل همان مرزها کار می‌کند.',
+    title: 'کارمند فروش AI (اختیاری)',
+    body: 'اگر بخواهید، پاسخ grounded روی موجودی و قیمت واقعی — روی همان دادهٔ فروشگاه.',
   },
   {
-    title: 'همگام‌سازی کاتالوگ',
-    body: 'قیمت و موجودی از فروشگاه شما می‌آید تا پاسخ‌ها حدس نباشند.',
+    title: 'اینباکس و تحویل به انسان',
+    body: 'گفتگوهای کانال‌ها در یک جا؛ وقتی لازم است، همکار انسانی ادامه می‌دهد.',
   },
   {
-    title: 'انتساب و آنالیتیکس',
-    body: 'ببینید گفتگوها چطور به سفارش و صرفه‌جویی زمان پشتیبانی وصل می‌شوند.',
+    title: 'قابل پیگیری',
+    body: 'از ثبت سفارش تا وضعیت ارسال — برای مشتری و برای تیم فروشگاه شفاف است.',
   },
 ] as const;
 
 const ABOUT_POINTS = [
   {
+    title: 'تمرکز ما',
+    body: 'یک محصول یکپارچه برای فروش آنلاین — نه پنج ابزار جدا که مدیر را گیج کند.',
+  },
+  {
     title: 'مخاطب ما',
-    body: 'فروشگاه‌های مد، آرایشی، الکترونیک و برندهای D2C که کانال پیام‌رسان دارند.',
+    body: 'فروشگاه‌های مد، آرایشی، الکترونیک و برندهای D2C با فروش وب و پیام‌رسان.',
   },
   {
-    title: 'معیار موفقیت',
-    body: 'تبدیل گفتگو به درآمد و کاهش ساعت پشتیبانی — نه فقط حجم پیام.',
-  },
-  {
-    title: 'کنترل شما',
-    body: 'گاردریل و تحویل به انسان بخشی از محصول است؛ نه آپشن لوکس.',
+    title: 'AI وقتی لازم است',
+    body: 'کارمند فروش هوش مصنوعی آفر اختیاری است؛ اول فروشگاه شما کامل کار می‌کند.',
   },
 ] as const;
 
@@ -147,14 +147,15 @@ export default function LandingPage() {
               className="animate-fadeUp text-[2rem] sm:text-5xl lg:text-[3.35rem] font-black leading-[1.2] tracking-tight"
               style={{ animationDelay: '80ms' }}
             >
-              کارمند فروش هوش مصنوعی برای فروشگاه آنلاین شما
+              سایت‌ساز یکپارچه برای فروشگاه آنلاین شما
             </h1>
             <p
               className="animate-fadeUp mt-5 max-w-lg text-base sm:text-lg text-white/68 leading-8"
               style={{ animationDelay: '160ms' }}
             >
-              ویترین بومی، کانال‌های وب و پیام‌رسان، و پاسخ دقیق روی کاتالوگ
-              واقعی — همه در یک پلتفرم.
+              فروش از وب، تلگرام و بله روی یک کاتالوگ و یک Workspace — تا مدیر
+              فروشگاه سردرگم نشود. کارمند فروش AI را هم اگر لازم داشتید اضافه
+              می‌کنید.
             </p>
             <div
               className="animate-fadeUp mt-8 flex flex-wrap gap-3"
@@ -218,12 +219,13 @@ export default function LandingPage() {
           <div className="max-w-3xl">
             <p className="eyebrow mb-4">کی هستیم</p>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-snug mb-5">
-              لایه عملیاتی فروش هوشمند برای کسب‌وکارهای آنلاین ایران
+              یک محصول برای فروش و مدیریت — نه چند ابزار پراکنده
             </h2>
             <p className="text-ink/65 leading-8 text-base sm:text-lg">
-              DeloRey یک Commerce OS است — نه چت‌بات‌ساز و نه تیکتینگ. کارمند
-              فروش AI را به کاتالوگ، سفارش و سیاست‌های واقعی فروشگاه وصل می‌کنیم
-              تا هر گفتگو روی وب، تلگرام یا بله فرصت فروش باشد، نه پیام بی‌پاسخ.
+              DeloRey اول یک سایت‌ساز و عملیات فروش یکپارچه است: ویترین بومی،
+              سفارش‌ها و کانال‌ها در یک Workspace. کارمند فروش AI را روی همین
+              داده، وقتی نیاز دارید، به‌عنوان آفر جدا می‌فروشیم — تا تمرکز روی
+              یکپارچگی بماند و مدیر فروشگاه گیج نشود.
             </p>
           </div>
 
@@ -257,11 +259,11 @@ export default function LandingPage() {
           <div className="lg:sticky lg:top-24 lg:self-start">
             <p className="eyebrow mb-4">امکانات</p>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight leading-snug mb-4">
-              یک پکیج کامل برای فروش
+              همه چیز برای فروش یکپارچه
             </h2>
             <p className="text-ink/60 leading-8 max-w-md">
-              فروشگاه، کانال‌ها، کارمند AI و فضای کاری — همه روی همان دادهٔ
-              commerce.
+              سایت‌ساز، سفارش‌ها و کانال‌ها هستهٔ محصول‌اند؛ کارمند AI آفر
+              اختیاری روی همان داده است.
             </p>
             <Link
               href={`/request?plan=${DEFAULT_PLAN_ID}`}
@@ -365,11 +367,11 @@ export default function LandingPage() {
           >
             <div className="relative max-w-xl">
               <h2 className="text-3xl sm:text-[2.15rem] font-black leading-snug">
-                آماده‌اید کارمند فروش AI را استخدام کنید؟
+                آماده‌اید فروشگاه را یکجا مدیریت کنید؟
               </h2>
               <p className="mt-3 text-white/70 leading-8">
-                درخواست بدهید؛ حساب ساخته می‌شود. پرداخت را تکمیل کنید و وارد
-                Workspace شوید.
+                با سایت‌ساز شروع کنید؛ اگر به کارمند فروش AI نیاز داشتید، بعداً
+                با هم هماهنگ می‌کنیم.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -393,7 +395,7 @@ export default function LandingPage() {
             <p className="font-display text-base font-bold text-ink/75">
               DeloRey AI
             </p>
-            <p className="mt-1">SaaS برای فروشگاه‌های آنلاین ایران</p>
+            <p className="mt-1">سایت‌ساز و فروش یکپارچه برای فروشگاه‌های ایران</p>
           </div>
           <nav className="flex flex-wrap gap-x-5 gap-y-2 font-bold">
             <a href="/#about" className="hover:text-teal transition-colors">

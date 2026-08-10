@@ -6,11 +6,11 @@
 |-------|-------|
 | **Version** | 0.1 |
 | **Status** | Active — Persian-first MVP voice |
-| **Last Updated** | July 25, 2026 |
-| **Parent** | [Product Vision](../02-product/product-vision.md) · [UX Foundation](./ux-foundation.md) |
+| **Last Updated** | August 10, 2026 |
+| **Parent** | [Product Vision](../02-product/product-vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [UX Foundation](./ux-foundation.md) |
 | **Related** | [Workspace Screens](./workspace-screens.md) · [Widget UX](./widget-ux.md) |
 
-**Job:** One voice for merchant Workspace and shopper Widget system messages. Hire an Employee — don’t “build a bot.”
+**Job:** One voice for merchant Workspace, storefront, and shopper Widget. Run a coherent shop first; hire an AI Employee when needed — don’t “build a bot.”
 
 ---
 
@@ -18,10 +18,11 @@
 
 | Prefer | Avoid |
 |--------|-------|
-| کارمند فروش هوش مصنوعی | ربات چت / چت‌بات‌ساز |
-| همگام‌سازی فروشگاه | آموزش مدل |
-| دانش و سیاست‌ها | پرامپت جادویی |
-| تحویل به همکار انسانی | تیکت |
+| سایت‌ساز / فروشگاه DeloRey / ویترین بومی | فقط «چت‌بات» به‌عنوان کل محصول |
+| سفارش‌ها و کانال‌ها در یک Workspace | چند ابزار جدا بدون منبع حقیقت |
+| کارمند فروش هوش مصنوعی *(آفر اختیاری)* | ربات چت / چت‌بات‌ساز |
+| همگام‌سازی / کاتالوگ واقعی | آموزش مدل / پرامپت جادویی |
+| تحویل به همکار انسانی | تیکت (به‌عنوان مدل اصلی) |
 | وضعیت همگام‌سازی ناسالم | همه‌چیز عالی (وقتی نیست) |
 
 English eng docs may say Employee / Handoff / Sync; **UI strings are Persian-first** for Iran MVP.

@@ -7,36 +7,32 @@
 | **Version** | 0.1 |
 | **Status** | Draft — pending review before product development |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 20, 2026 |
+| **Last Updated** | August 10, 2026 |
 
 ---
 
 ## Problem
 
-Online merchants lose revenue and burn operational capacity because customer conversations are fragmented, slow, and disconnected from commerce data.
+Online merchants lose revenue and burn capacity because **selling and ops are fragmented** across site builders, messaging apps, and spreadsheets — and because purchase conversations are slow and disconnected from commerce data.
 
-### Top problems (ranked by revenue impact)
+### Top problems (ranked by revenue / ops impact)
 
-1. **Lost sales from unanswered or delayed questions**
-   - 60–70% of carts are abandoned; a meaningful share happens when shoppers have a product, shipping, or payment question and no one responds in time.
-   - Revenue dies in silence across website chat, Telegram, Bale, and DMs — not to competitors.
+1. **Tool sprawl and manager confusion**
+   - Catalog, orders, and chats live in different tools; the shop manager cannot see one coherent picture.
+   - Buyers arrive from Instagram, Telegram, Bale, or the website; fulfillment and tracking break across systems.
 
-2. **Slow, inconsistent customer response**
-   - Shoppers expect instant answers at night, on weekends, and across multiple channels.
-   - Founders and small teams cannot scale human coverage; response times stretch to hours or days, and purchase intent cools.
+2. **Lost sales from unanswered or delayed questions**
+   - Carts and chat threads die when sizing, stock, shipping, or payment questions go unanswered.
+   - Revenue dies in silence across website chat and messaging — not only to competitors.
 
-3. **Customer support workload that does not scale**
-   - The same product, sizing, and policy questions are answered repeatedly by humans.
-   - Support is treated as a cost center; staff copy-paste between tools instead of closing sales.
-   - Adding headcount per channel (web, Telegram, Bale) is economically unrealistic for SMB merchants.
+3. **Slow, inconsistent customer response**
+   - Shoppers expect instant answers across channels; small teams cannot staff 24/7 coverage.
 
-4. **Lack of customer understanding from conversations**
-   - Objections, confusion, and demand signals live in chat logs and messaging inboxes — not in analytics.
-   - Merchants guess why people do not buy; they cannot see which questions block conversion or which products generate the most pre-purchase friction.
+4. **Support workload that does not scale**
+   - The same product and policy questions are answered repeatedly by humans.
 
-5. **Generic chatbots that erode trust**
-   - Off-the-shelf bots scale but hallucinate product details, cannot act on orders, and frustrate buyers ready to purchase.
-   - Merchants choose between slow humans and dumb automation — neither converts reliably.
+5. **Generic chatbots that erode trust** *(when automation is attempted)*
+   - Off-the-shelf bots scale but hallucinate; automation without catalog truth damages the brand.
 
 ### Existing alternatives (and why they fall short)
 
@@ -97,25 +93,25 @@ Online merchants lose revenue and burn operational capacity because customer con
 
 ### One sentence
 
-**DeloRey AI gives online shops AI Employees that sell and support customers on web chat, Telegram, and Bale — grounded in real catalog and order data, with measurable revenue impact.**
+**DeloRey gives online shops one native storefront and Workspace so sales from website, Telegram, and Bale stay trackable in one product — with an optional AI Sales Employee on the same catalog.**
 
 ### Supporting benefits
 
-- **Commerce-native, not generic chat:** Answers reflect live product, inventory, pricing, and policy — not hallucinated specs.
-- **Omnichannel from one brain:** Same customer context across website chat, Telegram, and Bale; future channels plug into the same agent layer.
-- **Revenue-focused:** Tracks conversions, cart recovery, and assisted sales — not just "messages handled."
-- **Human-controlled:** Merchants set guardrails; AI escalates when uncertain; audit trail by default.
-- **Insight from conversations:** Surfaces top objections, product confusion, and demand signals without a separate BI tool.
+- **One shop, not five tools:** Catalog, orders, and channels share one source of truth so managers are not confused.
+- **Commerce-native storefront:** Digikala-like ویترین + CMS as the primary product merchants buy.
+- **Omnichannel surfaces:** Website + Telegram + Bale (Instagram later) plug into the same commerce core.
+- **Optional AI, same data:** AI Employees answer from live product/order truth when the merchant wants automation.
+- **Human-controlled AI:** Guardrails, escalation, and audit when AI is enabled.
 
 ### Why customers should care
 
 | Stakeholder | Why it matters |
 |-------------|----------------|
-| **Founder / buyer** | Recovers revenue currently lost to slow or missing replies; reduces need to hire per channel |
-| **Support user** | Stops answering the same 20 questions daily; focuses on exceptions and relationship-building |
-| **End customer** | Gets accurate, instant answers where they already chat — and can complete purchase without waiting |
+| **Founder / buyer** | One place to sell and operate; optional AI without buying a second stack |
+| **Store manager** | Orders and stock stay coherent across channels |
+| **End customer** | Can buy and get answers where they already are |
 
-**Positioning vs. alternatives:** Not a chatbot builder. Not a helpdesk. An AI commerce layer that sits on top of the existing storefront and messaging channels.
+**Positioning vs. alternatives:** Not a chatbot builder. Not a helpdesk. Not a free-form page IDE. A commerce platform with optional AI.
 
 ---
 
@@ -123,37 +119,39 @@ Online merchants lose revenue and burn operational capacity because customer con
 
 ### MVP solution (v0.1 scope)
 
-A focused **AI Sales + Support Employee** for online shops, delivered as a hosted platform:
+A focused **native commerce platform** for online shops, with optional AI:
 
-1. **Store integration**
-   - Connect Shopify or WooCommerce (one platform at MVP).
-   - Sync catalog, inventory flags, shipping/return policies, and basic order lookup.
+1. **Native Storefront + CMS (primary)**
+   - Digikala-like public shop; products, categories, appearance, COD checkout, order tracking.
+   - Workspace as the merchant control plane for catalog and orders.
 
-2. **AI Employee — Sales & Support agent**
-   - Answers pre-purchase questions (product fit, availability, shipping, returns).
-   - Recommends products from live catalog.
-   - Handles post-purchase status queries (where is my order, return eligibility).
-   - Escalates to human when confidence is low or policy requires approval.
+2. **Channels**
+   - Website storefront + chat widget.
+   - Telegram and Bale adapters on the same catalog/order truth.
 
-3. **Channels (MVP)**
-   - **Website chat widget** — embed on storefront.
-   - **Telegram** — bot connected to merchant's Telegram business/channel.
-   - **Bale** — bot connected to merchant's Bale presence.
+3. **AI Sales Employee (optional add-on)**
+   - Answers pre-purchase questions from live catalog.
+   - Order status and escalation when enabled.
+   - Guardrails and Human Handoff required.
 
-4. **Merchant control plane**
-   - Agent configuration: tone, policies, discount limits, escalation rules.
+4. **External connectors (optional)**
+   - Shopify/Woo sync when the merchant already has another storefront.
+
+5. **Merchant control plane**
+   - Agent configuration when AI is enabled: tone, policies, discount limits, escalation rules.
    - Unified inbox view across connected channels.
-   - Basic performance dashboard: conversations, resolution rate, escalations, attributed conversions.
+   - Basic ops dashboard: orders, channel volume; conversation metrics when AI is on.
 
-5. **Guardrails & trust**
-   - Response grounded in synced commerce data; fallback to escalation on unknowns.
+6. **Guardrails & trust (when AI is on)**
+   - Response grounded in commerce data; fallback to escalation on unknowns.
    - Human override and conversation review.
    - Audit log of agent actions and recommendations.
 
 ### Explicitly out of MVP
 
-- Instagram and WhatsApp (post-validation channels).
+- Instagram and WhatsApp as required MVP channels (post-validation).
 - Marketing automation, campaign triggers, multi-agent orchestration.
+- Free-form drag-drop page IDE / theme marketplace.
 - Developer platform / public API.
 - Vertical editions, agent marketplace, voice.
 

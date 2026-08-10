@@ -12,7 +12,7 @@
 
 **Purpose of this document:** Validate whether DeloRey AI is solving a real market problem. This is not a marketing article and not a business plan. Every claim is either evidence-backed, explicitly marked as a hypothesis, or paired with a validation idea.
 
-**Product under study:** DeloRey AI — an AI Commerce Platform (SaaS) positioned as an **AI Sales Employee** for online merchants. Explicit non-positioning: not CRM, not website builder, not helpdesk, not chatbot builder.
+**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee. Explicit non-positioning: not CRM, not helpdesk, not chatbot builder, not free-form page-builder IDE. See [Product Positioning](../00-overview/product-positioning.md).
 
 **Initial geography:** Iran. **Primary channels (MVP):** Website, Telegram, Bale. **Target industries:** Fashion, Cosmetics, Accessories, Electronics, Home Products, Gift Shops.
 
@@ -630,10 +630,10 @@ Ordered by kill-or-continue decisiveness. Aligns with Lean Canvas Phase 0–3; e
 
 | Test | What it validates |
 |------|-------------------|
-| “Connect Telegram — AI Sales Employee” signup | Channel interest |
-| Pricing page with tiers, no product | WTP / plan preference |
-| Wizard mock: connect store → sync → test chat | Onboarding comprehension |
-| Sample conversation demo with *wrong* answer deliberately shown + escalation | Whether merchants value guardrails |
+| Landing: سایت‌ساز primary + AI optional | Whether shop-first pitch converts better than AI-only |
+| Pricing page with site tiers + AI consultative | WTP / plan preference |
+| Wizard mock: create shop → publish product → COD order | Onboarding comprehension |
+| Sample conversation demo with *wrong* answer deliberately shown + escalation | Whether merchants value guardrails when AI is offered |
 | “Instagram coming later” disclosure on landing page | Whether IG absence kills conversion |
 
 ## Design partners & pilot customers
@@ -820,7 +820,7 @@ Prioritized for founder decision-making (P0 = block capital allocation).
 - **تتا challenge rankings** are a disconfirming signal for urgency. Treat inbox pain as latent until interviews prove budget priority.
 - **Gen Z contact-before-purchase** is a confirming signal for buyer-side demand — not proof merchants will pay for AI.
 - **Update cadence:** Revise this document after Phase 0 (interviews) and Phase 1 (design partners). Version bump required when evidence class of key claims changes.
-- **Positioning guardrail:** Research that tempts the company toward chatbot builder, CRM, helpdesk, or website builder features should be rejected unless it directly validates the AI Sales Employee wedge (see Product Principles).
+- **Positioning guardrail:** Research that tempts the company toward chatbot builder, CRM, helpdesk, or free-form page-builder IDE should be rejected unless it strengthens the **unified shop + optional AI** wedge ([Product Positioning](../00-overview/product-positioning.md)).
 
 ---
 

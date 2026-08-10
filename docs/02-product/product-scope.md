@@ -4,11 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Status** | Active — mandatory scope gate for all product and engineering work |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 22, 2026 |
-| **Related Documents** | [Product Vision](./product-vision.md) · [Product Principles](./product-principles.md) · [Roadmap](../00-overview/roadmap.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Glossary](../00-overview/glossary.md) · [Vision (company)](../00-overview/vision.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Pricing Strategy](../01-business/pricing-strategy.md) · [Go-To-Market](../01-business/go-to-market.md) · [Product Moat](../01-business/product-moat.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Product Positioning](../00-overview/product-positioning.md) · [Product Vision](./product-vision.md) · [Product Principles](./product-principles.md) · [Roadmap](../00-overview/roadmap.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Glossary](../00-overview/glossary.md) · [Vision (company)](../00-overview/vision.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Pricing Strategy](../01-business/pricing-strategy.md) · [Go-To-Market](../01-business/go-to-market.md) · [Product Moat](../01-business/product-moat.md) |
 
 **Audience:** Product, Engineering, Design, Founders, and anyone proposing a feature, epic, or PRD.
 
@@ -40,27 +40,29 @@ This document is the primary protection against scope creep. Engineering velocit
 
 # Scope Philosophy
 
-DeloRey AI is Pre-MVP. Scope is therefore deliberately narrow. The following rules are not preferences; they are operating constraints.
+DeloRey is Pre-MVP / early build. Scope is therefore deliberately narrow. The following rules are not preferences; they are operating constraints.
+
+**Identity gate:** [Product Positioning](../00-overview/product-positioning.md) — native storefront + unified ops first; AI Sales Employee as optional add-on.
 
 ### Depth before Breadth
 
-We deepen Website + Telegram + Bale, Commerce Core, Context Engine, and the AI Sales Employee before adding Instagram, WhatsApp, email, voice, marketplaces, or multi-agent theater. A shallow product on six channels is worse than a reliable product on three.
+We deepen the **native storefront + CMS**, order lifecycle, and Website + Telegram + Bale channel hooks before adding Instagram, WhatsApp, email, voice, marketplaces, or multi-agent theater. A shallow product on six channels is worse than a reliable shop on three surfaces.
 
-### Opinionated Product
+### Opinionated commerce platform
 
-Merchants hire an **AI Sales Employee**. They do not build a bot from a blank canvas. Default Skills, guardrails, and commerce actions ship ready. Infinite configurability is not a goal for MVP or V1.
+Merchants **run a DeloRey shop**. They do not assemble a bot from a blank canvas. Default CMS, COD checkout, and channel adapters ship ready. When they enable AI, default Skills and guardrails ship ready. Infinite configurability is not a goal for MVP or V1.
 
-### Revenue before Features
+### Unification before features
 
-A feature ships only if it improves grounded sell/support conversations, safe commerce actions, merchant control, or measurable commerce outcomes. Feature volume is not progress. See [Product Principles](./product-principles.md) — *Revenue Before Features*.
+A feature ships only if it improves **one coherent shop experience** (catalog, order, channel, manager clarity) or optional AI sell/support outcomes. Feature volume is not progress. See [Product Principles](./product-principles.md) — *Revenue Before Features*.
 
 ### Fast Time To Value
 
-MVP scope must support: connect store → configure Employee → enable a channel → first live grounded conversation in under 24 hours. Anything that lengthens that path without improving accuracy or trust is out of priority.
+MVP scope must support: create shop → publish products → take a COD order on the storefront → see it in Workspace — in under 24 hours. Enabling AI on a channel is an optional same-day path, not a requirement to get value.
 
-### One Brain, Multiple Channels
+### One brain, multiple channels
 
-Website, Telegram, and Bale are **Channel Adapters**. Business logic, Knowledge, Memory, Skills, and guardrails live in the Runtime. We do not fork product rules per channel.
+Website, Telegram, and Bale are **Channel Adapters**. Catalog, orders, and policies live once. We do not fork product rules per channel.
 
 ### No Scope Creep
 
@@ -84,17 +86,17 @@ Scope is layered. Work may only move forward when the previous layer’s exit cr
 
 | Layer | Name | Intent | When it opens |
 |-------|------|--------|---------------|
-| **MVP** | Prove the wedge | Smallest product that creates measurable commerce value on Website + Telegram + Bale with trust mechanics | Pre-MVP → Phase 1 |
-| **V1** | Validate PMF path | Self-serve readiness, stronger quality, billing, operator UX — still one primary Employee and three channels | After MVP exit (≈ Beta) |
-| **Growth** | Expand within category | Additional channels, Support Employee, subordinate automation, deeper integrations | After public-launch readiness |
+| **MVP** | Prove the wedge | Smallest product that creates measurable shop value: native storefront + orders + Website/Telegram/Bale hooks; AI add-on optional | Pre-MVP → Phase 1 |
+| **V1** | Validate PMF path | Self-serve readiness, stronger storefront completeness, billing, operator UX — still one shop SoR | After MVP exit (≈ Beta) |
+| **Growth** | Expand within category | Additional channels, Support Employee add-on, subordinate automation, deeper integrations | After public-launch readiness |
 | **Platform** | Ecosystem & scale | APIs, extensions, multi-brand governance, certified marketplace | After Growth quality and NRR justify it |
 | **Future** | Captured, not scheduled | Ideas that fit Vision but fail the current phase gate | Always — backlog only |
 
 ### Layer definitions
 
-**MVP** is the contract with design partners: grounded AI Sales Employee, commerce sync, three channels, Workspace control plane, Human Handoff, basic revenue metrics, tenant isolation. Nothing else is required to call MVP “done.”
+**MVP** is the contract with design partners: **native storefront + CMS**, catalog/orders in Workspace, three channel surfaces, optional AI Sales Employee with trust mechanics, tenant isolation. A merchant who never enables AI must still get a coherent shop.
 
-**V1** (aligned with Roadmap Beta) hardens what MVP proved: onboarding, accuracy, attribution clarity, team inbox basics, self-serve billing. It does not reopen excluded MVP categories.
+**V1** (aligned with Roadmap Beta) hardens what MVP proved: onboarding, storefront completeness (variants, discounts, inventory decrement, payment path), attribution clarity, team inbox basics, self-serve billing. It does not reopen excluded MVP categories.
 
 **Growth** expands reach and automation *after* retention and ROI are real. Channels and workflows remain adapters and Skills — not a new product category.
 
@@ -106,56 +108,52 @@ Scope is layered. Work may only move forward when the previous layer’s exit cr
 
 # MVP Scope
 
-**Objective:** Ship the minimum system that proves: *a grounded AI Sales Employee can create measurable commerce value on real Iranian SMB channels without destroying trust.*
+**Objective:** Ship the minimum system that proves: *a merchant can sell and manage an online shop in one DeloRey product (storefront + orders + channels), and optionally add a grounded AI Sales Employee without destroying trust.*
 
-**Primary product:** AI Sales Employee  
+**Primary product:** Native Storefront + CMS (سایت‌ساز) + unified order ops  
+**Optional add-on:** AI Sales Employee  
 **Primary geography:** Iran (Persian language quality, COD/messaging commerce patterns)  
-**Primary channels:** Website, Telegram, Bale  
-**Primary customers:** Small & medium online shops with syncable catalogs  
+**Primary channels:** Website storefront + Telegram + Bale (Instagram when adapter is ready)  
+**Primary customers:** Small & medium online shops that need one coherent place to sell and operate  
 
-Everything below **MUST** exist for MVP to be complete. “Exists” means production-usable with design partners — not a mock, not a feature flag that never turns on, not a demo path without store sync.
+Everything below **MUST** exist for MVP to be complete unless marked **add-on**. “Exists” means production-usable with design partners — not a mock.
 
 ## MVP capability map
 
 | Capability | What ships | Why it is mandatory |
 |------------|------------|---------------------|
 | **Authentication** | Merchant signup/login, session security, password reset (or equivalent) | No Workspace without identity |
-| **Merchant Workspace** | Control plane for store connection, Employee config, channels, inbox, settings | Daily operations home |
+| **Merchant Workspace** | Control plane for shop CMS, orders, channels, settings; AI config when enabled | Daily operations home — reduce manager confusion |
 | **Tenant Isolation** | Hard separation of data, Knowledge, Memory, analytics, jobs, indexes | Non-negotiable SaaS foundation |
-| **Commerce Core** | Sync/access catalog, inventory signals, pricing, policies, orders from connected storefront **and** native CMS catalog | Context Before Intelligence |
-| **Native Storefront + CMS** | Digikala-like public shop (`apps/storefront`) + Workspace CMS (products, categories, COD orders, banners) | Integrated package; Shopify/Woo remain optional connectors |
-| **Catalog Sync** | Reliable ingest + visible sync health/staleness | Grounded product answers |
-| **Order Lookup** | Tool for post-purchase status within guardrails | Closes support loop; proves commerce actions |
-| **Knowledge Base** | Synced facts + merchant FAQ/policy overrides + basic document upload; source attribution | Edge cases and brand policy |
-| **Context Engine** | Assembles live business state per turn before generation | Prevents hallucination theater |
-| **AI Sales Employee** | Opinionated role: pre-purchase Q&A, recommendations, order status, policy answers, escalation | Primary product |
-| **Product Recommendation** | Inventory/price-aware recommendations from live catalog | Revenue path, not chat fluff |
-| **Website Chat** | Embeddable widget; session; handoff state; brand-basic styling | Channel #1 |
-| **Telegram** | Bot adapter; same brain; text + product/link flows; escalation notify | Channel #2 (messaging-first) |
-| **Bale** | Bot adapter; parity where API allows; same brain | Channel #3 (Iran reality) |
-| **Conversation History** | Persisted threads; operator review; cross-channel continuity when identity resolvable | Continuity + audit |
-| **Human Handoff / Escalation** | Confidence/policy-based escalate; context packet to human; AI pause/resume | Trust mechanics |
-| **Settings / Guardrails** | Tone, discount caps, blocked topics, escalation rules | Humans Control |
-| **Revenue Dashboard (basic)** | Conversations, resolution rate, escalation rate, attributed conversion/recovery (conservative) | Revenue Before Features |
-| **Basic Analytics** | Channel volume, resolution, escalation reasons; grounded-answer visibility | Measure Everything |
-| **Audit Logs** | What the Employee knew, tools called, replies, escalations | Transparent AI |
-| **Workspace Inbox** | Unified view across Website / Telegram / Bale for review and takeover | Operator clarity |
+| **Native Storefront + CMS** | Digikala-like public shop (`apps/storefront`) + Workspace CMS (products, categories, COD orders, banners, appearance) | **Primary product** |
+| **Commerce Core** | Catalog, inventory signals, pricing, policies, orders from native CMS (**and** optional external connectors) | Single commerce truth |
+| **Order lifecycle** | Cart → COD checkout → merchant order management → customer track | Core shop value |
+| **Catalog Sync** | Reliable ingest + visible sync health when external store connected | Optional connector path |
+| **Website Chat** | Embeddable widget on native storefront; session; handoff state | Channel surface on the shop |
+| **Telegram** | Bot adapter; product/link flows; order-aware paths as available | Messaging-first channel |
+| **Bale** | Bot adapter; parity where API allows | Iran reality |
+| **Conversation History / Inbox** | Persisted threads; operator review across channels | Unification for humans |
+| **AI Sales Employee** *(add-on)* | Opinionated role: pre-purchase Q&A, recommendations, order status, escalation | Sold when merchant needs automation |
+| **Product Recommendation** *(add-on path)* | Inventory/price-aware recommendations from live catalog | AI revenue path |
+| **Order Lookup** *(add-on / shared tool)* | Post-purchase status within guardrails | Closes support loop |
+| **Knowledge Base** *(add-on path)* | FAQ/policy + uploads; source attribution | Edge cases for AI |
+| **Context Engine** *(add-on path)* | Assembles live business state per turn before generation | Prevents hallucination theater |
+| **Human Handoff** *(add-on path)* | Confidence/policy escalate; context packet; AI pause/resume | Trust when AI is on |
+| **Settings / Guardrails** *(add-on path)* | Tone, discount caps, blocked topics, escalation rules | Humans Control |
+| **Revenue / ops dashboard (basic)** | Orders, channel volume; conversation metrics when AI on | Measure what matters |
+| **Audit Logs** | What the Employee knew, tools called, replies, escalations (when AI on) | Transparent AI |
 
 ## MVP build contract (detail)
 
 | Area | Ships | Explicit non-goals |
 |------|-------|--------------------|
-| **Website Chat** | Embed on native storefront and Shopify/WooCommerce; session; cart/page context when available; mobile-usable; handoff states | Free-form theme IDE |
-| **Native Storefront** | Public catalog, PDP, cart, COD checkout, order track; CMS in Workspace | Drag-drop page builder; multi-theme marketplace; PSP acquiring |
-| **Telegram** | Merchant bot; replies; product cards/links where supported; escalation alerts | Broadcast campaigns, Mini App storefront replacement |
-| **Bale** | Merchant presence; Telegram parity where API allows | Channel-forked business logic |
-| **Sales Skills** | Grounded Q&A; stock-aware recommendations; order status; confidence/policy escalation | Ungrounded “stylist” upsell; silent failure; unguarded refund/cancel mutation |
-| **Commerce Core** | One primary storefront path: catalog, inventory flags, pricing, shipping/return/COD policy fields, orders | Multi-platform coverage as MVP requirement |
-| **Catalog Sync** | Incremental refresh; visible last-sync and failure state | Perfect real-time inventory science |
-| **Context Engine** | Assemble retrieval + tools before generation; fail-safe on stale sync | Generation without context assembly |
-| **Knowledge Base** | FAQ/policy overrides + basic uploads; inspectable sources | Unstructured dump without attribution |
-| **Control plane** | Auth; Workspace; Settings/guardrails enforced in Runtime; Inbox; Audit; Tenant Isolation verified in acceptance | Optional polish that delays exit criteria |
-| **Measurement** | Basic analytics + directional Revenue Dashboard; explainable attribution | Fake-precision ROI graphs |
+| **Native Storefront** | Public catalog, PDP, cart, COD checkout, order track; CMS in Workspace; path to variants/discounts/inventory decrement as completion priority | Drag-drop page builder; multi-theme marketplace |
+| **Website Chat** | Embed on native storefront (and optional Shopify/Woo); session; cart/page context when available; handoff states | Free-form theme IDE |
+| **Telegram / Bale** | Merchant bot; replies; product cards/links; escalation alerts | Broadcast campaigns; Mini App replacing the shop |
+| **Sales Skills** *(add-on)* | Grounded Q&A; stock-aware recommendations; order status; confidence/policy escalation | Ungrounded upsell; unguarded refund/cancel mutation |
+| **Commerce Core** | Native CMS as SoR: catalog, inventory flags, pricing, shipping/return/COD policy, orders | Multi-platform coverage as MVP requirement |
+| **Payment** | COD first; online PSP as near-term completion (integration, not acquiring bank) | Becoming a payment company / WMS |
+| **Control plane** | Auth; Workspace shop ops; Inbox; Tenant Isolation | Optional polish that delays exit criteria |
 
 ## MVP systems diagram
 
@@ -305,7 +303,7 @@ Use this taxonomy in PRDs, epics, and backlog labels. Every feature gets exactly
 | **Supporting** | Required to operate Core safely and continuously | Authentication, Settings/Guardrails, Conversation History, Audit Logs, Catalog Sync, Knowledge Base, Workspace Inbox |
 | **Optional** | Improves UX or conversion but MVP can ship without polish perfection | Brand color theming depth, rich product cards beyond minimum, advanced filters |
 | **Future** | Vision-aligned; wrong phase | WhatsApp, Instagram, Support Employee as dedicated role, public API, cart recovery automation |
-| **Never** | Conflicts with product identity unless Vision is rewritten | Generic chatbot builder as center, CRM replacement, helpdesk-as-SoR, website builder, black-box autonomy, premature Skill Marketplace as identity |
+| **Never** | Conflicts with product identity unless Vision is rewritten | Generic chatbot builder as center, CRM replacement, helpdesk-as-SoR, free-form page-builder IDE as identity, AI-only wrapper with no coherent shop, black-box autonomy, premature Skill Marketplace as identity |
 
 ### Classification matrix (selected)
 
@@ -364,7 +362,7 @@ Also required: **One Brain, Multiple Channels**; **AI Assists, Humans Control**;
 | Chatbot builders / visual flow IDEs | Wrong product identity |
 | CRM / ERP systems of record | Sync insights; do not absorb |
 | Helpdesk as center of gravity | Escalation surface only |
-| Storefront drag-drop IDE / multi-theme marketplace | Native storefront + CMS blocks + external connectors are in; free-form page builders stay out |
+| Storefront drag-drop IDE / multi-theme marketplace | Native storefront + CMS is **in**; free-form page builders stay **out** |
 | Marketing automation suites | Not primary surface |
 | Ads / media attribution platforms | Conversation outcomes ≠ ad platform |
 | Payment processing | Context only |

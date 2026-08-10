@@ -2,9 +2,9 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'DeloRey — کارمند فروش هوش مصنوعی',
+  title: 'DeloRey — سایت‌ساز و فروش یکپارچه',
   description:
-    'پلتفرم SaaS فروش و پشتیبانی هوشمند برای فروشگاه‌های آنلاین ایران',
+    'ویترین بومی، سفارش از وب و پیام‌رسان‌ها در یک Workspace — کارمند فروش AI اختیاری',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

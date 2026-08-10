@@ -4,11 +4,11 @@
 
 | Field | Value |
 |-------|-------|
-| **Version** | 0.1 |
+| **Version** | 0.2 |
 | **Status** | Active — primary product definition for Product, Design, and Engineering |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 22, 2026 |
-| **Related Documents** | [Product Principles](./product-principles.md) · [Vision (company)](../00-overview/vision.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Product Moat](../01-business/product-moat.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Product Positioning](../00-overview/product-positioning.md) · [Product Principles](./product-principles.md) · [Vision (company)](../00-overview/vision.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Business Plan](../01-business/business-plan.md) · [Market Research](../01-business/market-research.md) · [Product Moat](../01-business/product-moat.md) |
 
 ---
 
@@ -18,20 +18,23 @@ This document defines **the product**: what DeloRey AI is, who it serves, what p
 
 # Vision Statement
 
-DeloRey AI is the commerce conversation layer for online shops: merchants hire specialized AI Employees that sell and support customers across website chat, Telegram, and Bale — grounded in live catalog, inventory, order, and policy data, operating under merchant-defined guardrails, with every meaningful conversation measured against revenue and resolution outcomes. In the long run, that layer becomes infrastructure merchants install next to their storefront and payments stack: one brain, many channels, continuous memory, and attributable commerce impact — not another chatbot to configure.
+DeloRey is the **unified commerce platform** for online shops: a native storefront (سایت‌ساز) and one Workspace where catalog, orders, and multi-channel sales stay coherent — so a shop from website, Telegram, Bale, or later Instagram is trackable in one product. Optional **AI Sales Employees** sell and support on those same channels, grounded in live catalog and order data, under merchant guardrails. Long term: one commerce home merchants install; AI is an offer on that foundation — not a separate chatbot beside the shop.
+
+**Authoritative packaging:** [Product Positioning](../00-overview/product-positioning.md).
 
 ---
 
 # Product Mission
 
-Give small and medium online shops specialized AI Employees — starting with an **AI Sales Employee** — that answer purchase-blocking questions, recommend real products, look up real orders, escalate safely when uncertain, and make their impact visible in conversion, recovery, and support load.
+Give small and medium online shops **one place to sell and run the store** — native storefront + unified order/ops — and, when they need it, an **AI Sales Employee** add-on that answers purchase-blocking questions, recommends real products, looks up real orders, and escalates safely.
 
 Operationally, the product must:
 
-1. Connect to the merchant’s commerce stack on day one.
-2. Ground every factual reply and commerce action in business context.
-3. Keep humans in control through guardrails, Human Handoff, and audit trails.
-4. Prove value inside the first billing cycle with metrics merchants can explain.
+1. Let a merchant publish a native shop and manage catalog/orders in one Workspace on day one.
+2. Keep channel sales (web + messaging) attributable to the same commerce truth.
+3. Ground any AI reply or commerce action in that same context.
+4. Keep humans in control through guardrails, Human Handoff, and audit when AI is enabled.
+5. Prove platform value inside the first billing cycle with sales and ops clarity merchants can explain.
 
 If a proposed capability does not advance this mission, it does not belong in the product.
 
@@ -39,16 +42,16 @@ If a proposed capability does not advance this mission, it does not belong in th
 
 # Product Purpose
 
-The purpose of DeloRey AI is to turn customer conversations into a **reliable commerce function**.
+The purpose of DeloRey is to make **selling and operating an online shop coherent** — one storefront, one order book, one ops surface — and to turn conversations into a reliable commerce function **on top of that**.
 
-Today those conversations are scattered across website widgets and messaging apps, answered slowly or inconsistently, and disconnected from catalog truth. Merchants lose sales to silence and lose trust to generic bots that invent facts. DeloRey AI exists so that:
+Today shops are fragmented: site in one tool, Telegram/Bale/Instagram elsewhere, orders in spreadsheets. Merchants lose sales to silence and lose time to tool sprawl. DeloRey exists so that:
 
-- Shoppers get accurate, timely answers where they already talk.
-- Merchants get a Sales Employee that can complete routine pre-purchase and status work without destroying brand trust.
-- Operators get a Workspace where AI state, escalations, sync health, and conversation outcomes are legible.
-- The organization can deepen an AI Employee Runtime and Commerce Context Graph over time without drifting into adjacent product categories.
+- Shoppers can buy and get answers where they already are.
+- Merchants get a **سایت‌ساز / ویترین** plus channels that share catalog and orders.
+- Operators get a Workspace where products, orders, channels, and (optionally) AI state are legible.
+- AI Employees remain an **optional offer** on the same Commerce Core — not a second product category that confuses the manager.
 
-The product’s job is commerce conversation operations — not tickets, not pipelines, not storefront design.
+The product’s job is **unified commerce operations** first; AI conversation automation second. Not tickets, not CRM pipelines, not a free-form page-builder IDE.
 
 ---
 
@@ -71,44 +74,46 @@ Broken down for builders:
 
 ## What we are *not* claiming to solve alone
 
-DeloRey AI does not replace ads, logistics, inventory planning, payment rails, or storefront merchandising. It owns the **conversation → accurate answer / safe action → measurable commerce outcome** loop.
+DeloRey does not replace ads, logistics, inventory planning, or payment acquiring. It owns **storefront + unified order/ops across channels**, and optionally the **conversation → accurate answer / safe action → measurable commerce outcome** loop when AI is enabled.
 
 ---
 
 # Product Definition
 
-## What DeloRey AI IS
+## What DeloRey IS
 
-DeloRey AI is a **cloud SaaS AI Commerce Platform** whose primary product surface is an **AI Sales Employee** for small and medium online shops.
+DeloRey is a **cloud SaaS commerce platform** whose **primary product** is a **native storefront + CMS (سایت‌ساز)** with **unified multi-channel order ops** for small and medium online shops. The **AI Sales Employee** is an **optional add-on** sold into the same offer.
 
 Concretely, the product is:
 
 | Layer | Definition |
 |-------|------------|
-| **AI Employees** | Opinionated commerce roles (Sales first; Support next) with goals, Skills, guardrails, and success metrics |
-| **AI Employee Runtime** | The system that receives a message, builds context, calls tools, enforces guardrails, and produces a reply or handoff |
-| **Commerce Core** | Sync and access to catalog, inventory signals, pricing, policies, and orders from the merchant storefront |
-| **Context Engine + Knowledge Base** | Assembles and retrieves live business truth before generation (RAG over synced + merchant-authored knowledge) |
-| **Channel Adapters** | Delivery to Website, Telegram, and Bale (MVP); later channels without forking business logic |
-| **Workspace (control plane)** | Where merchants connect the store, configure Employees, review conversations, handle escalations, and see outcomes |
-| **Revenue Intelligence** | Honest attribution and operational metrics (resolution, escalation, grounded answers, assisted conversion) |
+| **Native Storefront + CMS** | Digikala-like public shop and Workspace merchandising (products, categories, appearance, COD orders) — primary SKU |
+| **Commerce Core** | Catalog, inventory, pricing, policies, and orders — native CMS as system of record; Shopify/Woo optional connectors |
+| **Channel Adapters** | Website, Telegram, and Bale (MVP); Instagram/others later — same catalog/orders, thin adapters |
+| **Workspace (control plane)** | Where merchants run the shop: catalog, orders, channels, inbox, settings — so managers are not confused |
+| **AI Employees (add-on)** | Opinionated commerce roles (Sales first; Support next) with Skills, guardrails, and success metrics |
+| **AI Employee Runtime** | Receives a message, builds context, calls tools, enforces guardrails, replies or hands off — only when AI is enabled |
+| **Context Engine + Knowledge Base** | Assembles live business truth before AI generation |
+| **Revenue / ops intelligence** | Orders by channel, conversation outcomes, assisted conversion when AI is on |
 
-**Primary product framing for teams:** Merchants do not “build a bot.” They **hire an AI Sales Employee**, connect commerce data, enable channels, and operate it from the Workspace.
+**Primary product framing for teams:** Merchants **run a shop in DeloRey**. They may **optionally hire an AI Sales Employee** on the same data. They do not “build a bot” as the center of the product.
 
-**Category label:** AI Commerce Platform (SaaS).  
+**Category label:** Commerce platform / سایت‌ساز + omnichannel ops (SaaS), with optional AI Employee.  
 **Deployment:** Multi-tenant cloud.  
-**Primary geography for product truth (MVP–Beta):** Iran — Persian language, Website + Telegram + Bale behavior, local commerce realities (e.g. COD, messaging-first purchase journeys). Architecture must not hard-code Iran forever, but MVP quality criteria are Iran-first.
+**Primary geography for product truth (MVP–Beta):** Iran — Persian language, Website + Telegram + Bale behavior, local commerce realities (e.g. COD, messaging-first journeys). Architecture must not hard-code Iran forever, but MVP quality criteria are Iran-first.
 
-## What DeloRey AI is NOT
+## What DeloRey is NOT
 
 | Not this | Why the product refuses it |
 |----------|----------------------------|
 | **Chatbot builder** | No blank-canvas prompt playground or arbitrary dialogue trees as the product center |
-| **CRM** | Customer context for conversations and attribution is in scope; pipelines, deal stages, and sales CRM as SoR are not |
+| **CRM** | Customer context for orders/conversations is in scope; pipelines and deal stages as SoR are not |
 | **Helpdesk** | Tickets are a failure/escalation surface, not the primary UX or data model |
-| **Website / storefront builder** | We integrate with existing shops; we do not design themes or pages |
-| **Marketing automation suite** | Campaign blasts, drip builders, and audience tools are out until clearly subordinate to Employee outcomes |
-| **General-purpose AI assistant** | Capabilities must serve commerce sell/support loops |
+| **Free-form website builder IDE** | We ship an opinionated native storefront + CMS — not drag-drop page theater or a theme marketplace |
+| **AI-only wrapper without a shop** | Platform value must stand if AI is off; AI is an offer, not the sole product |
+| **Marketing automation suite** | Campaign blasts and drip builders are out until subordinate to commerce outcomes |
+| **General-purpose AI assistant** | Any AI capabilities must serve commerce sell/support loops |
 | **Black-box autopilot** | Autonomy without audit, guardrails, and handoff is a product failure |
 
 For vocabulary used across Product, Design, and Engineering, see the [Glossary](../00-overview/glossary.md).

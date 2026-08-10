@@ -7,41 +7,43 @@
 | **Version** | 0.1 |
 | **Status** | Draft — pricing handbook; not a finance model and not an investor deck |
 | **Owner** | Founder / Strategy |
-| **Last Updated** | July 22, 2026 |
-| **Related Documents** | [Market Research](./market-research.md) · [Business Plan](./business-plan.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Product Moat](./product-moat.md) · [Vision](../00-overview/vision.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Market Research](./market-research.md) · [Business Plan](./business-plan.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Product Moat](./product-moat.md) · [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
 
 **Purpose of this document:** Define how DeloRey AI creates, captures, and expands value through pricing. Every recommendation is justified. Where exact prices, costs, or willingness-to-pay cannot be known, claims are marked **Hypothesis**.
 
-**Product under study:** DeloRey AI — AI Commerce Platform (SaaS), primary product **AI Sales Employee**. Deployment: Cloud SaaS. Initial market: Iranian online shops (Fashion, Cosmetics, Electronics, Accessories, Home Products, Gift Shops). Primary channels: Website, Telegram, Bale.
+**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee (consultative pricing until list prices validated). Deployment: Cloud SaaS. Initial market: Iranian online shops.
 
 ---
 
 # Executive Summary
 
-DeloRey AI should price on **merchant outcomes**, not on feature checklists. Merchants do not buy “AI chat.” They buy recovered conversations, hours not spent answering the same fifteen questions, and a second shift that does not quit. Pricing that fails to map to that story will either leave money on the table or fail to clear Iranian SMB capital constraints.
+DeloRey should price the **shop platform** first and the **AI Employee** second. Merchants buy a place to sell and manage orders without tool sprawl. AI is an expansion offer for those who want automation on the same catalog and channels.
 
-**Pricing philosophy (recommended):** Value-based SaaS subscription with a **conversation allowance** as the primary usage fence, **connected channels** as the primary expansion lever, and soft→hard limits that protect margins without surprising merchants. Price cards publish in **IRR for Iran** (and optional USD for international comparison). Global dollar bands in this document are planning hypotheses, not published list prices.
+**Pricing philosophy (recommended):**
+
+1. **سایت‌ساز** — simple annual (or monthly) SaaS packages in **IRR**, published on the landing page, affordable for SMB shops.
+2. **کارمند فروش AI** — consultative / package pricing after conversation about channels and volume until WTP is validated; then published add-on tiers.
+3. Soft→hard usage fences on AI conversations when AI is enabled; do not meter the core shop on “tokens.”
 
 **Business objectives pricing must serve:**
 
 | Objective | Pricing implication |
 |-----------|---------------------|
-| Easy to understand | ≤5 named tiers; one primary meter; no token jargon on the sales page |
-| Easy to sell | ROI frame in 30 days; seat count is not the pitch |
-| Easy to scale | Self-serve Starter/Professional; sales-assisted Business/Enterprise |
-| Healthy SaaS margins | Conversation caps + overage floor must cover LLM + infra with target gross margin |
-| Reflect business value | Package outcomes (channels live, attribution, AI Employees), not widget features |
-| Support future expansion | Add-ons and higher tiers for channels, AI Employees, API, governance |
+| Easy to understand | Site plans ≤3–5 tiers; AI as separate offer |
+| Easy to sell | Shop value first (orders, catalog, channels); AI ROI second |
+| Easy to scale | Self-serve site plans; sales-assisted AI packages early |
+| Healthy margins | AI conversation caps + overage when AI is sold |
+| Reflect unification | Do not force AI purchase to get a coherent storefront |
+| Support expansion | Channel depth and AI Employees as expansion levers |
 
-**Expected pricing evolution:** Phase 0–Beta uses founding / pilot prices to learn WTP. Growth introduces stable list prices and overage. Platform adds Enterprise governance, API, and multi-workspace packaging. Early prices should be treated as **learning instruments**, not sacred contracts with the market.
+**Expected pricing evolution:** Founding site prices learn WTP; AI stays “هماهنگی” until instrumented; Growth publishes AI list prices. See landing packaging in `apps/web` and [Product Positioning](../00-overview/product-positioning.md).
 
-**Current assumptions (all Hypothesis until Phase 0–2 validation):**
+**Current assumptions (Hypothesis until validated):**
 
-1. Merchants will pay roughly **$99–499/month** (IRR equivalent) for Starter→Professional when ROI is visible within ~30 days ([Lean Canvas](../00-overview/lean-canvas.md), [Market Research](./market-research.md)).
-2. Conversation-based allowances are understandable enough for SMB buyers if framed as “monthly AI conversations,” not tokens.
-3. Financing scarcity in Iran compresses budgets; payback ≤60 days is a GTM requirement, not a nice-to-have.
-4. Gross margin of **60–70%** at scale is achievable if conversation economics are instrumented and overage floors are enforced.
-5. A limited Free plan or time-boxed trial is useful for discovery; unlimited freemium is not.
+1. Merchants will pay a modest **annual IRR** fee for a usable native storefront + order hub.
+2. A meaningful subset will add AI when ROI is clear; pricing discussed per account early.
+3. Gross margin targets for AI still require conversation economics; site plans are infra + support driven.
 
 ---
 

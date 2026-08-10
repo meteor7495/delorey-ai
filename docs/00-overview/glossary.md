@@ -7,14 +7,34 @@
 | **Version** | 1.0 |
 | **Status** | Active |
 | **Owner** | Founder / Product |
-| **Last Updated** | July 20, 2026 |
-| **Related Documents** | [Vision](./vision.md) · [Lean Canvas](./lean-canvas.md) · [Roadmap](./roadmap.md) |
+| **Last Updated** | August 10, 2026 |
+| **Related Documents** | [Vision](./vision.md) · [Product Positioning](./product-positioning.md) · [Lean Canvas](./lean-canvas.md) · [Roadmap](./roadmap.md) |
 
 ---
 
-Shared vocabulary for DeloRey AI. Definitions reflect how we use each term in the product — not generic industry textbook meanings.
+Shared vocabulary for DeloRey. Definitions reflect how we use each term in the product — not generic industry textbook meanings.
 
 **Audience:** Developers, product managers, designers, business team, investors.
+
+**Identity:** See [Product Positioning](./product-positioning.md) — storefront + unified ops first; AI Employee as add-on.
+
+---
+
+## Native Storefront / سایت‌ساز
+
+The Digikala-like public shop (`apps/storefront`) plus Workspace CMS where merchants manage products, categories, appearance, and COD orders.
+
+This is the **primary commercial product**. A merchant who never enables AI still gets a coherent shop and order hub.
+
+**Example:** A shop publishes products in Workspace, opens `/s/{slug}` for customers, and manages incoming COD orders in one place.
+
+---
+
+## Unified commerce ops
+
+The product job of keeping **catalog, inventory, orders, and channel conversations** coherent in one Workspace so the shop manager is not lost across tools.
+
+**Example:** An order started from a Telegram product link appears beside website COD orders with the same stock truth.
 
 ---
 
@@ -22,9 +42,9 @@ Shared vocabulary for DeloRey AI. Definitions reflect how we use each term in th
 
 A specialized AI agent configured to perform a commerce role for a merchant — such as Sales, Support, Marketing, or Analytics.
 
-AI Employees are the product-facing concept: a virtual team member that sells, supports, and learns from customer conversations. They are opinionated and commerce-focused, not general-purpose chatbots.
+AI Employees are an **optional paid offer** on top of the shop platform: a virtual team member that sells, supports, and learns from customer conversations. They are opinionated and commerce-focused, not general-purpose chatbots.
 
-**Example:** A merchant deploys an AI Sales Employee on web chat and Telegram. It answers product questions, recommends items from the live catalog, and escalates refund requests to a human.
+**Example:** A merchant who already runs DeloRey storefront enables an AI Sales Employee on web chat and Telegram. It answers product questions from the live catalog and escalates refunds to a human.
 
 ---
 
