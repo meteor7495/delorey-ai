@@ -20,15 +20,21 @@ export default function CheckoutPage({
     secondaryColor: string;
     logoUrl?: string | null;
     supportPhone?: string | null;
+    codEnabled?: boolean;
+    onlinePaymentEnabled?: boolean;
   } | null>(null);
   const [categories, setCategories] = useState<
     Array<{ id: string; name: string; slug: string }>
   >([]);
-  const [total, setTotal] = useState(0);
+  const [subtotal, setSubtotal] = useState(0);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [note, setNote] = useState('');
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountMsg, setDiscountMsg] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -41,17 +47,68 @@ export default function CheckoutPage({
           api.storefrontHome(slug),
           api.storefrontGetCart(slug, sessionId),
         ]);
-        setSettings(home.settings as NonNullable<typeof settings>);
+        const s = home.settings as NonNullable<typeof settings>;
+        setSettings(s);
         setCategories(
           (home.categories as Array<{ id: string; name: string; slug: string }>) ??
             [],
         );
-        setTotal(Number((cart as { total?: number }).total ?? 0));
+        setSubtotal(Number((cart as { total?: number }).total ?? 0));
+        if (s.codEnabled === false && s.onlinePaymentEnabled) {
+          setPaymentMethod('online');
+        }
       } catch (e) {
         setError(String(e));
       }
     });
   }, [params]);
+
+  async function applyDiscount() {
+    setDiscountMsg(null);
+    setError(null);
+    if (!discountCode.trim()) {
+      setDiscountAmount(0);
+      setDiscountMsg(null);
+      return;
+    }
+    try {
+      const res = await api.storefrontValidateDiscount(storeSlug, {
+        code: discountCode.trim(),
+        subtotal,
+      });
+      if (!res.valid) {
+        setDiscountAmount(0);
+        setDiscountMsg(
+          res.reason === 'not_found'
+            ? 'کد تخفیف پیدا نشد'
+            : 'کد تخفیف قابل اعمال نیست',
+        );
+        return;
+      }
+      const d = res.discount as {
+        type?: string;
+        value?: number;
+        maxDiscountAmount?: number | null;
+      } | null;
+      if (!d) {
+        setDiscountAmount(0);
+        return;
+      }
+      let amount =
+        d.type === 'percentage'
+          ? (subtotal * Number(d.value ?? 0)) / 100
+          : Number(d.value ?? 0);
+      if (d.maxDiscountAmount != null) {
+        amount = Math.min(amount, Number(d.maxDiscountAmount));
+      }
+      amount = Math.min(Math.max(amount, 0), subtotal);
+      setDiscountAmount(amount);
+      setDiscountMsg('کد تخفیف اعمال شد');
+    } catch (e) {
+      setDiscountAmount(0);
+      setDiscountMsg(e instanceof Error ? e.message : 'خطا در بررسی کد');
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -64,10 +121,15 @@ export default function CheckoutPage({
         customerPhone: phone,
         customerAddress: address,
         customerNote: note || undefined,
-      })) as { orderNumber: string };
-      router.push(
-        `/s/${storeSlug}/track?orderNumber=${encodeURIComponent(order.orderNumber)}&phone=${encodeURIComponent(phone)}`,
-      );
+        discountCode: discountCode.trim() || undefined,
+        paymentMethod,
+      })) as { orderNumber: string; paymentHint?: string | null };
+      const q = new URLSearchParams({
+        orderNumber: order.orderNumber,
+        phone,
+      });
+      if (order.paymentHint) q.set('hint', order.paymentHint);
+      router.push(`/s/${storeSlug}/track?${q.toString()}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ثبت سفارش نشد');
       setBusy(false);
@@ -82,15 +144,25 @@ export default function CheckoutPage({
     );
   }
 
+  const payable = Math.max(subtotal - discountAmount, 0);
+  const canCod = settings.codEnabled !== false;
+  const canOnline = Boolean(settings.onlinePaymentEnabled);
+
   return (
     <StoreShell settings={settings} categories={categories}>
       <div className="dk-container py-6 lg:py-8 max-w-2xl">
         <h1 className="text-[20px] text-zh-900 mb-1">اطلاعات ارسال</h1>
         <p className="text-[14px] text-zh-600 mb-4">
-          پرداخت در محل (COD) · مبلغ قابل پرداخت:{' '}
+          مبلغ قابل پرداخت:{' '}
           <strong className="text-zh-900 tnum">
-            {total.toLocaleString('fa-IR')} تومان
+            {payable.toLocaleString('fa-IR')} تومان
           </strong>
+          {discountAmount > 0 ? (
+            <span className="text-zh-600">
+              {' '}
+              (تخفیف {discountAmount.toLocaleString('fa-IR')})
+            </span>
+          ) : null}
         </p>
         {error && <p className="text-zh-pink text-[14px] mb-3">{error}</p>}
 
@@ -137,8 +209,76 @@ export default function CheckoutPage({
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
-          <button type="submit" disabled={busy} className="zh-btn-primary w-full">
-            {busy ? 'در حال ثبت…' : 'ثبت سفارش و پرداخت در محل'}
+
+          <div>
+            <label className="text-[14px] text-zh-900">کد تخفیف</label>
+            <div className="mt-1 flex gap-2">
+              <input
+                className="flex-1 h-11 rounded-dk border border-zh-300 px-3 text-[14px] outline-none focus:border-zh-primary"
+                value={discountCode}
+                onChange={(e) => setDiscountCode(e.target.value)}
+                placeholder="مثلاً SALE10"
+              />
+              <button
+                type="button"
+                onClick={applyDiscount}
+                className="h-11 px-4 rounded-dk border border-zh-200 text-[13px] shrink-0"
+              >
+                اعمال
+              </button>
+            </div>
+            {discountMsg && (
+              <p
+                className={`mt-1 text-[12px] ${
+                  discountAmount > 0 ? 'text-dk-green' : 'text-zh-pink'
+                }`}
+              >
+                {discountMsg}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-[14px] text-zh-900">روش پرداخت</p>
+            {canCod && (
+              <label className="flex items-center gap-2 text-[14px]">
+                <input
+                  type="radio"
+                  name="pay"
+                  checked={paymentMethod === 'cod'}
+                  onChange={() => setPaymentMethod('cod')}
+                />
+                پرداخت در محل (COD)
+              </label>
+            )}
+            {canOnline && (
+              <label className="flex items-center gap-2 text-[14px]">
+                <input
+                  type="radio"
+                  name="pay"
+                  checked={paymentMethod === 'online'}
+                  onChange={() => setPaymentMethod('online')}
+                />
+                پرداخت آنلاین (درگاه به‌زودی — ثبت سفارش در انتظار پرداخت)
+              </label>
+            )}
+            {!canCod && !canOnline && (
+              <p className="text-[13px] text-zh-pink">
+                هیچ روش پرداختی برای این فروشگاه فعال نیست.
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={busy || (!canCod && !canOnline)}
+            className="zh-btn-primary w-full"
+          >
+            {busy
+              ? 'در حال ثبت…'
+              : paymentMethod === 'online'
+                ? 'ثبت سفارش (در انتظار پرداخت)'
+                : 'ثبت سفارش و پرداخت در محل'}
           </button>
           <Link
             href={`/s/${storeSlug}/cart`}

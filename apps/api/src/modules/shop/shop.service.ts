@@ -7,8 +7,15 @@ import { Prisma } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { PrismaService } from '../platform/prisma.service';
-import { toSlug } from './domain';
+import {
+  availableStock,
+  calculateDiscount,
+  resolveEffectivePrice,
+  toSlug,
+} from './domain';
+import { DiscountsService } from './discounts.service';
 import { InventoryService } from './inventory.service';
+import { VariantsService } from './variants.service';
 
 function mapProduct(row: {
   id: string;
@@ -125,6 +132,8 @@ export class ShopService {
     private readonly prisma: PrismaService,
     private readonly store: DataStore,
     private readonly inventory: InventoryService,
+    private readonly variants: VariantsService,
+    private readonly discounts: DiscountsService,
   ) {}
 
   private storefrontBase() {
@@ -198,6 +207,7 @@ export class ShopService {
       secondaryColor?: string;
       tagline?: string | null;
       codEnabled?: boolean;
+      onlinePaymentEnabled?: boolean;
       supportPhone?: string | null;
       defaultCurrency?: string;
       lowStockThreshold?: number;
@@ -236,6 +246,7 @@ export class ShopService {
         secondaryColor: patch.secondaryColor,
         tagline: patch.tagline === undefined ? undefined : patch.tagline,
         codEnabled: patch.codEnabled,
+        onlinePaymentEnabled: patch.onlinePaymentEnabled,
         supportPhone:
           patch.supportPhone === undefined ? undefined : patch.supportPhone,
         defaultCurrency: patch.defaultCurrency,
@@ -872,6 +883,7 @@ export class ShopService {
   ) {
     const allowed = [
       'pending',
+      'pending_payment',
       'confirmed',
       'shipped',
       'delivered',
@@ -1028,18 +1040,78 @@ export class ShopService {
       },
     });
     if (!row) throw new NotFoundException('محصول پیدا نشد');
-    return mapProduct(row);
+    const variants = row.hasVariants
+      ? (await this.variants.listForProduct(settings.tenantId, row.id)).filter(
+          (v) => v.active,
+        )
+      : [];
+    return {
+      ...mapProduct(row),
+      variants,
+    };
   }
 
   async getOrCreateCart(tenantId: string, sessionId: string) {
     let cart = await this.prisma.cart.findUnique({
       where: { tenantId_sessionId: { tenantId, sessionId } },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            product: true,
+            variant: {
+              include: {
+                attributeValues: {
+                  include: {
+                    attribute: {
+                      select: { id: true, name: true, sortOrder: true },
+                    },
+                    attributeValue: {
+                      select: {
+                        id: true,
+                        value: true,
+                        label: true,
+                        colorHex: true,
+                      },
+                    },
+                  },
+                },
+                inventoryLevel: true,
+              },
+            },
+          },
+        },
+      },
     });
     if (!cart) {
       cart = await this.prisma.cart.create({
         data: { tenantId, sessionId },
-        include: { items: { include: { product: true } } },
+        include: {
+          items: {
+            include: {
+              product: true,
+              variant: {
+                include: {
+                  attributeValues: {
+                    include: {
+                      attribute: {
+                        select: { id: true, name: true, sortOrder: true },
+                      },
+                      attributeValue: {
+                        select: {
+                          id: true,
+                          value: true,
+                          label: true,
+                          colorHex: true,
+                        },
+                      },
+                    },
+                  },
+                  inventoryLevel: true,
+                },
+              },
+            },
+          },
+        },
       });
     }
     return this.mapCart(cart);
@@ -1047,12 +1119,20 @@ export class ShopService {
 
   async setCartItem(
     storeSlug: string,
-    sessionId: string,
-    productId: string,
-    quantity: number,
+    input: {
+      sessionId: string;
+      productId: string;
+      variantId?: string | null;
+      quantity: number;
+    },
   ) {
     const settings = await this.resolveTenantBySlug(storeSlug);
     const tenantId = settings.tenantId;
+    const sessionId = input.sessionId;
+    const productId = input.productId;
+    const variantId = input.variantId?.trim() || null;
+    const quantity = input.quantity;
+
     if (!sessionId) throw new BadRequestException('sessionId الزامی است');
     const product = await this.prisma.product.findFirst({
       where: {
@@ -1063,6 +1143,32 @@ export class ShopService {
       },
     });
     if (!product) throw new NotFoundException('محصول پیدا نشد');
+
+    if (product.hasVariants && !variantId) {
+      throw new BadRequestException('انتخاب تنوع محصول الزامی است');
+    }
+
+    if (variantId) {
+      const variant = await this.prisma.productVariant.findFirst({
+        where: {
+          id: variantId,
+          tenantId,
+          productId,
+          active: true,
+        },
+        include: { inventoryLevel: true },
+      });
+      if (!variant) throw new NotFoundException('تنوع محصول پیدا نشد');
+      const available = variant.inventoryLevel
+        ? availableStock(variant.inventoryLevel)
+        : 0;
+      if (quantity > 0 && available < quantity) {
+        throw new BadRequestException('موجودی این تنوع کافی نیست');
+      }
+    } else if (quantity > 0 && !product.inStock) {
+      throw new BadRequestException('محصول ناموجود است');
+    }
+
     let cart = await this.prisma.cart.findUnique({
       where: { tenantId_sessionId: { tenantId, sessionId } },
     });
@@ -1071,29 +1177,50 @@ export class ShopService {
         data: { tenantId, sessionId },
       });
     }
+
+    const existing = await this.prisma.cartItem.findFirst({
+      where: {
+        cartId: cart.id,
+        productId,
+        ...(variantId ? { variantId } : { variantId: null }),
+      },
+    });
+
     if (quantity <= 0) {
-      await this.prisma.cartItem.deleteMany({
-        where: { cartId: cart.id, productId },
+      if (existing) {
+        await this.prisma.cartItem.delete({ where: { id: existing.id } });
+      }
+    } else if (existing) {
+      await this.prisma.cartItem.update({
+        where: { id: existing.id },
+        data: { quantity },
       });
     } else {
-      await this.prisma.cartItem.upsert({
-        where: {
-          cartId_productId: { cartId: cart.id, productId },
+      await this.prisma.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId,
+          variantId,
+          quantity,
         },
-        create: { cartId: cart.id, productId, quantity },
-        update: { quantity },
       });
     }
-    const full = await this.prisma.cart.findUniqueOrThrow({
-      where: { id: cart.id },
-      include: { items: { include: { product: true } } },
-    });
-    return this.mapCart(full);
+
+    return this.getOrCreateCart(tenantId, sessionId);
   }
 
   async getCart(storeSlug: string, sessionId: string) {
     const settings = await this.resolveTenantBySlug(storeSlug);
     return this.getOrCreateCart(settings.tenantId, sessionId);
+  }
+
+  async publicValidateDiscount(
+    storeSlug: string,
+    code: string,
+    subtotal = 0,
+  ) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    return this.discounts.validateCode(settings.tenantId, code, subtotal);
   }
 
   async checkout(
@@ -1104,12 +1231,22 @@ export class ShopService {
       customerPhone: string;
       customerAddress: string;
       customerNote?: string;
+      discountCode?: string;
+      paymentMethod?: 'cod' | 'online';
     },
   ) {
     const settings = await this.resolveTenantBySlug(storeSlug);
-    if (!settings.codEnabled) {
+    const paymentMethod = body.paymentMethod ?? 'cod';
+
+    if (paymentMethod === 'cod' && !settings.codEnabled) {
       throw new BadRequestException('پرداخت در محل برای این فروشگاه فعال نیست');
     }
+    if (paymentMethod === 'online' && !settings.onlinePaymentEnabled) {
+      throw new BadRequestException(
+        'پرداخت آنلاین هنوز برای این فروشگاه فعال نشده است',
+      );
+    }
+
     const cart = await this.prisma.cart.findUnique({
       where: {
         tenantId_sessionId: {
@@ -1117,52 +1254,248 @@ export class ShopService {
           sessionId: body.sessionId,
         },
       },
-      include: { items: { include: { product: true } } },
+      include: {
+        items: {
+          include: {
+            product: true,
+            variant: { include: { inventoryLevel: true } },
+          },
+        },
+      },
     });
     if (!cart || cart.items.length === 0) {
       throw new BadRequestException('سبد خرید خالی است');
     }
-    for (const item of cart.items) {
-      if (!item.product.inStock) {
+
+    const pricedLines = cart.items.map((item) => {
+      const unitPrice = resolveEffectivePrice({
+        productPrice: Number(item.product.price),
+        variantPrice:
+          item.variant?.price != null ? Number(item.variant.price) : null,
+      });
+      const title = item.variant
+        ? `${item.product.title} (${item.variant.sku})`
+        : item.product.title;
+      const sku = item.variant?.sku ?? item.product.sku;
+      return {
+        item,
+        unitPrice,
+        title,
+        sku,
+        lineTotal: unitPrice * item.quantity,
+        categoryId: item.product.categoryId,
+      };
+    });
+
+    for (const line of pricedLines) {
+      if (line.item.variantId) {
+        const level = line.item.variant?.inventoryLevel;
+        const available = level ? availableStock(level) : 0;
+        if (available < line.item.quantity) {
+          throw new BadRequestException(
+            `موجودی «${line.title}» کافی نیست`,
+          );
+        }
+      } else if (!line.item.product.inStock) {
         throw new BadRequestException(
-          `محصول «${item.product.title}» ناموجود است`,
+          `محصول «${line.item.product.title}» ناموجود است`,
         );
       }
     }
-    const total = cart.items.reduce(
-      (sum, i) => sum + Number(i.product.price) * i.quantity,
-      0,
-    );
+
+    const subtotal = pricedLines.reduce((sum, l) => sum + l.lineTotal, 0);
+    const discountCode = body.discountCode?.trim() || null;
+    let discountAmount = 0;
+    let appliedDiscountId: string | null = null;
+
+    if (discountCode) {
+      const applied = await this.computeCartDiscount(
+        settings.tenantId,
+        pricedLines.map((l) => ({
+          productId: l.item.productId,
+          variantId: l.item.variantId,
+          categoryId: l.categoryId,
+          lineTotal: l.lineTotal,
+        })),
+        subtotal,
+        discountCode,
+      );
+      if (!applied.valid) {
+        throw new BadRequestException(
+          applied.reason === 'not_found'
+            ? 'کد تخفیف پیدا نشد'
+            : 'کد تخفیف قابل اعمال نیست',
+        );
+      }
+      discountAmount = applied.discountAmount;
+      appliedDiscountId = applied.discountId;
+    }
+
+    const total = Math.max(subtotal - discountAmount, 0);
     const orderNumber = `SF-${Date.now().toString(36).toUpperCase()}`;
-    const order = await this.prisma.storefrontOrder.create({
-      data: {
-        tenantId: settings.tenantId,
-        orderNumber,
-        status: 'pending',
-        paymentMethod: 'cod',
-        totalAmount: new Prisma.Decimal(total),
-        currency: cart.items[0]?.product.currency ?? 'IRR',
-        customerName: body.customerName.trim(),
-        customerPhone: body.customerPhone.trim(),
-        customerAddress: body.customerAddress.trim(),
-        customerNote: body.customerNote?.trim() || null,
-        items: {
-          create: cart.items.map((i) => ({
-            productId: i.productId,
-            sku: i.product.sku,
-            title: i.product.title,
-            unitPrice: i.product.price,
-            quantity: i.quantity,
-            lineTotal: new Prisma.Decimal(
-              Number(i.product.price) * i.quantity,
-            ),
-          })),
+    const status =
+      paymentMethod === 'online' ? 'pending_payment' : 'pending';
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.storefrontOrder.create({
+        data: {
+          tenantId: settings.tenantId,
+          orderNumber,
+          status,
+          paymentMethod,
+          subtotalAmount: new Prisma.Decimal(subtotal),
+          discountCode,
+          discountAmount: new Prisma.Decimal(discountAmount),
+          totalAmount: new Prisma.Decimal(total),
+          currency: cart.items[0]?.product.currency ?? 'IRR',
+          customerName: body.customerName.trim(),
+          customerPhone: body.customerPhone.trim(),
+          customerAddress: body.customerAddress.trim(),
+          customerNote: body.customerNote?.trim() || null,
+          items: {
+            create: pricedLines.map((l) => ({
+              productId: l.item.productId,
+              variantId: l.item.variantId,
+              sku: l.sku,
+              title: l.title,
+              unitPrice: new Prisma.Decimal(l.unitPrice),
+              quantity: l.item.quantity,
+              lineTotal: new Prisma.Decimal(l.lineTotal),
+            })),
+          },
         },
-      },
-      include: { items: true },
+        include: { items: true },
+      });
+
+      if (appliedDiscountId) {
+        await tx.discount.update({
+          where: { id: appliedDiscountId },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
+      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      return created;
     });
-    await this.prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
-    return this.mapOrder(order);
+
+    // Inventory decrement after order is committed (ledger-safe via InventoryService)
+    for (const line of pricedLines) {
+      try {
+        await this.inventory.adjust(settings.tenantId, {
+          productId: line.item.variantId ? undefined : line.item.productId,
+          variantId: line.item.variantId ?? undefined,
+          delta: -line.item.quantity,
+          type: 'sale',
+          referenceType: 'storefront_order',
+          referenceId: order.id,
+          reason: `فروش سفارش ${order.orderNumber}`,
+        });
+      } catch (err) {
+        // Order already placed — surface soft failure via status note path later;
+        // still throw so merchant sees the issue on tight stock races.
+        throw new BadRequestException(
+          err instanceof Error
+            ? err.message
+            : `خطا در کسر موجودی برای «${line.title}»`,
+        );
+      }
+    }
+
+    return {
+      ...this.mapOrder(order),
+      paymentHint:
+        paymentMethod === 'online'
+          ? 'پرداخت آنلاین در انتظار اتصال درگاه است؛ سفارش با وضعیت pending_payment ثبت شد.'
+          : null,
+      payUrl: null as string | null,
+    };
+  }
+
+  private async computeCartDiscount(
+    tenantId: string,
+    lines: Array<{
+      productId: string;
+      variantId: string | null;
+      categoryId: string | null;
+      lineTotal: number;
+    }>,
+    subtotal: number,
+    code: string,
+  ) {
+    const validation = await this.discounts.validateCode(
+      tenantId,
+      code,
+      subtotal,
+    );
+    if (!validation.valid || !validation.discount) {
+      return {
+        valid: false as const,
+        reason: validation.reason as string,
+        discountAmount: 0,
+        discountId: null,
+      };
+    }
+
+    const rules = await this.discounts.rulesFor(tenantId);
+
+    const matched = rules.filter(
+      (r) =>
+        r.code &&
+        r.code.trim().toLowerCase() === code.trim().toLowerCase(),
+    );
+    if (matched.length === 0) {
+      return {
+        valid: false as const,
+        reason: 'not_found',
+        discountAmount: 0,
+        discountId: null,
+      };
+    }
+
+    const rule = matched[0]!;
+    const targets = rule.targets ?? [];
+    const isCartWide =
+      targets.length === 0 || targets.some((t) => t.targetType === 'all');
+
+    let discountAmount = 0;
+    if (isCartWide) {
+      const calc = calculateDiscount(
+        { now: new Date(), subtotal, code },
+        [rule],
+      );
+      discountAmount = calc.discountAmount;
+    } else {
+      for (const line of lines) {
+        const calc = calculateDiscount(
+          {
+            now: new Date(),
+            subtotal: line.lineTotal,
+            productId: line.productId,
+            variantId: line.variantId,
+            categoryId: line.categoryId,
+            code,
+          },
+          [rule],
+        );
+        discountAmount += calc.discountAmount;
+      }
+    }
+
+    if (discountAmount <= 0) {
+      return {
+        valid: false as const,
+        reason: 'not_applicable',
+        discountAmount: 0,
+        discountId: null,
+      };
+    }
+
+    return {
+      valid: true as const,
+      reason: null,
+      discountAmount,
+      discountId: rule.id,
+    };
   }
 
   async trackOrder(
@@ -1195,6 +1528,7 @@ export class ShopService {
     secondaryColor: string;
     tagline: string | null;
     codEnabled: boolean;
+    onlinePaymentEnabled?: boolean;
     supportPhone: string | null;
     defaultCurrency?: string;
     lowStockThreshold?: number;
@@ -1211,6 +1545,7 @@ export class ShopService {
       secondaryColor: row.secondaryColor,
       tagline: row.tagline,
       codEnabled: row.codEnabled,
+      onlinePaymentEnabled: row.onlinePaymentEnabled ?? false,
       supportPhone: row.supportPhone,
       defaultCurrency: row.defaultCurrency ?? 'IRR',
       lowStockThreshold: row.lowStockThreshold ?? 5,
@@ -1225,6 +1560,7 @@ export class ShopService {
     items: Array<{
       id: string;
       quantity: number;
+      variantId?: string | null;
       product: {
         id: string;
         sku: string;
@@ -1234,24 +1570,70 @@ export class ShopService {
         currency: string;
         inStock: boolean;
         images: string[];
+        hasVariants?: boolean;
       };
+      variant?: {
+        id: string;
+        sku: string;
+        price: Prisma.Decimal | null;
+        imageUrl: string | null;
+        attributeValues: Array<{
+          attribute: { id: string; name: string; sortOrder: number };
+          attributeValue: {
+            id: string;
+            value: string;
+            label: string | null;
+            colorHex: string | null;
+          };
+        }>;
+        inventoryLevel: { onHand: number; reserved: number } | null;
+      } | null;
     }>;
   }) {
-    const items = cart.items.map((i) => ({
-      id: i.id,
-      quantity: i.quantity,
-      product: {
-        id: i.product.id,
-        sku: i.product.sku,
-        slug: i.product.slug,
-        title: i.product.title,
-        price: Number(i.product.price),
-        currency: i.product.currency,
-        inStock: i.product.inStock,
-        images: i.product.images,
-      },
-      lineTotal: Number(i.product.price) * i.quantity,
-    }));
+    const items = cart.items.map((i) => {
+      const unitPrice = resolveEffectivePrice({
+        productPrice: Number(i.product.price),
+        variantPrice: i.variant?.price != null ? Number(i.variant.price) : null,
+      });
+      const options = (i.variant?.attributeValues ?? [])
+        .slice()
+        .sort((a, b) => a.attribute.sortOrder - b.attribute.sortOrder)
+        .map((v) => ({
+          attributeName: v.attribute.name,
+          label: v.attributeValue.label || v.attributeValue.value,
+        }));
+      const available = i.variant?.inventoryLevel
+        ? availableStock(i.variant.inventoryLevel)
+        : null;
+      return {
+        id: i.id,
+        quantity: i.quantity,
+        variantId: i.variantId ?? null,
+        product: {
+          id: i.product.id,
+          sku: i.product.sku,
+          slug: i.product.slug,
+          title: i.product.title,
+          price: Number(i.product.price),
+          currency: i.product.currency,
+          inStock: i.product.inStock,
+          images: i.product.images,
+          hasVariants: i.product.hasVariants ?? false,
+        },
+        variant: i.variant
+          ? {
+              id: i.variant.id,
+              sku: i.variant.sku,
+              imageUrl: i.variant.imageUrl,
+              options,
+              available,
+              effectivePrice: unitPrice,
+            }
+          : null,
+        unitPrice,
+        lineTotal: unitPrice * i.quantity,
+      };
+    });
     return {
       id: cart.id,
       sessionId: cart.sessionId,
@@ -1266,6 +1648,9 @@ export class ShopService {
     orderNumber: string;
     status: string;
     paymentMethod: string;
+    subtotalAmount?: Prisma.Decimal;
+    discountCode?: string | null;
+    discountAmount?: Prisma.Decimal;
     totalAmount: Prisma.Decimal;
     currency: string;
     customerName: string;
@@ -1281,6 +1666,7 @@ export class ShopService {
       quantity: number;
       lineTotal: Prisma.Decimal;
       productId: string | null;
+      variantId?: string | null;
     }>;
   }) {
     return {
@@ -1288,6 +1674,9 @@ export class ShopService {
       orderNumber: row.orderNumber,
       status: row.status,
       paymentMethod: row.paymentMethod,
+      subtotalAmount: Number(row.subtotalAmount ?? row.totalAmount),
+      discountCode: row.discountCode ?? null,
+      discountAmount: Number(row.discountAmount ?? 0),
       totalAmount: Number(row.totalAmount),
       currency: row.currency,
       customerName: row.customerName,
@@ -1298,6 +1687,7 @@ export class ShopService {
       items: row.items.map((i) => ({
         id: i.id,
         productId: i.productId,
+        variantId: i.variantId ?? null,
         sku: i.sku,
         title: i.title,
         unitPrice: Number(i.unitPrice),

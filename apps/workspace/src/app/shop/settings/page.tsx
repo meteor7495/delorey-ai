@@ -16,6 +16,7 @@ export default function ShopSettingsPage() {
   const [tagline, setTagline] = useState('');
   const [supportPhone, setSupportPhone] = useState('');
   const [codEnabled, setCodEnabled] = useState(true);
+  const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(false);
   const [storefrontUrl, setStorefrontUrl] = useState('');
   const [defaultCurrency, setDefaultCurrency] = useState('IRR');
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
@@ -31,6 +32,7 @@ export default function ShopSettingsPage() {
         setTagline(String(s.tagline ?? ''));
         setSupportPhone(String(s.supportPhone ?? ''));
         setCodEnabled(Boolean(s.codEnabled));
+        setOnlinePaymentEnabled(Boolean(s.onlinePaymentEnabled));
         setStorefrontUrl(String(s.storefrontUrl ?? ''));
         setDefaultCurrency(String(s.defaultCurrency ?? 'IRR'));
         setLowStockThreshold(String(s.lowStockThreshold ?? 5));
@@ -49,6 +51,7 @@ export default function ShopSettingsPage() {
         tagline: tagline || null,
         supportPhone: supportPhone || null,
         codEnabled,
+        onlinePaymentEnabled,
         defaultCurrency,
         lowStockThreshold: Number(lowStockThreshold) || 0,
         allowNegativeInventory,
@@ -110,6 +113,14 @@ export default function ShopSettingsPage() {
                   onChange={(e) => setCodEnabled(e.target.checked)}
                 />
                 پرداخت در محل (COD) فعال باشد
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={onlinePaymentEnabled}
+                  onChange={(e) => setOnlinePaymentEnabled(e.target.checked)}
+                />
+                پرداخت آنلاین (در انتظار درگاه — سفارش pending_payment)
               </label>
               <div className="pt-2">
                 <p className="text-sm font-semibold text-[var(--text-1)]">

@@ -1091,12 +1091,33 @@ export function createApiClient(opts: ApiClientOptions) {
       ),
     storefrontSetCartItem: (
       storeSlug: string,
-      body: { sessionId: string; productId: string; quantity: number },
+      body: {
+        sessionId: string;
+        productId: string;
+        quantity: number;
+        variantId?: string;
+      },
     ) =>
       request(opts, `/storefront/${encodeURIComponent(storeSlug)}/cart`, {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    storefrontValidateDiscount: (
+      storeSlug: string,
+      body: { code: string; subtotal?: number },
+    ) =>
+      request<{
+        valid: boolean;
+        reason: string | null;
+        discount: Record<string, unknown> | null;
+      }>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/discounts/validate`,
+        {
+          method: 'POST',
+          body: JSON.stringify(body),
+        },
+      ),
     storefrontCheckout: (
       storeSlug: string,
       body: {
@@ -1105,6 +1126,8 @@ export function createApiClient(opts: ApiClientOptions) {
         customerPhone: string;
         customerAddress: string;
         customerNote?: string;
+        discountCode?: string;
+        paymentMethod?: 'cod' | 'online';
       },
     ) =>
       request(opts, `/storefront/${encodeURIComponent(storeSlug)}/checkout`, {

@@ -10,6 +10,8 @@ type Cart = {
     id: string;
     quantity: number;
     lineTotal: number;
+    unitPrice: number;
+    variantId?: string | null;
     product: {
       id: string;
       slug: string;
@@ -19,6 +21,11 @@ type Cart = {
       inStock: boolean;
       images: string[];
     };
+    variant?: {
+      id: string;
+      sku: string;
+      options: Array<{ attributeName: string; label: string }>;
+    } | null;
   }>;
   total: number;
   currency: string;
@@ -65,12 +72,17 @@ export default function CartPage({
     });
   }, [params]);
 
-  async function setQty(productId: string, quantity: number) {
+  async function setQty(
+    productId: string,
+    quantity: number,
+    variantId?: string | null,
+  ) {
     try {
       const sessionId = getCartSessionId(storeSlug);
       const c = await api.storefrontSetCartItem(storeSlug, {
         sessionId,
         productId,
+        variantId: variantId ?? undefined,
         quantity,
       });
       setCart(c as unknown as Cart);
@@ -107,10 +119,7 @@ export default function CartPage({
           <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
             <div className="zh-card divide-y divide-zh-100">
               {cart.items.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-4 flex gap-3 items-start"
-                >
+                <div key={item.id} className="p-4 flex gap-3 items-start">
                   <Link
                     href={`/s/${storeSlug}/products/${item.product.slug}`}
                     className="shrink-0 w-20 h-20 rounded-dk border border-zh-200 overflow-hidden bg-white"
@@ -131,13 +140,24 @@ export default function CartPage({
                     >
                       {item.product.title}
                     </Link>
+                    {item.variant?.options?.length ? (
+                      <p className="mt-1 text-[12px] text-zh-600">
+                        {item.variant.options
+                          .map((o) => `${o.attributeName}: ${o.label}`)
+                          .join(' · ')}
+                      </p>
+                    ) : null}
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center border border-zh-200 rounded-dk overflow-hidden">
                         <button
                           type="button"
                           className="h-8 w-8 text-zh-primary font-bold"
                           onClick={() =>
-                            setQty(item.product.id, item.quantity - 1)
+                            setQty(
+                              item.product.id,
+                              item.quantity - 1,
+                              item.variantId,
+                            )
                           }
                         >
                           −
@@ -149,7 +169,11 @@ export default function CartPage({
                           type="button"
                           className="h-8 w-8 text-zh-primary font-bold"
                           onClick={() =>
-                            setQty(item.product.id, item.quantity + 1)
+                            setQty(
+                              item.product.id,
+                              item.quantity + 1,
+                              item.variantId,
+                            )
                           }
                         >
                           +
@@ -174,7 +198,7 @@ export default function CartPage({
                 </span>
               </div>
               <p className="text-[13px] text-zh-600 mb-4">
-                هزینه ارسال در مرحله بعد محاسبه می‌شود (COD).
+                کد تخفیف و روش پرداخت در مرحله بعد.
               </p>
               <Link
                 href={`/s/${storeSlug}/checkout`}

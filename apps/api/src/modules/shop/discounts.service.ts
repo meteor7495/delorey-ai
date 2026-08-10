@@ -230,7 +230,7 @@ export class DiscountsService {
   // ─── Evaluation ────────────────────────────────────────────────────
 
   /** Rules loaded once and evaluated by the shared domain calculator. */
-  private async rulesFor(tenantId: string): Promise<DiscountRule[]> {
+  async rulesFor(tenantId: string): Promise<DiscountRule[]> {
     const rows = await this.prisma.discount.findMany({
       where: { tenantId, active: true },
       include: DISCOUNT_INCLUDE,

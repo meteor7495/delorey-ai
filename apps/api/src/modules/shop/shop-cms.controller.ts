@@ -203,6 +203,10 @@ class SettingsDto {
   codEnabled?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  onlinePaymentEnabled?: boolean;
+
+  @IsOptional()
   @IsString()
   supportPhone?: string | null;
 

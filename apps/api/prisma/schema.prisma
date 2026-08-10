@@ -248,7 +248,7 @@ model CartItem {
   id        String   @id @default(uuid())
   cartId    String   @map("cart_id")
   productId String   @map("product_id")
-  /// Null → simple product. Variant-aware cart lines land with storefront wiring.
+  /// Null → simple product line; set for variant-aware lines
   variantId String?  @map("variant_id")
   quantity  Int      @default(1)
   createdAt DateTime @default(now()) @map("created_at")
@@ -258,8 +258,8 @@ model CartItem {
   product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
   variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
-  @@unique([cartId, productId])
   @@index([cartId])
+  @@index([cartId, productId, variantId])
   @@index([variantId])
   @@map("cart_items")
 }
@@ -271,6 +271,9 @@ model StorefrontOrder {
   orderNumber     String   @map("order_number")
   status          String   @default("pending")
   paymentMethod   String   @default("cod") @map("payment_method")
+  subtotalAmount  Decimal  @default(0) @map("subtotal_amount") @db.Decimal(18, 2)
+  discountCode    String?  @map("discount_code")
+  discountAmount  Decimal  @default(0) @map("discount_amount") @db.Decimal(18, 2)
   totalAmount     Decimal  @default(0) @map("total_amount") @db.Decimal(18, 2)
   currency        String   @default("IRR")
   customerName    String   @map("customer_name")
@@ -320,6 +323,8 @@ model StorefrontSettings {
   secondaryColor  String   @default("#0c0c0c") @map("secondary_color")
   tagline         String?
   codEnabled      Boolean  @default(true) @map("cod_enabled")
+  /// Stub until PSP (e.g. Zarinpal) is connected — creates pending_payment orders
+  onlinePaymentEnabled Boolean @default(false) @map("online_payment_enabled")
   supportPhone    String?  @map("support_phone")
   /// Commerce settings — defaults consumed by the Commerce Core domain layer
   defaultCurrency        String  @default("IRR") @map("default_currency")

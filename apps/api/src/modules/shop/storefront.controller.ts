@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import {
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -14,6 +15,10 @@ class CartItemDto {
 
   @IsString()
   productId!: string;
+
+  @IsOptional()
+  @IsString()
+  variantId?: string;
 
   @IsNumber()
   @Min(0)
@@ -39,6 +44,25 @@ class CheckoutDto {
   @IsOptional()
   @IsString()
   customerNote?: string;
+
+  @IsOptional()
+  @IsString()
+  discountCode?: string;
+
+  @IsOptional()
+  @IsIn(['cod', 'online'])
+  paymentMethod?: 'cod' | 'online';
+}
+
+class DiscountValidateDto {
+  @IsString()
+  @MinLength(1)
+  code!: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  subtotal?: number;
 }
 
 @Controller('storefront')
@@ -91,11 +115,23 @@ export class StorefrontController {
 
   @Post(':storeSlug/cart')
   setCart(@Param('storeSlug') storeSlug: string, @Body() dto: CartItemDto) {
-    return this.shop.setCartItem(
+    return this.shop.setCartItem(storeSlug, {
+      sessionId: dto.sessionId,
+      productId: dto.productId,
+      variantId: dto.variantId,
+      quantity: dto.quantity,
+    });
+  }
+
+  @Post(':storeSlug/discounts/validate')
+  validateDiscount(
+    @Param('storeSlug') storeSlug: string,
+    @Body() dto: DiscountValidateDto,
+  ) {
+    return this.shop.publicValidateDiscount(
       storeSlug,
-      dto.sessionId,
-      dto.productId,
-      dto.quantity,
+      dto.code,
+      dto.subtotal ?? 0,
     );
   }
 
