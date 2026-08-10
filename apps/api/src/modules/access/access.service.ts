@@ -7,7 +7,17 @@ import {
 import { IdentityService } from '../identity/identity.service';
 import { PrismaService } from '../platform/prisma.service';
 
-const PLANS = ['starter', 'professional', 'business'] as const;
+const PLANS = [
+  'site-starter',
+  'site-growth',
+  'site-pro',
+  'ai-sales',
+  'ai-business',
+  // legacy aliases (still accepted)
+  'starter',
+  'professional',
+  'business',
+] as const;
 
 @Injectable()
 export class AccessService {

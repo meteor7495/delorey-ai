@@ -1,6 +1,71 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
-import { PLANS } from '@/lib/api';
+import {
+  AI_EMPLOYEE_PLANS,
+  DEFAULT_PLAN_ID,
+  SITE_BUILDER_PLANS,
+  type Plan,
+} from '@/lib/api';
+
+function PlanCard({ plan }: { plan: Plan }) {
+  return (
+    <article
+      className={`plan-card ${plan.featured ? 'plan-card--featured lg:-mt-2 lg:mb-2' : ''}`}
+    >
+      {plan.featured ? (
+        <span className="mb-4 inline-flex w-fit rounded-lg bg-teal-bright px-2.5 py-1 text-[11px] font-black text-ink">
+          {plan.category === 'site'
+            ? 'پیشنهادی برای اکثر فروشگاه‌ها'
+            : 'هستهٔ محصول DeloRey'}
+        </span>
+      ) : (
+        <span className="mb-4 inline-flex h-[26px]" aria-hidden />
+      )}
+      <h3 className="text-xl font-extrabold">{plan.name}</h3>
+      <p
+        className={`mt-1 text-sm leading-6 ${
+          plan.featured ? 'text-white/65' : 'text-ink/55'
+        }`}
+      >
+        {plan.blurb}
+      </p>
+      <div className="mt-6 flex items-baseline gap-2">
+        <span className="text-4xl font-black tracking-tight">{plan.price}</span>
+        <span
+          className={`text-sm ${plan.featured ? 'text-white/50' : 'text-ink/45'}`}
+        >
+          {plan.unit}
+        </span>
+      </div>
+      <ul className="mt-6 space-y-2.5 text-sm flex-1">
+        {plan.features.map((f) => (
+          <li key={f} className="flex gap-2.5">
+            <span
+              className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md text-[11px] font-black ${
+                plan.featured
+                  ? 'bg-teal-bright/20 text-teal-bright'
+                  : 'bg-teal/10 text-teal'
+              }`}
+            >
+              ✓
+            </span>
+            <span className={plan.featured ? 'text-white/85' : 'text-ink/70'}>
+              {f}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={`/request?plan=${plan.id}`}
+        className={`btn mt-8 w-full ${
+          plan.featured ? 'btn-primary' : 'btn-soft'
+        }`}
+      >
+        {plan.cta}
+      </Link>
+    </article>
+  );
+}
 
 const FEATURES = [
   {
@@ -95,7 +160,10 @@ export default function LandingPage() {
               className="animate-fadeUp mt-8 flex flex-wrap gap-3"
               style={{ animationDelay: '240ms' }}
             >
-              <Link href="/request?plan=professional" className="btn btn-primary">
+              <Link
+                href={`/request?plan=${DEFAULT_PLAN_ID}`}
+                className="btn btn-primary"
+              >
                 ثبت درخواست دسترسی
               </Link>
               <a href="/#pricing" className="btn btn-outline-light">
@@ -196,10 +264,10 @@ export default function LandingPage() {
               commerce.
             </p>
             <Link
-              href="/request?plan=professional"
+              href={`/request?plan=${DEFAULT_PLAN_ID}`}
               className="btn btn-soft mt-8"
             >
-              شروع با پلن حرفه‌ای
+              شروع با سایت‌ساز فروشگاهی
             </Link>
           </div>
 
@@ -221,82 +289,67 @@ export default function LandingPage() {
 
       <section id="pricing" className="section-anchor py-20 sm:py-28">
         <div className="container">
-          <div className="max-w-2xl mb-12">
+          <div className="max-w-2xl mb-14">
             <p className="eyebrow mb-4">تعرفه‌ها</p>
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight mb-3">
-              پلن مناسب مرحله رشد شما
+              دو مسیر جدا: سایت‌ساز و کارمند فروش AI
             </h2>
             <p className="text-ink/60 leading-8">
-              قیمت‌های founding برای بازار ایران. بعد از ثبت درخواست، حساب ساخته
-              می‌شود و می‌توانید پرداخت را تکمیل کنید.
+              سایت‌ساز با تعرفهٔ سالیانه و قیمت مناسب فروشگاه‌ها. کارمند فروش
+              هوش مصنوعی را بعد از گفتگو و متناسب با نیازتان قیمت‌گذاری می‌کنیم.
             </p>
           </div>
 
-          <div className="grid gap-5 items-stretch lg:grid-cols-3">
-            {PLANS.map((plan) => (
-              <article
-                key={plan.id}
-                className={`plan-card ${plan.featured ? 'plan-card--featured lg:-mt-2 lg:mb-2' : ''}`}
-              >
-                {plan.featured ? (
-                  <span className="mb-4 inline-flex w-fit rounded-lg bg-teal-bright px-2.5 py-1 text-[11px] font-black text-ink">
-                    پیشنهادی برای اکثر فروشگاه‌ها
-                  </span>
-                ) : (
-                  <span className="mb-4 inline-flex h-[26px]" aria-hidden />
-                )}
-                <h3 className="text-xl font-extrabold">{plan.name}</h3>
-                <p
-                  className={`mt-1 text-sm leading-6 ${
-                    plan.featured ? 'text-white/65' : 'text-ink/55'
-                  }`}
-                >
-                  {plan.blurb}
+          <div id="pricing-site" className="section-anchor mb-16">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black tracking-wide text-teal mb-2">
+                  ۰۱ — سایت‌ساز
                 </p>
-                <div className="mt-6 flex items-baseline gap-2">
-                  <span className="text-4xl font-black tracking-tight">
-                    {plan.price}
-                  </span>
-                  <span
-                    className={`text-sm ${
-                      plan.featured ? 'text-white/50' : 'text-ink/45'
-                    }`}
-                  >
-                    {plan.unit}
-                  </span>
-                </div>
-                <ul className="mt-6 space-y-2.5 text-sm flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex gap-2.5">
-                      <span
-                        className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md text-[11px] font-black ${
-                          plan.featured
-                            ? 'bg-teal-bright/20 text-teal-bright'
-                            : 'bg-teal/10 text-teal'
-                        }`}
-                      >
-                        ✓
-                      </span>
-                      <span
-                        className={
-                          plan.featured ? 'text-white/85' : 'text-ink/70'
-                        }
-                      >
-                        {f}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={`/request?plan=${plan.id}`}
-                  className={`btn mt-8 w-full ${
-                    plan.featured ? 'btn-primary' : 'btn-soft'
-                  }`}
-                >
-                  انتخاب {plan.name}
-                </Link>
-              </article>
-            ))}
+                <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  تعرفهٔ سالیانه ویترین فروشگاهی
+                </h3>
+                <p className="mt-2 text-ink/55 leading-7 max-w-xl">
+                  هزینهٔ شفاف و سالیانه برای راه‌اندازی و نگهداری فروشگاه آنلاین.
+                </p>
+              </div>
+              <span className="rounded-xl bg-teal/10 px-3 py-1.5 text-xs font-bold text-teal">
+                پرداخت سالیانه
+              </span>
+            </div>
+            <div className="grid gap-5 items-stretch lg:grid-cols-3">
+              {SITE_BUILDER_PLANS.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} />
+              ))}
+            </div>
+          </div>
+
+          <div
+            id="pricing-ai"
+            className="section-anchor rounded-[1.75rem] border border-ink/8 bg-sand/70 p-6 sm:p-10"
+          >
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black tracking-wide text-teal mb-2">
+                  ۰۲ — کارمند فروش AI
+                </p>
+                <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
+                  تعرفه با هماهنگی
+                </h3>
+                <p className="mt-2 text-ink/55 leading-7 max-w-xl">
+                  قیمت نهایی را بعداً با هم صحبت می‌کنیم؛ ابتدا نیاز فروشگاه،
+                  کانال‌ها و حجم گفتگو را می‌سنجیم.
+                </p>
+              </div>
+              <span className="rounded-xl bg-ink/8 px-3 py-1.5 text-xs font-bold text-ink/70">
+                قیمت توافقی
+              </span>
+            </div>
+            <div className="grid gap-5 items-stretch md:grid-cols-2">
+              {AI_EMPLOYEE_PLANS.map((plan) => (
+                <PlanCard key={plan.id} plan={plan} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -320,13 +373,13 @@ export default function LandingPage() {
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
-                  href="/request?plan=professional"
+                  href={`/request?plan=${DEFAULT_PLAN_ID}`}
                   className="btn btn-primary"
                 >
-                  ثبت درخواست دسترسی
+                  شروع با سایت‌ساز
                 </Link>
-                <a href="/#features" className="btn btn-outline-light">
-                  مرور امکانات
+                <a href="/#pricing-ai" className="btn btn-outline-light">
+                  هماهنگی کارمند AI
                 </a>
               </div>
             </div>

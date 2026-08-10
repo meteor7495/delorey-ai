@@ -13,7 +13,7 @@ model Tenant {
   name        String
   ownerUserId String   @map("owner_user_id")
   status      String   @default("active")
-  /// starter | professional | business | trial
+  /// site-starter | site-growth | site-pro | ai-sales | ai-business | trial
   plan        String   @default("trial")
   /// pending_payment | active | trial | suspended
   billingStatus String @default("trial") @map("billing_status")

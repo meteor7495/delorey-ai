@@ -3,12 +3,19 @@
 import Link from 'next/link';
 import { FormEvent, Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PLANS, submitAccessRequest } from '@/lib/api';
+import {
+  AI_EMPLOYEE_PLANS,
+  DEFAULT_PLAN_ID,
+  PLANS,
+  SITE_BUILDER_PLANS,
+  findPlan,
+  submitAccessRequest,
+} from '@/lib/api';
 
 function RequestForm() {
   const search = useSearchParams();
   const router = useRouter();
-  const [plan, setPlan] = useState('professional');
+  const [plan, setPlan] = useState(DEFAULT_PLAN_ID);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -21,6 +28,8 @@ function RequestForm() {
     const p = search.get('plan');
     if (p && PLANS.some((x) => x.id === p)) setPlan(p);
   }, [search]);
+
+  const selected = findPlan(plan);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -38,7 +47,9 @@ function RequestForm() {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('delorey_pending_token', res.token);
       }
-      router.push(`/pay?requestId=${encodeURIComponent(res.requestId)}&plan=${plan}`);
+      router.push(
+        `/pay?requestId=${encodeURIComponent(res.requestId)}&plan=${plan}`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ثبت نشد');
       setLoading(false);
@@ -50,18 +61,20 @@ function RequestForm() {
       <div
         className="border-b border-ink/8 bg-ink text-white"
         style={{
-          background:
-            'linear-gradient(160deg, #071018, #0f6e6e 140%)',
+          background: 'linear-gradient(160deg, #071018, #0f6e6e 140%)',
         }}
       >
         <div className="container py-10">
-          <Link href="/" className="text-sm font-bold text-white/70 hover:text-white">
+          <Link
+            href="/"
+            className="text-sm font-bold text-white/70 hover:text-white"
+          >
             ← بازگشت
           </Link>
           <h1 className="mt-4 text-3xl font-black">ثبت درخواست دسترسی</h1>
           <p className="mt-2 text-white/65 max-w-xl leading-7">
-            حساب Workspace به‌صورت خودکار ساخته می‌شود؛ سپس پرداخت (یا فعال‌سازی
-            آزمایشی) و ورود.
+            حساب Workspace ساخته می‌شود؛ برای سایت‌ساز به فعال‌سازی می‌روید و
+            برای کارمند AI هماهنگی قیمت انجام می‌شود.
           </p>
         </div>
       </div>
@@ -78,12 +91,27 @@ function RequestForm() {
               value={plan}
               onChange={(e) => setPlan(e.target.value)}
             >
-              {PLANS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
+              <optgroup label="سایت‌ساز (سالیانه)">
+                {SITE_BUILDER_PLANS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {p.price} {p.unit}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="کارمند فروش AI (هماهنگی)">
+                {AI_EMPLOYEE_PLANS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {p.price}
+                  </option>
+                ))}
+              </optgroup>
             </select>
+            {selected.consultative ? (
+              <p className="mt-2 text-xs leading-6 text-ink/50">
+                قیمت این پلن ثابت نیست؛ بعد از ثبت، برای هماهنگی با شما تماس
+                می‌گیریم.
+              </p>
+            ) : null}
           </div>
           <div>
             <label className="text-sm font-bold">نام و نام خانوادگی</label>
@@ -137,8 +165,16 @@ function RequestForm() {
           {error && (
             <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
           )}
-          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-            {loading ? 'در حال ساخت حساب…' : 'ادامه به پرداخت'}
+          <button
+            type="submit"
+            className="btn btn-primary w-full"
+            disabled={loading}
+          >
+            {loading
+              ? 'در حال ساخت حساب…'
+              : selected.consultative
+                ? 'ثبت و ادامه برای هماهنگی'
+                : 'ادامه به پرداخت'}
           </button>
         </form>
 
@@ -146,8 +182,12 @@ function RequestForm() {
           <h2 className="font-extrabold text-lg">مراحل</h2>
           <ol className="mt-4 space-y-3 text-sm text-ink/65 leading-7 list-decimal list-inside">
             <li>ثبت درخواست و ساخت خودکار حساب</li>
-            <li>پرداخت اشتراک (فعلاً فعال‌سازی آزمایشی)</li>
-            <li>ورود به Workspace و راه‌اندازی فروشگاه / AI</li>
+            <li>
+              {selected.consultative
+                ? 'هماهنگی قیمت کارمند فروش AI'
+                : 'فعال‌سازی اشتراک سایت‌ساز'}
+            </li>
+            <li>ورود به Workspace و راه‌اندازی</li>
           </ol>
         </aside>
       </div>

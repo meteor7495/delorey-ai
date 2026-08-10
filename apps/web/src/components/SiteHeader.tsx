@@ -130,7 +130,7 @@ export function SiteHeader() {
           </Link>
           <div className="mt-2 grid gap-2 px-1 pb-1">
             <Link
-              href="/request?plan=professional"
+              href="/request?plan=site-growth"
               className="btn btn-primary"
               onClick={() => setOpen(false)}
             >

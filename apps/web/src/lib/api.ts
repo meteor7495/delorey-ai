@@ -55,53 +55,129 @@ export async function getAccessRequest(requestId: string) {
   };
 }
 
-export const PLANS = [
+export type Plan = {
+  id: string;
+  name: string;
+  price: string;
+  unit: string;
+  blurb: string;
+  features: readonly string[];
+  featured: boolean;
+  category: 'site' | 'ai';
+  /** When true, price is negotiated — no fixed checkout amount */
+  consultative: boolean;
+  cta: string;
+};
+
+/** سالیانه — سایت‌ساز / ویترین فروشگاهی */
+export const SITE_BUILDER_PLANS: readonly Plan[] = [
   {
-    id: 'starter',
-    name: 'استارتر',
-    price: '۴٫۹',
-    unit: 'میلیون تومان / ماه',
-    blurb: 'برای شروع روی یک کانال اصلی',
+    id: 'site-starter',
+    name: 'پایه',
+    price: '۲٫۹',
+    unit: 'میلیون تومان / سال',
+    blurb: 'برای شروع فروش آنلاین با هزینهٔ منطقی',
     features: [
-      '۱ کانال (وب یا تلگرام یا بله)',
-      'حدود ۵۰۰ گفتگوی AI در ماه',
-      '۱ کارمند فروش AI',
-      'فروشگاه بومی + همگام‌سازی فروشگاه',
+      'ویترین فروشگاهی بومی',
+      'مدیریت محصول و موجودی',
+      'سبد خرید و ثبت سفارش',
+      'دامنهٔ فرعی DeloRey',
       'پشتیبانی ایمیلی',
     ],
     featured: false,
+    category: 'site',
+    consultative: false,
+    cta: 'انتخاب پلن پایه',
   },
   {
-    id: 'professional',
-    name: 'حرفه‌ای',
-    price: '۱۴٫۹',
-    unit: 'میلیون تومان / ماه',
-    blurb: 'انتخاب پیشنهادی فروشگاه‌های فعال',
+    id: 'site-growth',
+    name: 'فروشگاهی',
+    price: '۵٫۹',
+    unit: 'میلیون تومان / سال',
+    blurb: 'انتخاب پیشنهادی اکثر فروشگاه‌های فعال',
     features: [
-      'تا ۳ کانال: وب، تلگرام، بله',
-      'حدود ۲۰۰۰ گفتگوی AI در ماه',
-      'ویترین بومی + CMS',
-      'اینباکس یکپارچه و ممیزی',
+      'همه امکانات پلن پایه',
+      'CMS و مدیریت محتوا',
+      'کد تخفیف و دسته‌بندی',
+      'پیگیری سفارش برای مشتری',
+      'آماده برای اتصال درگاه',
+    ],
+    featured: true,
+    category: 'site',
+    consultative: false,
+    cta: 'انتخاب پلن فروشگاهی',
+  },
+  {
+    id: 'site-pro',
+    name: 'پیشرفته',
+    price: '۹٫۹',
+    unit: 'میلیون تومان / سال',
+    blurb: 'برای فروشگاه‌هایی که رشد سریع‌تری می‌خواهند',
+    features: [
+      'همه امکانات پلن فروشگاهی',
+      'دامنه اختصاصی فروشگاه',
+      'اولویت پشتیبانی',
+      'آنبوردینگ اختصاصی',
+      'آماده برای افزودن کارمند AI',
+    ],
+    featured: false,
+    category: 'site',
+    consultative: false,
+    cta: 'انتخاب پلن پیشرفته',
+  },
+] as const;
+
+/** کارمند فروش هوش مصنوعی — قیمت با هماهنگی */
+export const AI_EMPLOYEE_PLANS: readonly Plan[] = [
+  {
+    id: 'ai-sales',
+    name: 'کارمند فروش AI',
+    price: 'هماهنگی',
+    unit: 'قیمت بعد از گفتگو',
+    blurb: 'پاسخ grounded روی کاتالوگ، وب و پیام‌رسان‌ها',
+    features: [
+      'پاسخ روی موجودی و قیمت واقعی',
+      'کانال‌های وب، تلگرام و بله',
+      'اینباکس یکپارچه و تحویل به انسان',
+      'دانش، گاردریل و ممیزی',
       'انتساب فروش و آنالیتیکس',
     ],
     featured: true,
+    category: 'ai',
+    consultative: true,
+    cta: 'درخواست هماهنگی قیمت',
   },
   {
-    id: 'business',
-    name: 'بیزنس',
-    price: 'تماس',
-    unit: 'قیمت‌گذاری اختصاصی',
-    blurb: 'حجم بالا و چند اپراتور',
+    id: 'ai-business',
+    name: 'AI بیزنس',
+    price: 'هماهنگی',
+    unit: 'حجم و چند اپراتور',
+    blurb: 'برای فروشگاه‌های پرگفتگو و تیم‌های بزرگ‌تر',
     features: [
-      'کانال‌های بیشتر و سهمیه بالاتر',
+      'همه امکانات کارمند فروش AI',
+      'سهمیه گفتگوی بالاتر',
       'چند اپراتور فضای کاری',
       'اولویت پشتیبانی و آنبوردینگ',
-      'آمادهٔ دامنه اختصاصی فروشگاه',
-      'مسیر Enterprise در آینده',
+      'بسته متناسب با نیاز شما',
     ],
     featured: false,
+    category: 'ai',
+    consultative: true,
+    cta: 'درخواست هماهنگی قیمت',
   },
 ] as const;
+
+/** @deprecated prefer SITE_BUILDER_PLANS / AI_EMPLOYEE_PLANS — kept for lookups */
+export const PLANS: readonly Plan[] = [
+  ...SITE_BUILDER_PLANS,
+  ...AI_EMPLOYEE_PLANS,
+];
+
+export function findPlan(id: string): Plan {
+  return PLANS.find((p) => p.id === id) ?? SITE_BUILDER_PLANS[1]!;
+}
+
+export const DEFAULT_PLAN_ID = 'site-growth';
 
 export const WORKSPACE_URL =
   process.env.NEXT_PUBLIC_WORKSPACE_URL ?? 'http://localhost:3010';
