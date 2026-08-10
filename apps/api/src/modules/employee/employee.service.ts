@@ -12,6 +12,7 @@ export class EmployeeService {
   constructor(private readonly store: DataStore) {}
 
   async get(tenantId: string): Promise<Employee> {
+    await this.store.provisionTenantDefaults(tenantId);
     const employee = await this.store.employeeForTenant(tenantId);
     if (!employee) throw new NotFoundException('Employee not found');
     return employee;
@@ -25,6 +26,7 @@ export class EmployeeService {
       }
     >,
   ): Promise<Employee> {
+    await this.store.provisionTenantDefaults(tenantId);
     const employee = await this.store.updateEmployee(tenantId, patch);
     if (!employee) throw new NotFoundException('Employee not found');
     employeeEvents.emit('employee.updated', {

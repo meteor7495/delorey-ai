@@ -45,6 +45,7 @@ export class DataStore implements OnModuleInit {
         where: { userId: existing.id },
       });
       if (membership) {
+        await this.provisionTenantDefaults(membership.tenantId);
         await this.seedDefaultKnowledge(membership.tenantId);
         await this.seedDefaultOrders(membership.tenantId);
         await this.ensureOrderStatusSkill(membership.tenantId);

@@ -49,6 +49,7 @@ export class IdentityService {
     if (!ok) throw new UnauthorizedException('Invalid credentials');
     const membership = await this.store.findMembershipByUser(user.id);
     if (!membership) throw new UnauthorizedException('No workspace');
+    await this.store.provisionTenantDefaults(membership.tenantId);
     return this.issueSession(user.id, membership.tenantId);
   }
 
