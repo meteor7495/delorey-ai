@@ -13,6 +13,7 @@ import {
 } from '../platform/types';
 import { TelegramAdapterService } from '../adapters/telegram/telegram.service';
 import { BaleAdapterService } from '../adapters/bale/bale.service';
+import { InstagramAdapterService } from '../adapters/instagram/instagram.service';
 
 @Injectable()
 export class HandoffService {
@@ -22,6 +23,8 @@ export class HandoffService {
     private readonly telegram: TelegramAdapterService,
     @Inject(forwardRef(() => BaleAdapterService))
     private readonly bale: BaleAdapterService,
+    @Inject(forwardRef(() => InstagramAdapterService))
+    private readonly instagram: InstagramAdapterService,
   ) {}
 
   async buildPacket(
@@ -142,6 +145,7 @@ export class HandoffService {
     });
     await this.telegram.deliverOperatorReply(tenantId, conversationId, text);
     await this.bale.deliverOperatorReply(tenantId, conversationId, text);
+    await this.instagram.deliverOperatorReply(tenantId, conversationId, text);
     return message;
   }
 

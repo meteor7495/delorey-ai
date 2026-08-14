@@ -16,6 +16,9 @@ import {
 import { DiscountsService } from './discounts.service';
 import { InventoryService } from './inventory.service';
 import { VariantsService } from './variants.service';
+import { CustomersService, type SalesChannel } from './customers.service';
+import { PaymentsService } from './payments.service';
+import { isValidMobile, normalizePhone } from './phone';
 
 function mapProduct(row: {
   id: string;
@@ -134,6 +137,8 @@ export class ShopService {
     private readonly inventory: InventoryService,
     private readonly variants: VariantsService,
     private readonly discounts: DiscountsService,
+    private readonly customers: CustomersService,
+    private readonly payments: PaymentsService,
   ) {}
 
   private storefrontBase() {
@@ -213,6 +218,7 @@ export class ShopService {
       lowStockThreshold?: number;
       allowNegativeInventory?: boolean;
       defaultProductStatus?: string;
+      zarinpalMerchantId?: string | null;
     },
   ) {
     await this.store.ensureStorefrontSettings(tenantId);
@@ -236,6 +242,17 @@ export class ShopService {
       if (clash) throw new BadRequestException('این اسلاگ قبلاً گرفته شده');
       patch.storeSlug = slug;
     }
+    const current = await this.prisma.storefrontSettings.findUniqueOrThrow({
+      where: { tenantId },
+    });
+    const nextCod = patch.codEnabled ?? current.codEnabled;
+    const nextOnline =
+      patch.onlinePaymentEnabled ?? current.onlinePaymentEnabled;
+    if (!nextCod && !nextOnline) {
+      throw new BadRequestException(
+        'حداقل یکی از روش‌های پرداخت (در محل یا آنلاین) باید فعال باشد',
+      );
+    }
     const row = await this.prisma.storefrontSettings.update({
       where: { tenantId },
       data: {
@@ -253,6 +270,10 @@ export class ShopService {
         lowStockThreshold: patch.lowStockThreshold,
         allowNegativeInventory: patch.allowNegativeInventory,
         defaultProductStatus: patch.defaultProductStatus,
+        zarinpalMerchantId:
+          'zarinpalMerchantId' in patch
+            ? patch.zarinpalMerchantId
+            : undefined,
       },
     });
     return {
@@ -896,11 +917,15 @@ export class ShopService {
       where: { id, tenantId },
     });
     if (!existing) throw new NotFoundException('سفارش پیدا نشد');
+    const previous = existing.status;
     const row = await this.prisma.storefrontOrder.update({
       where: { id },
       data: { status },
       include: { items: true },
     });
+    if (previous !== 'cancelled' && status === 'cancelled') {
+      await this.inventory.restockOrder(tenantId, id, existing.orderNumber);
+    }
     return this.mapOrder(row);
   }
 
@@ -1165,8 +1190,21 @@ export class ShopService {
       if (quantity > 0 && available < quantity) {
         throw new BadRequestException('موجودی این تنوع کافی نیست');
       }
-    } else if (quantity > 0 && !product.inStock) {
-      throw new BadRequestException('محصول ناموجود است');
+    } else if (quantity > 0) {
+      const level = await this.prisma.inventoryLevel.findFirst({
+        where: { tenantId, productId, variantId: null },
+      });
+      if (level) {
+        const available = availableStock(level);
+        if (available > 0 && available < quantity) {
+          throw new BadRequestException('موجودی این محصول کافی نیست');
+        }
+        if (available <= 0 && !product.inStock) {
+          throw new BadRequestException('محصول ناموجود است');
+        }
+      } else if (!product.inStock) {
+        throw new BadRequestException('محصول ناموجود است');
+      }
     }
 
     let cart = await this.prisma.cart.findUnique({
@@ -1236,22 +1274,56 @@ export class ShopService {
     },
   ) {
     const settings = await this.resolveTenantBySlug(storeSlug);
-    const paymentMethod = body.paymentMethod ?? 'cod';
+    return this.placeOrder({
+      tenantId: settings.tenantId,
+      sessionId: body.sessionId,
+      channel: 'website',
+      customerName: body.customerName,
+      customerPhone: body.customerPhone,
+      customerAddress: body.customerAddress,
+      customerNote: body.customerNote,
+      discountCode: body.discountCode,
+      paymentMethod: body.paymentMethod,
+      identityExternalId: body.sessionId,
+      storeMerchantId: settings.zarinpalMerchantId,
+      codEnabled: settings.codEnabled,
+      onlinePaymentEnabled: settings.onlinePaymentEnabled,
+    });
+  }
 
-    if (paymentMethod === 'cod' && !settings.codEnabled) {
+  async placeOrder(input: {
+    tenantId: string;
+    sessionId: string;
+    channel: SalesChannel;
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    customerNote?: string;
+    discountCode?: string;
+    paymentMethod?: 'cod' | 'online';
+    identityExternalId?: string | null;
+    storeMerchantId?: string | null;
+    codEnabled: boolean;
+    onlinePaymentEnabled: boolean;
+  }) {
+    const paymentMethod = input.paymentMethod ?? (input.codEnabled ? 'cod' : 'online');
+    if (paymentMethod === 'cod' && !input.codEnabled) {
       throw new BadRequestException('پرداخت در محل برای این فروشگاه فعال نیست');
     }
-    if (paymentMethod === 'online' && !settings.onlinePaymentEnabled) {
+    if (paymentMethod === 'online' && !input.onlinePaymentEnabled) {
       throw new BadRequestException(
-        'پرداخت آنلاین هنوز برای این فروشگاه فعال نشده است',
+        'پرداخت آنلاین برای این فروشگاه فعال نشده است',
       );
+    }
+    if (!isValidMobile(input.customerPhone) && normalizePhone(input.customerPhone).length < 8) {
+      throw new BadRequestException('شماره موبایل نامعتبر است');
     }
 
     const cart = await this.prisma.cart.findUnique({
       where: {
         tenantId_sessionId: {
-          tenantId: settings.tenantId,
-          sessionId: body.sessionId,
+          tenantId: input.tenantId,
+          sessionId: input.sessionId,
         },
       },
       include: {
@@ -1292,25 +1364,51 @@ export class ShopService {
         const level = line.item.variant?.inventoryLevel;
         const available = level ? availableStock(level) : 0;
         if (available < line.item.quantity) {
+          throw new BadRequestException(`موجودی «${line.title}» کافی نیست`);
+        }
+      } else {
+        const level = await this.prisma.inventoryLevel.findFirst({
+          where: {
+            tenantId: input.tenantId,
+            productId: line.item.productId,
+            variantId: null,
+          },
+        });
+        if (level) {
+          const available = availableStock(level);
+          if (available > 0 && available < line.item.quantity) {
+            throw new BadRequestException(`موجودی «${line.title}» کافی نیست`);
+          }
+          if (available <= 0 && !line.item.product.inStock) {
+            throw new BadRequestException(
+              `محصول «${line.item.product.title}» ناموجود است`,
+            );
+          }
+        } else if (!line.item.product.inStock) {
           throw new BadRequestException(
-            `موجودی «${line.title}» کافی نیست`,
+            `محصول «${line.item.product.title}» ناموجود است`,
           );
         }
-      } else if (!line.item.product.inStock) {
-        throw new BadRequestException(
-          `محصول «${line.item.product.title}» ناموجود است`,
-        );
       }
     }
 
+    const customer = await this.customers.upsertFromCheckout({
+      tenantId: input.tenantId,
+      name: input.customerName,
+      phone: input.customerPhone,
+      address: input.customerAddress,
+      channel: input.channel,
+      externalId: input.identityExternalId ?? input.sessionId,
+    });
+
     const subtotal = pricedLines.reduce((sum, l) => sum + l.lineTotal, 0);
-    const discountCode = body.discountCode?.trim() || null;
+    const discountCode = input.discountCode?.trim() || null;
     let discountAmount = 0;
     let appliedDiscountId: string | null = null;
 
     if (discountCode) {
       const applied = await this.computeCartDiscount(
-        settings.tenantId,
+        input.tenantId,
         pricedLines.map((l) => ({
           productId: l.item.productId,
           variantId: l.item.variantId,
@@ -1339,19 +1437,21 @@ export class ShopService {
     const order = await this.prisma.$transaction(async (tx) => {
       const created = await tx.storefrontOrder.create({
         data: {
-          tenantId: settings.tenantId,
+          tenantId: input.tenantId,
           orderNumber,
           status,
+          channel: input.channel,
           paymentMethod,
           subtotalAmount: new Prisma.Decimal(subtotal),
           discountCode,
           discountAmount: new Prisma.Decimal(discountAmount),
           totalAmount: new Prisma.Decimal(total),
           currency: cart.items[0]?.product.currency ?? 'IRR',
-          customerName: body.customerName.trim(),
-          customerPhone: body.customerPhone.trim(),
-          customerAddress: body.customerAddress.trim(),
-          customerNote: body.customerNote?.trim() || null,
+          customerId: customer.id,
+          customerName: input.customerName.trim(),
+          customerPhone: normalizePhone(input.customerPhone),
+          customerAddress: input.customerAddress.trim(),
+          customerNote: input.customerNote?.trim() || null,
           items: {
             create: pricedLines.map((l) => ({
               productId: l.item.productId,
@@ -1374,41 +1474,139 @@ export class ShopService {
         });
       }
 
+      const decrementLines = pricedLines
+        .filter((l) => {
+          if (l.item.variantId) {
+            const avail = l.item.variant?.inventoryLevel
+              ? availableStock(l.item.variant.inventoryLevel)
+              : 0;
+            return avail > 0;
+          }
+          return true;
+        })
+        .map((l) => ({
+          productId: l.item.productId,
+          variantId: l.item.variantId,
+          quantity: l.item.quantity,
+          title: l.title,
+        }));
+
+      const productIds = await this.inventory.decrementInTx(
+        tx,
+        input.tenantId,
+        decrementLines,
+        { orderId: created.id, orderNumber },
+      );
+
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-      return created;
+      return { created, productIds };
     });
 
-    // Inventory decrement after order is committed (ledger-safe via InventoryService)
-    for (const line of pricedLines) {
-      try {
-        await this.inventory.adjust(settings.tenantId, {
-          productId: line.item.variantId ? undefined : line.item.productId,
-          variantId: line.item.variantId ?? undefined,
-          delta: -line.item.quantity,
-          type: 'sale',
-          referenceType: 'storefront_order',
-          referenceId: order.id,
-          reason: `فروش سفارش ${order.orderNumber}`,
-        });
-      } catch (err) {
-        // Order already placed — surface soft failure via status note path later;
-        // still throw so merchant sees the issue on tight stock races.
-        throw new BadRequestException(
-          err instanceof Error
-            ? err.message
-            : `خطا در کسر موجودی برای «${line.title}»`,
-        );
-      }
+    for (const productId of order.productIds) {
+      await this.inventory.refreshProductProjection(input.tenantId, productId);
+    }
+
+    let payUrl: string | null = null;
+    let paymentHint: string | null = null;
+    if (paymentMethod === 'online') {
+      const pay = await this.payments.startPayment({
+        tenantId: input.tenantId,
+        orderId: order.created.id,
+        amount: total,
+        description: `سفارش ${orderNumber}`,
+        storeMerchantId: input.storeMerchantId,
+      });
+      payUrl = pay.payUrl;
+      paymentHint = pay.mocked
+        ? 'پرداخت آزمایشی — لینک mock برای محیط توسعه'
+        : 'برای تکمیل خرید لینک درگاه را باز کنید';
     }
 
     return {
-      ...this.mapOrder(order),
-      paymentHint:
-        paymentMethod === 'online'
-          ? 'پرداخت آنلاین در انتظار اتصال درگاه است؛ سفارش با وضعیت pending_payment ثبت شد.'
-          : null,
-      payUrl: null as string | null,
+      ...this.mapOrder(order.created),
+      customerId: customer.id,
+      paymentHint,
+      payUrl,
     };
+  }
+
+  async lookupCustomer(storeSlug: string, phone: string) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    return this.customers.lookupByPhone(settings.tenantId, phone);
+  }
+
+  async registerCustomer(
+    storeSlug: string,
+    body: {
+      name: string;
+      phone: string;
+      address: string;
+      sessionId?: string;
+    },
+  ) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    return this.customers.register({
+      tenantId: settings.tenantId,
+      name: body.name,
+      phone: body.phone,
+      address: body.address,
+      sessionId: body.sessionId,
+    });
+  }
+
+  async setCartItemForTenant(
+    tenantId: string,
+    input: {
+      sessionId: string;
+      productId: string;
+      variantId?: string | null;
+      quantity: number;
+    },
+  ) {
+    const settings = await this.prisma.storefrontSettings.findUnique({
+      where: { tenantId },
+    });
+    if (!settings) throw new NotFoundException('فروشگاه پیدا نشد');
+    return this.setCartItem(settings.storeSlug, input);
+  }
+
+  async paymentOptions(tenantId: string) {
+    const settings = await this.store.ensureStorefrontSettings(tenantId);
+    return {
+      storeSlug: settings.storeSlug,
+      storeName: settings.storeName,
+      codEnabled: settings.codEnabled,
+      onlinePaymentEnabled: settings.onlinePaymentEnabled,
+      zarinpalMerchantId: settings.zarinpalMerchantId ?? null,
+    };
+  }
+
+  async lookupStorefrontOrder(
+    tenantId: string,
+    orderNumber: string,
+    phoneLast4?: string | null,
+  ) {
+    const normalized = orderNumber.trim().toUpperCase();
+    const order = await this.prisma.storefrontOrder.findFirst({
+      where: { tenantId, orderNumber: { equals: normalized, mode: 'insensitive' } },
+      include: { items: true },
+    });
+    if (!order) return null;
+    if (phoneLast4 && order.customerPhone.slice(-4) !== phoneLast4) {
+      return { found: true as const, verified: false as const, order: this.mapOrder(order) };
+    }
+    return { found: true as const, verified: !phoneLast4 ? false as const : true as const, order: this.mapOrder(order) };
+  }
+
+  async hasNativeCatalog(tenantId: string) {
+    const count = await this.prisma.product.count({
+      where: {
+        tenantId,
+        status: 'published',
+        source: { in: ['native', 'mock'] },
+      },
+    });
+    return count > 0;
   }
 
   private async computeCartDiscount(
@@ -1507,8 +1705,8 @@ export class ShopService {
     const order = await this.prisma.storefrontOrder.findFirst({
       where: {
         tenantId: settings.tenantId,
-        orderNumber,
-        customerPhone: phone.trim(),
+        orderNumber: { equals: orderNumber.trim(), mode: 'insensitive' },
+        customerPhone: normalizePhone(phone),
       },
       include: { items: true },
     });
@@ -1534,6 +1732,7 @@ export class ShopService {
     lowStockThreshold?: number;
     allowNegativeInventory?: boolean;
     defaultProductStatus?: string;
+    zarinpalMerchantId?: string | null;
   }) {
     return {
       id: row.id,
@@ -1546,6 +1745,7 @@ export class ShopService {
       tagline: row.tagline,
       codEnabled: row.codEnabled,
       onlinePaymentEnabled: row.onlinePaymentEnabled ?? false,
+      zarinpalMerchantId: row.zarinpalMerchantId ?? null,
       supportPhone: row.supportPhone,
       defaultCurrency: row.defaultCurrency ?? 'IRR',
       lowStockThreshold: row.lowStockThreshold ?? 5,
@@ -1647,6 +1847,7 @@ export class ShopService {
     id: string;
     orderNumber: string;
     status: string;
+    channel?: string;
     paymentMethod: string;
     subtotalAmount?: Prisma.Decimal;
     discountCode?: string | null;
@@ -1657,6 +1858,7 @@ export class ShopService {
     customerPhone: string;
     customerAddress: string;
     customerNote: string | null;
+    customerId?: string | null;
     createdAt: Date;
     items: Array<{
       id: string;
@@ -1673,6 +1875,7 @@ export class ShopService {
       id: row.id,
       orderNumber: row.orderNumber,
       status: row.status,
+      channel: row.channel ?? 'website',
       paymentMethod: row.paymentMethod,
       subtotalAmount: Number(row.subtotalAmount ?? row.totalAmount),
       discountCode: row.discountCode ?? null,
@@ -1683,6 +1886,7 @@ export class ShopService {
       customerPhone: row.customerPhone,
       customerAddress: row.customerAddress,
       customerNote: row.customerNote,
+      customerId: row.customerId ?? null,
       createdAt: row.createdAt.toISOString(),
       items: row.items.map((i) => ({
         id: i.id,

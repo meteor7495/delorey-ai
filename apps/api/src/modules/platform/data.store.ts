@@ -913,6 +913,49 @@ export class DataStore implements OnModuleInit {
     return this.mapChannel(row);
   }
 
+  async instagramChannel(tenantId: string): Promise<ChannelBinding | null> {
+    const row = await this.prisma.channelBinding.findUnique({
+      where: { tenantId_channel: { tenantId, channel: 'instagram' } },
+    });
+    return row ? this.mapChannel(row) : null;
+  }
+
+  async upsertInstagramChannel(data: {
+    tenantId: string;
+    webhookSecret: string;
+    botUsername: string | null;
+    status: ChannelBinding['status'];
+    credentialsCipher?: string | null;
+  }): Promise<ChannelBinding> {
+    const publicKey = `ig_${data.tenantId.slice(0, 8)}_${uuid().slice(0, 6)}`;
+    const existing = await this.instagramChannel(data.tenantId);
+    if (existing) {
+      const row = await this.prisma.channelBinding.update({
+        where: { id: existing.id },
+        data: {
+          webhookSecret: data.webhookSecret,
+          botUsername: data.botUsername,
+          status: data.status,
+          credentialsCipher: data.credentialsCipher ?? existing.credentialsCipher,
+        },
+      });
+      return this.mapChannel(row);
+    }
+    const row = await this.prisma.channelBinding.create({
+      data: {
+        tenantId: data.tenantId,
+        channel: 'instagram',
+        status: data.status,
+        publicKey,
+        allowedOrigins: [],
+        credentialsCipher: data.credentialsCipher ?? null,
+        webhookSecret: data.webhookSecret,
+        botUsername: data.botUsername,
+      },
+    });
+    return this.mapChannel(row);
+  }
+
   async setChannelStatus(
     id: string,
     status: ChannelBinding['status'],
@@ -1068,6 +1111,10 @@ export class DataStore implements OnModuleInit {
         escalationReason: { not: null },
       },
     });
+  }
+
+  async countStorefrontOrders(tenantId: string): Promise<number> {
+    return this.prisma.storefrontOrder.count({ where: { tenantId } });
   }
 
   /** Design-partner readiness signals (Slice 19). */
@@ -1631,7 +1678,7 @@ export class DataStore implements OnModuleInit {
     const since = new Date();
     since.setDate(since.getDate() - rangeDays);
 
-    const [orders, audits] = await Promise.all([
+    const [orders, storefrontOrders, audits] = await Promise.all([
       this.prisma.order.findMany({
         where: { tenantId, syncedAt: { gte: since } },
         select: {
@@ -1639,6 +1686,19 @@ export class DataStore implements OnModuleInit {
           totalAmount: true,
           currency: true,
           syncedAt: true,
+        },
+      }),
+      this.prisma.storefrontOrder.findMany({
+        where: {
+          tenantId,
+          createdAt: { gte: since },
+          status: { not: 'cancelled' },
+        },
+        select: {
+          channel: true,
+          totalAmount: true,
+          currency: true,
+          status: true,
         },
       }),
       this.prisma.auditTurn.findMany({
@@ -1660,13 +1720,24 @@ export class DataStore implements OnModuleInit {
       }
     }
 
-    const currency = orders[0]?.currency ?? 'IRR';
-    const storeGmv = orders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+    const currency =
+      storefrontOrders[0]?.currency ?? orders[0]?.currency ?? 'IRR';
+    const storeGmv = storefrontOrders.reduce(
+      (sum, o) => sum + Number(o.totalAmount),
+      0,
+    );
+    const byChannel: Record<string, { orderCount: number; gmv: number }> = {};
+    for (const o of storefrontOrders) {
+      const ch = o.channel || 'website';
+      if (!byChannel[ch]) byChannel[ch] = { orderCount: 0, gmv: 0 };
+      byChannel[ch].orderCount += 1;
+      byChannel[ch].gmv += Number(o.totalAmount);
+    }
 
     return {
       rangeDays,
       since: since.toISOString(),
-      empty: orders.length === 0 && audits.length === 0,
+      empty: storefrontOrders.length === 0 && orders.length === 0 && audits.length === 0,
       skills: {
         recommendVolume,
         orderLookupVolume,
@@ -1674,10 +1745,16 @@ export class DataStore implements OnModuleInit {
         assistedConversations: assistedConversationIds.size,
       },
       store: {
-        orderCount: orders.length,
+        orderCount: storefrontOrders.length,
         gmv: storeGmv,
         currency,
-        note: 'مجموع total_amount سفارش‌های همگام‌شده در بازه — واقعیت فروشگاه، نه فروش منتسب به AI.',
+        note: 'مجموع سفارش‌های فروشگاه بومی در بازه (بدون لغو) — به تفکیک کانال در channels.',
+      },
+      channels: {
+        website: byChannel.website ?? { orderCount: 0, gmv: 0 },
+        telegram: byChannel.telegram ?? { orderCount: 0, gmv: 0 },
+        bale: byChannel.bale ?? { orderCount: 0, gmv: 0 },
+        instagram: byChannel.instagram ?? { orderCount: 0, gmv: 0 },
       },
       linkage: {
         conversationToOrderLinked: 0,
@@ -1697,7 +1774,7 @@ export class DataStore implements OnModuleInit {
         assisted:
           'گفتگوی assisted = حداقل یک نوبت recommend یا order_lookup در بازه. اثبات تبدیل فروش نیست.',
         storeGmv:
-          'GMV = جمع total_amount سفارش‌هایی که synced_at در بازه است (Commerce sync).',
+          'GMV = جمع سفارش‌های فروشگاه بومی (وب/تلگرام/بله/اینستاگرام) در بازه، بدون سفارش‌های لغو شده.',
         noCausalLift:
           'هیچ ادعای «+X٪ فروش به‌خاطر AI» بدون آزمایش کنترل‌شده نمایش داده نمی‌شود.',
         cost:

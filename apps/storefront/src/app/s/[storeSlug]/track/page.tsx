@@ -17,6 +17,7 @@ type Order = {
 
 const STATUS_FA: Record<string, string> = {
   pending: 'در انتظار تأیید',
+  pending_payment: 'در انتظار پرداخت',
   confirmed: 'تأیید شده',
   shipped: 'ارسال شده',
   delivered: 'تحویل شده',

@@ -358,7 +358,7 @@ export interface Employee {
 export interface ChannelBinding {
   id: string;
   tenantId: string;
-  channel: 'website' | 'telegram' | 'bale';
+  channel: 'website' | 'telegram' | 'bale' | 'instagram';
   status: 'connected' | 'disconnected' | 'degraded';
   publicKey: string;
   allowedOrigins: string[];
@@ -370,7 +370,7 @@ export interface ChannelBinding {
 export interface Conversation {
   id: string;
   tenantId: string;
-  channel: 'website' | 'telegram' | 'bale';
+  channel: 'website' | 'telegram' | 'bale' | 'instagram';
   ownership: 'ai_owned' | 'human_owned';
   externalThreadId: string | null;
   escalationReason: EscalationReason | null;

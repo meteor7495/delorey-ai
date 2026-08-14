@@ -6,6 +6,8 @@ import { CommerceRetrievalService } from '../shop/commerce-retrieval.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
+import { ChannelCheckoutService } from '../shop/channel-checkout.service';
+import { ShopService } from '../shop/shop.service';
 import type {
   AuditTurn,
   Citation,
@@ -35,11 +37,14 @@ const REFUND_RE =
 const CANCEL_ORDER_RE =
   /(لغو\s*سفارش|کنسل\s*سفارش|cancel\s*(my\s*)?order|order\s*cancel)/i;
 
-const ORDER_NUMBER_RE = /\b(DR-?\d{3,})\b/i;
+const ORDER_NUMBER_RE = /\b((?:DR-?\d{3,})|(?:SF-[A-Z0-9]+))\b/i;
 const PHONE_LAST4_RE = /\b(\d{4})\b/;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
 
 const STATUS_FA: Record<string, string> = {
+  pending: 'در انتظار تأیید',
+  pending_payment: 'در انتظار پرداخت',
+  confirmed: 'تأییدشده',
   processing: 'در حال آماده‌سازی',
   shipped: 'ارسال‌شده',
   delivered: 'تحویل‌شده',
@@ -81,6 +86,8 @@ export class RuntimeService {
     private readonly gateway: AiGatewayService,
     @Inject(forwardRef(() => HandoffService))
     private readonly handoff: HandoffService,
+    private readonly checkout: ChannelCheckoutService,
+    private readonly shop: ShopService,
   ) {}
 
   async executeTurn(
@@ -221,20 +228,23 @@ export class RuntimeService {
     }
 
     if (syncHealth !== 'healthy') {
-      await this.handoff.escalate(
-        tenantId,
-        conversationId,
-        'sync_unhealthy',
-        [],
-        'پرسش واقعی در حالی که همگام‌سازی ناسالم است',
-      );
-      return {
-        reply:
-          'همگام‌سازی فروشگاه سالم نیست؛ شما را به همکار انسانی وصل می‌کنم.',
-        citations: [],
-        decision: 'escalated:sync_unhealthy',
-        ownership: 'human_owned',
-      };
+      const nativeReady = await this.shop.hasNativeCatalog(tenantId);
+      if (!nativeReady) {
+        await this.handoff.escalate(
+          tenantId,
+          conversationId,
+          'sync_unhealthy',
+          [],
+          'پرسش واقعی در حالی که همگام‌سازی ناسالم است',
+        );
+        return {
+          reply:
+            'همگام‌سازی فروشگاه سالم نیست؛ شما را به همکار انسانی وصل می‌کنم.',
+          citations: [],
+          decision: 'escalated:sync_unhealthy',
+          ownership: 'human_owned',
+        };
+      }
     }
 
     const orderTurn = await this.tryOrderLookup(
@@ -244,6 +254,13 @@ export class RuntimeService {
       employee,
     );
     if (orderTurn) return orderTurn;
+
+    const checkoutTurn = await this.tryPlaceOrder(
+      tenantId,
+      conversationId,
+      userText,
+    );
+    if (checkoutTurn) return checkoutTurn;
 
     const recommendTurn = await this.tryRecommend(
       tenantId,
@@ -381,6 +398,37 @@ export class RuntimeService {
     };
   }
 
+  private async tryPlaceOrder(
+    tenantId: string,
+    conversationId: string,
+    userText: string,
+  ): Promise<TurnResult | null> {
+    const conversation = await this.store.getConversation(conversationId);
+    if (!conversation) return null;
+    if (
+      conversation.channel !== 'telegram' &&
+      conversation.channel !== 'bale' &&
+      conversation.channel !== 'instagram'
+    ) {
+      return null;
+    }
+    const handled = await this.checkout.handleTurn({
+      tenantId,
+      conversationId,
+      channel: conversation.channel,
+      userText,
+      externalThreadId: conversation.externalThreadId,
+    });
+    if (!handled) return null;
+    const result: TurnResult = {
+      reply: handled.reply,
+      citations: [],
+      decision: handled.decision,
+    };
+    await this.audit(tenantId, conversationId, result.decision, []);
+    return result;
+  }
+
   private async tryRecommend(
     tenantId: string,
     conversationId: string,
@@ -438,8 +486,19 @@ export class RuntimeService {
       return `• ${p.title} (${p.sku}) — ${price} — ${p.availabilityLabel}\n  دلیل: ${why}`;
     });
 
+    const firstSku = picks[0]?.sku;
+    const conversation = await this.store.getConversation(conversationId);
+    const messaging =
+      conversation?.channel === 'telegram' ||
+      conversation?.channel === 'bale' ||
+      conversation?.channel === 'instagram';
+    const buyHint =
+      messaging && firstSku
+        ? `\n\nبرای ثبت سفارش از همین گفتگو بنویسید: می‌خوام بخرم ${firstSku}`
+        : '';
+
     const result: TurnResult = {
-      reply: `پیشنهاد بر اساس کاتالوگ فروشگاه (بدون اختراع کد کالا):\n${lines.join('\n')}`,
+      reply: `پیشنهاد بر اساس کاتالوگ فروشگاه (بدون اختراع کد کالا):\n${lines.join('\n')}${buyHint}`,
       citations,
       decision: 'recommend',
     };
@@ -509,7 +568,7 @@ export class RuntimeService {
     if (!orderNumber) {
       const result: TurnResult = {
         reply:
-          'برای پیگیری، لطفاً شماره سفارش را بفرستید (مثلاً DR-1001). پس از آن چهار رقم آخر موبایل ثبت‌شده را برای تأیید هویت می‌خواهم.',
+          'برای پیگیری، لطفاً شماره سفارش را بفرستید (مثلاً SF-ABC12 یا DR-1001). پس از آن چهار رقم آخر موبایل را برای تأیید می‌خواهم.',
         citations: [],
         decision: 'order_lookup_need_id',
       };
@@ -518,6 +577,28 @@ export class RuntimeService {
     }
 
     const normalized = orderNumber.toUpperCase().replace(/^DR(\d)/, 'DR-$1');
+    const native = await this.shop.lookupStorefrontOrder(tenantId, normalized);
+    if (native?.found) {
+      const last4 = this.extractPhoneLast4ForVerify(userText, history);
+      if (!last4 || native.order.customerPhone.slice(-4) !== last4) {
+        const result: TurnResult = {
+          reply: `سفارش ${native.order.orderNumber} را پیدا کردم. چهار رقم آخر موبایل را بفرستید تا وضعیت را بگویم.`,
+          citations: [],
+          decision: 'order_lookup_need_verify',
+        };
+        await this.audit(tenantId, conversationId, result.decision, []);
+        return result;
+      }
+      const statusFa = STATUS_FA[native.order.status] ?? native.order.status;
+      const result: TurnResult = {
+        reply: `وضعیت سفارش ${native.order.orderNumber} (کانال ${native.order.channel}):\n• وضعیت: ${statusFa}\n• مبلغ: ${native.order.totalAmount.toLocaleString('fa-IR')} ${native.order.currency}`,
+        citations: [{ type: 'order', orderNumber: native.order.orderNumber, status: native.order.status }],
+        decision: 'order_lookup',
+      };
+      await this.audit(tenantId, conversationId, result.decision, result.citations);
+      return result;
+    }
+
     const order = await this.commerce.findOrderByNumber(tenantId, normalized);
     if (!order) {
       const result: TurnResult = {

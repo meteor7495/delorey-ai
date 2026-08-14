@@ -552,6 +552,38 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    connectInstagram: (pageLabel?: string) =>
+      request<{
+        id: string;
+        status: string;
+        botUsername: string | null;
+        webhookUrl: string;
+        webhookSecret: string;
+        live: boolean;
+        note: string;
+      }>(opts, '/channels/instagram/connect', {
+        method: 'POST',
+        body: JSON.stringify({ pageLabel }),
+      }),
+    getInstagramChannel: () =>
+      request<{
+        connected: boolean;
+        status?: string;
+        botUsername?: string | null;
+        webhookUrl?: string;
+        id?: string;
+        live?: boolean;
+      }>(opts, '/channels/instagram'),
+    simulateInstagram: (body: { text: string; threadId?: string }) =>
+      request<{
+        conversationId?: string;
+        decision?: string;
+        reply?: string;
+        duplicate?: boolean;
+      }>(opts, '/channels/instagram/simulate', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
     listKnowledgeDocs: () =>
       request<
         Array<{
@@ -653,6 +685,12 @@ export function createApiClient(opts: ApiClientOptions) {
           gmv: number;
           currency: string;
           note: string;
+        };
+        channels: {
+          website: { orderCount: number; gmv: number };
+          telegram: { orderCount: number; gmv: number };
+          bale: { orderCount: number; gmv: number };
+          instagram: { orderCount: number; gmv: number };
         };
         linkage: {
           conversationToOrderLinked: number;
@@ -1130,10 +1168,39 @@ export function createApiClient(opts: ApiClientOptions) {
         paymentMethod?: 'cod' | 'online';
       },
     ) =>
-      request(opts, `/storefront/${encodeURIComponent(storeSlug)}/checkout`, {
+      request<{
+        orderNumber: string;
+        paymentHint?: string | null;
+        payUrl?: string | null;
+        status?: string;
+      }>(opts, `/storefront/${encodeURIComponent(storeSlug)}/checkout`, {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    storefrontLookupCustomer: (storeSlug: string, phone: string) =>
+      request<{
+        id: string;
+        name: string;
+        phone: string;
+        defaultAddress: string | null;
+      } | null>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/customer?phone=${encodeURIComponent(phone)}`,
+      ),
+    storefrontRegisterCustomer: (
+      storeSlug: string,
+      body: {
+        name: string;
+        phone: string;
+        address: string;
+        sessionId?: string;
+      },
+    ) =>
+      request(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/customer`,
+        { method: 'POST', body: JSON.stringify(body) },
+      ),
     storefrontTrackOrder: (
       storeSlug: string,
       orderNumber: string,

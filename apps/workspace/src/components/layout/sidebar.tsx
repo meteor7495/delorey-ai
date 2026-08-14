@@ -49,13 +49,13 @@ const shopNav: NavLeaf[] = [
   { href: '/shop/categories', icon: Tags, label: 'دسته‌ها' },
   { href: '/shop/articles', icon: FileText, label: 'مقالات' },
   { href: '/shop/orders', icon: ClipboardList, label: 'سفارش‌ها' },
+  { href: '/channels', icon: Radio, label: 'کانال‌ها' },
   { href: '/shop/appearance', icon: Palette, label: 'ظاهر و بنر' },
   { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },
 ];
 
 const aiNav: NavLeaf[] = [
   { href: '/employee', icon: Bot, label: 'کارمند فروش' },
-  { href: '/channels', icon: Radio, label: 'کانال‌ها' },
   { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/knowledge', icon: BookOpen, label: 'دانش' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },

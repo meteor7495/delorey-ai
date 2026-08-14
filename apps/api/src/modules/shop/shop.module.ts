@@ -15,6 +15,10 @@ import { ShopService } from './shop.service';
 import { StorefrontController } from './storefront.controller';
 import { VariantsController } from './variants.controller';
 import { VariantsService } from './variants.service';
+import { CustomersService } from './customers.service';
+import { PaymentsService } from './payments.service';
+import { PaymentsController } from './payments.controller';
+import { ChannelCheckoutService } from './channel-checkout.service';
 
 @Module({
   imports: [PlatformModule, AuditModule],
@@ -26,6 +30,7 @@ import { VariantsService } from './variants.service';
     DiscountsController,
     ArticlesController,
     StorefrontController,
+    PaymentsController,
   ],
   providers: [
     ShopService,
@@ -35,6 +40,9 @@ import { VariantsService } from './variants.service';
     DiscountsService,
     ArticlesService,
     CommerceRetrievalService,
+    CustomersService,
+    PaymentsService,
+    ChannelCheckoutService,
   ],
   exports: [
     ShopService,
@@ -44,6 +52,9 @@ import { VariantsService } from './variants.service';
     DiscountsService,
     ArticlesService,
     CommerceRetrievalService,
+    CustomersService,
+    PaymentsService,
+    ChannelCheckoutService,
   ],
 })
 export class ShopModule {}

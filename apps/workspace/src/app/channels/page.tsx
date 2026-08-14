@@ -30,21 +30,25 @@ export default function ChannelsPage() {
   const [originsText, setOriginsText] = useState('');
   const [telegram, setTelegram] = useState<BotChannelStatus>(null);
   const [bale, setBale] = useState<BotChannelStatus>(null);
+  const [instagram, setInstagram] = useState<BotChannelStatus>(null);
   const [tgToken, setTgToken] = useState('');
   const [baleToken, setBaleToken] = useState('');
   const [tgSimText, setTgSimText] = useState('SHIRT-001 موجوده؟');
   const [baleSimText, setBaleSimText] = useState('پیراهن لینن موجوده؟');
+  const [igSimText, setIgSimText] = useState('میخوام بخرم SHIRT-001');
 
   async function refresh() {
-    const [w, t, b] = await Promise.all([
+    const [w, t, b, i] = await Promise.all([
       api.getWebsiteChannel(),
       api.getTelegramChannel(),
       api.getBaleChannel(),
+      api.getInstagramChannel(),
     ]);
     setWebsite(w);
     setOriginsText((w.allowedOrigins ?? []).join('\n'));
     setTelegram(t);
     setBale(b);
+    setInstagram(i);
   }
 
   useEffect(() => {
@@ -112,7 +116,7 @@ export default function ChannelsPage() {
       <div className="space-y-6">
         <PageHeader
           title="کانال‌ها"
-          description="وبسایت · تلگرام · بله — یک مغز (Runtime)"
+          description="وب · تلگرام · بله · اینستاگرام — سفارش روی همان فروشگاه"
         />
 
         <Card>
@@ -264,6 +268,71 @@ export default function ChannelsPage() {
                   <Input
                     value={baleSimText}
                     onChange={(e) => setBaleSimText(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" variant="outline">
+                  شبیه‌سازی پیام
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>اینستاگرام</CardTitle>
+            <CardDescription>
+              {instagram?.connected
+                ? `${channelStatusLabel(String(instagram.status))} (${instagram.botUsername ?? 'صفحه'})`
+                : 'متصل نیست'}
+              {' · '}
+              {instagram?.live
+                ? 'ارسال واقعی BoxAPI فعال است'
+                : 'حالت آزمایشی — شبیه‌سازی محلی'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {instagram?.webhookUrl && (
+              <p className="text-xs text-[var(--text-3)]" dir="ltr">
+                {instagram.webhookUrl}
+              </p>
+            )}
+            <Button
+              type="button"
+              onClick={async () => {
+                try {
+                  await api.connectInstagram('صفحه فروشگاه');
+                  toastSuccess('اینستاگرام متصل شد');
+                  await refresh();
+                } catch (err) {
+                  toastFromError(err, 'اتصال اینستاگرام برقرار نشد.');
+                }
+              }}
+            >
+              اتصال اینستاگرام
+            </Button>
+            {instagram?.connected && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  try {
+                    const res = await api.simulateInstagram({ text: igSimText });
+                    toastSuccess(
+                      res.duplicate
+                        ? 'اینستاگرام: پیام تکراری'
+                        : `اینستاگرام → ${decisionLabel(String(res.decision))}: ${res.reply?.slice(0, 120)}`,
+                    );
+                  } catch (err) {
+                    toastFromError(err, 'شبیه‌سازی اینستاگرام ناموفق بود.');
+                  }
+                }}
+                className="space-y-3 border-t border-[var(--border-color)] pt-4"
+              >
+                <div className="space-y-1.5">
+                  <Label>شبیه‌سازی دایرکت (محلی)</Label>
+                  <Input
+                    value={igSimText}
+                    onChange={(e) => setIgSimText(e.target.value)}
                   />
                 </div>
                 <Button type="submit" variant="outline">

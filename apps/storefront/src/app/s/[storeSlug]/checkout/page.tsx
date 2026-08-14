@@ -35,6 +35,9 @@ export default function CheckoutPage({
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountMsg, setDiscountMsg] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('cod');
+  const [savedAddress, setSavedAddress] = useState<string | null>(null);
+  const [savedName, setSavedName] = useState<string | null>(null);
+  const [useSaved, setUseSaved] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -115,7 +118,7 @@ export default function CheckoutPage({
     setBusy(true);
     setError(null);
     try {
-      const order = (await api.storefrontCheckout(storeSlug, {
+      const order = await api.storefrontCheckout(storeSlug, {
         sessionId: getCartSessionId(storeSlug),
         customerName: name,
         customerPhone: phone,
@@ -123,7 +126,11 @@ export default function CheckoutPage({
         customerNote: note || undefined,
         discountCode: discountCode.trim() || undefined,
         paymentMethod,
-      })) as { orderNumber: string; paymentHint?: string | null };
+      });
+      if (order.payUrl) {
+        window.location.href = order.payUrl;
+        return;
+      }
       const q = new URLSearchParams({
         orderNumber: order.orderNumber,
         phone,
@@ -187,6 +194,29 @@ export default function CheckoutPage({
                 className="mt-1 w-full h-11 rounded-dk border border-zh-300 px-3 text-[14px] outline-none focus:border-zh-primary"
                 value={f.value}
                 onChange={(e) => f.set(e.target.value)}
+                onBlur={
+                  f.label.includes('موبایل')
+                    ? async () => {
+                        if (!storeSlug || phone.trim().length < 8) return;
+                        try {
+                          const c = await api.storefrontLookupCustomer(
+                            storeSlug,
+                            phone,
+                          );
+                          if (c?.defaultAddress) {
+                            setSavedAddress(c.defaultAddress);
+                            setSavedName(c.name);
+                            setName((n) => n || c.name);
+                            if (useSaved) setAddress(c.defaultAddress);
+                          } else {
+                            setSavedAddress(null);
+                          }
+                        } catch {
+                          setSavedAddress(null);
+                        }
+                      }
+                    : undefined
+                }
                 required={f.required}
                 minLength={f.label.includes('موبایل') ? 8 : undefined}
               />
@@ -194,12 +224,38 @@ export default function CheckoutPage({
           ))}
           <div>
             <label className="text-[14px] text-zh-900">آدرس</label>
+            {savedAddress ? (
+              <div className="mt-2 mb-2 space-y-2 text-[14px]">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="radio"
+                    checked={useSaved}
+                    onChange={() => {
+                      setUseSaved(true);
+                      setAddress(savedAddress);
+                      if (savedName) setName(savedName);
+                    }}
+                  />
+                  <span>آدرس ثبت‌شده: {savedAddress}</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    checked={!useSaved}
+                    onChange={() => setUseSaved(false)}
+                  />
+                  آدرس دیگری مدنظر است
+                </label>
+              </div>
+            ) : null}
+            {(!savedAddress || !useSaved) && (
             <textarea
               className="mt-1 w-full min-h-[110px] rounded-dk border border-zh-300 px-3 py-2 text-[14px] outline-none focus:border-zh-primary"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              required
+              required={!savedAddress || !useSaved}
             />
+            )}
           </div>
           <div>
             <label className="text-[14px] text-zh-900">توضیحات (اختیاری)</label>

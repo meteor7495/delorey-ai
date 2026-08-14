@@ -17,6 +17,7 @@ export default function ShopSettingsPage() {
   const [supportPhone, setSupportPhone] = useState('');
   const [codEnabled, setCodEnabled] = useState(true);
   const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(false);
+  const [zarinpalMerchantId, setZarinpalMerchantId] = useState('');
   const [storefrontUrl, setStorefrontUrl] = useState('');
   const [defaultCurrency, setDefaultCurrency] = useState('IRR');
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
@@ -33,6 +34,7 @@ export default function ShopSettingsPage() {
         setSupportPhone(String(s.supportPhone ?? ''));
         setCodEnabled(Boolean(s.codEnabled));
         setOnlinePaymentEnabled(Boolean(s.onlinePaymentEnabled));
+        setZarinpalMerchantId(String(s.zarinpalMerchantId ?? ''));
         setStorefrontUrl(String(s.storefrontUrl ?? ''));
         setDefaultCurrency(String(s.defaultCurrency ?? 'IRR'));
         setLowStockThreshold(String(s.lowStockThreshold ?? 5));
@@ -52,6 +54,7 @@ export default function ShopSettingsPage() {
         supportPhone: supportPhone || null,
         codEnabled,
         onlinePaymentEnabled,
+        zarinpalMerchantId: zarinpalMerchantId || null,
         defaultCurrency,
         lowStockThreshold: Number(lowStockThreshold) || 0,
         allowNegativeInventory,
@@ -120,8 +123,17 @@ export default function ShopSettingsPage() {
                   checked={onlinePaymentEnabled}
                   onChange={(e) => setOnlinePaymentEnabled(e.target.checked)}
                 />
-                پرداخت آنلاین (در انتظار درگاه — سفارش pending_payment)
+                پرداخت آنلاین (لینک درگاه زرین‌پال یا mock)
               </label>
+              <div className="space-y-1.5">
+                <Label>کد پذیرنده زرین‌پال (اختیاری)</Label>
+                <Input
+                  value={zarinpalMerchantId}
+                  onChange={(e) => setZarinpalMerchantId(e.target.value)}
+                  placeholder="خالی = پرداخت آزمایشی mock"
+                  dir="ltr"
+                />
+              </div>
               <div className="pt-2">
                 <p className="text-sm font-semibold text-[var(--text-1)]">
                   تنظیمات تجاری

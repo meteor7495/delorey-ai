@@ -37,6 +37,10 @@ model Tenant {
   storefrontOrders     StorefrontOrder[]
   storefrontSettings   StorefrontSettings?
   storefrontBanners    StorefrontBanner[]
+  customers            Customer[]
+  customerIdentities   CustomerIdentity[]
+  customerAddresses    CustomerAddress[]
+  checkoutSessions     ChannelCheckoutSession[]
   aiPolicy             TenantAiPolicy?
   aiCallEvents         AiCallEvent[]
   accessRequests       AccessRequest[]
@@ -264,32 +268,107 @@ model CartItem {
   @@map("cart_items")
 }
 
-/// Native storefront orders (COD) — separate from synced Order Lookup rows
+/// Native storefront orders — website + Telegram + Bale + Instagram
 model StorefrontOrder {
-  id              String   @id @default(uuid())
-  tenantId        String   @map("tenant_id")
-  orderNumber     String   @map("order_number")
-  status          String   @default("pending")
-  paymentMethod   String   @default("cod") @map("payment_method")
-  subtotalAmount  Decimal  @default(0) @map("subtotal_amount") @db.Decimal(18, 2)
-  discountCode    String?  @map("discount_code")
-  discountAmount  Decimal  @default(0) @map("discount_amount") @db.Decimal(18, 2)
-  totalAmount     Decimal  @default(0) @map("total_amount") @db.Decimal(18, 2)
-  currency        String   @default("IRR")
-  customerName    String   @map("customer_name")
-  customerPhone   String   @map("customer_phone")
-  customerAddress String   @map("customer_address")
-  customerNote    String?  @map("customer_note")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  orderNumber      String   @map("order_number")
+  status           String   @default("pending")
+  /// website | telegram | bale | instagram
+  channel          String   @default("website")
+  paymentMethod    String   @default("cod") @map("payment_method")
+  paymentAuthority String?  @map("payment_authority")
+  paymentRef       String?  @map("payment_ref")
+  subtotalAmount   Decimal  @default(0) @map("subtotal_amount") @db.Decimal(18, 2)
+  discountCode     String?  @map("discount_code")
+  discountAmount   Decimal  @default(0) @map("discount_amount") @db.Decimal(18, 2)
+  totalAmount      Decimal  @default(0) @map("total_amount") @db.Decimal(18, 2)
+  currency         String   @default("IRR")
+  customerId       String?  @map("customer_id")
+  customerName     String   @map("customer_name")
+  customerPhone    String   @map("customer_phone")
+  customerAddress  String   @map("customer_address")
+  customerNote     String?  @map("customer_note")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
-  tenant Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  items  StorefrontOrderItem[]
+  tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    StorefrontOrderItem[]
 
   @@unique([tenantId, orderNumber])
   @@index([tenantId, status])
+  @@index([tenantId, channel])
   @@index([tenantId, customerPhone])
+  @@index([customerId])
+  @@index([paymentAuthority])
   @@map("storefront_orders")
+}
+
+model Customer {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  name            String
+  phoneNormalized String   @map("phone_normalized")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  tenant     Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  identities CustomerIdentity[]
+  addresses  CustomerAddress[]
+  orders     StorefrontOrder[]
+
+  @@unique([tenantId, phoneNormalized])
+  @@index([tenantId])
+  @@map("customers")
+}
+
+model CustomerIdentity {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  customerId String   @map("customer_id")
+  /// website | telegram | bale | instagram
+  channel    String
+  externalId String   @map("external_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, channel, externalId])
+  @@index([customerId])
+  @@map("customer_identities")
+}
+
+model CustomerAddress {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  customerId String   @map("customer_id")
+  line       String
+  isDefault  Boolean  @default(true) @map("is_default")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, isDefault])
+  @@map("customer_addresses")
+}
+
+model ChannelCheckoutSession {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  conversationId String   @unique @map("conversation_id")
+  step           String   @default("idle")
+  payload        Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("channel_checkout_sessions")
 }
 
 model StorefrontOrderItem {
@@ -323,8 +402,8 @@ model StorefrontSettings {
   secondaryColor  String   @default("#0c0c0c") @map("secondary_color")
   tagline         String?
   codEnabled      Boolean  @default(true) @map("cod_enabled")
-  /// Stub until PSP (e.g. Zarinpal) is connected — creates pending_payment orders
   onlinePaymentEnabled Boolean @default(false) @map("online_payment_enabled")
+  zarinpalMerchantId   String? @map("zarinpal_merchant_id")
   supportPhone    String?  @map("support_phone")
   /// Commerce settings — defaults consumed by the Commerce Core domain layer
   defaultCurrency        String  @default("IRR") @map("default_currency")

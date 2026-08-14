@@ -208,6 +208,10 @@ class SettingsDto {
 
   @IsOptional()
   @IsString()
+  zarinpalMerchantId?: string | null;
+
+  @IsOptional()
+  @IsString()
   supportPhone?: string | null;
 
   @IsOptional()

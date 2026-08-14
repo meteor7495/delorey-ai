@@ -94,7 +94,7 @@ export default function DashboardPage() {
               icon={ShoppingBag}
             />
             <StatCard
-              title="سفارش همگام"
+              title="سفارش فروشگاه"
               value={revenue.store.orderCount}
               icon={ShoppingBag}
             />
@@ -109,6 +109,30 @@ export default function DashboardPage() {
               description={revenue.methodology.assisted}
               icon={Percent}
             />
+          </div>
+        )}
+
+        {revenue && (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {(
+              [
+                ['website', 'وب'],
+                ['telegram', 'تلگرام'],
+                ['bale', 'بله'],
+                ['instagram', 'اینستاگرام'],
+              ] as const
+            ).map(([key, label]) => {
+              const row = revenue.channels[key];
+              return (
+                <StatCard
+                  key={key}
+                  title={`فروش ${label}`}
+                  value={formatMoney(row.gmv, revenue.store.currency)}
+                  description={`${row.orderCount} سفارش`}
+                  icon={ShoppingBag}
+                />
+              );
+            })}
           </div>
         )}
 

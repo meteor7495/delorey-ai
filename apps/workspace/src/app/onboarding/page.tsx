@@ -23,40 +23,22 @@ const ITEMS: Array<{
     href: '/shop/products',
   },
   {
-    key: 'employeeConfigured',
-    label: 'کارمند فروش فعال',
-    hint: 'نام، لحن، مهارت‌ها',
-    href: '/employee',
-  },
-  {
-    key: 'knowledgeReady',
-    label: 'حداقل یک دانش FAQ',
-    hint: 'سیاست ارسال / مرجوعی',
-    href: '/knowledge',
-  },
-  {
     key: 'channelConnected',
-    label: 'کانال وب + دامنه مجاز',
-    hint: 'اسنیپت و Origin',
+    label: 'اتصال تلگرام، بله یا اینستاگرام',
+    hint: 'سفارش از همان کانال ثبت می‌شود',
     href: '/channels',
   },
   {
-    key: 'firstChatDone',
-    label: 'اولین گفتگوی grounded',
-    hint: 'ویجت → سؤال محصول',
-    href: '/channels',
+    key: 'firstOrderDone',
+    label: 'اولین سفارش ویترین',
+    hint: 'وب یا کانال',
+    href: '/shop/orders',
   },
   {
-    key: 'handoffProven',
-    label: 'تست ارجاع به انسان',
-    hint: 'مثلاً: با اپراتور حرف بزنم',
-    href: '/inbox',
-  },
-  {
-    key: 'auditVisible',
-    label: 'مشاهده Audit نوبت',
-    hint: 'تصمیم و citations',
-    href: '/audit',
+    key: 'employeeConfigured',
+    label: 'کارمند فروش فعال (اختیاری)',
+    hint: 'پاسخ گفتگو روی همان کاتالوگ',
+    href: '/employee',
   },
 ];
 
@@ -89,8 +71,8 @@ export default function OnboardingPage() {
     <AppShell>
       <div className="space-y-6">
         <PageHeader
-          title="شروع کار — مسیر design partner"
-          description="از اتصال فروشگاه تا Audit؛ بدون LLM پولی هم با mock gateway قابل اجراست"
+          title="شروع کار"
+          description="فروشگاه خودتان را بسازید، کانال‌ها را وصل کنید، اولین سفارش را ببینید"
           actions={
             <Badge variant={partnerReady ? 'default' : 'secondary'}>
               {partnerReady

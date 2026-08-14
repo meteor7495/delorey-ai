@@ -89,6 +89,12 @@ function fakePrisma(options: {
         return { count: 1 };
       }),
     },
+    productVariant: {
+      findFirst: vi.fn(async () => null),
+    },
+    storefrontOrderItem: {
+      findMany: vi.fn(async () => [] as Array<Record<string, unknown>>),
+    },
     $transaction: vi.fn(async (ops: Promise<unknown>[]) => Promise.all(ops)),
   };
 
@@ -182,6 +188,43 @@ describe('InventoryService.adjust', () => {
     expect(fake.productUpdates.at(-1)).toMatchObject({
       data: { inStock: false },
     });
+  });
+});
+
+describe('InventoryService.decrementInTx', () => {
+  it('decrements tracked stock and writes a sale ledger row', async () => {
+    const fake = fakePrisma({ levels: [{ ...baseLevel }] });
+    const ids = await service(fake).decrementInTx(
+      fake.prisma as never,
+      't1',
+      [{ productId: 'p1', variantId: null, quantity: 3, title: 'محصول' }],
+      { orderId: 'o1', orderNumber: 'SF-1' },
+    );
+
+    expect(fake.levels[0]?.onHand).toBe(7);
+    expect(ids).toEqual(['p1']);
+    expect(fake.transactions[0]).toMatchObject({
+      type: 'sale',
+      quantityDelta: -3,
+      resultingOnHand: 7,
+      referenceId: 'o1',
+    });
+  });
+
+  it('skips untracked demo stock (onHand <= 0) instead of failing', async () => {
+    const fake = fakePrisma({
+      levels: [{ ...baseLevel, onHand: 0, reserved: 0 }],
+    });
+    const ids = await service(fake).decrementInTx(
+      fake.prisma as never,
+      't1',
+      [{ productId: 'p1', variantId: null, quantity: 1, title: 'محصول' }],
+      { orderId: 'o1', orderNumber: 'SF-1' },
+    );
+
+    expect(ids).toEqual([]);
+    expect(fake.levels[0]?.onHand).toBe(0);
+    expect(fake.transactions).toHaveLength(0);
   });
 });
 

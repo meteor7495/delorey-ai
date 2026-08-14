@@ -54,6 +54,24 @@ class CheckoutDto {
   paymentMethod?: 'cod' | 'online';
 }
 
+class CustomerRegisterDto {
+  @IsString()
+  @MinLength(2)
+  name!: string;
+
+  @IsString()
+  @MinLength(8)
+  phone!: string;
+
+  @IsString()
+  @MinLength(5)
+  address!: string;
+
+  @IsOptional()
+  @IsString()
+  sessionId?: string;
+}
+
 class DiscountValidateDto {
   @IsString()
   @MinLength(1)
@@ -138,6 +156,22 @@ export class StorefrontController {
   @Post(':storeSlug/checkout')
   checkout(@Param('storeSlug') storeSlug: string, @Body() dto: CheckoutDto) {
     return this.shop.checkout(storeSlug, dto);
+  }
+
+  @Get(':storeSlug/customer')
+  customer(
+    @Param('storeSlug') storeSlug: string,
+    @Query('phone') phone: string,
+  ) {
+    return this.shop.lookupCustomer(storeSlug, phone ?? '');
+  }
+
+  @Post(':storeSlug/customer')
+  register(
+    @Param('storeSlug') storeSlug: string,
+    @Body() dto: CustomerRegisterDto,
+  ) {
+    return this.shop.registerCustomer(storeSlug, dto);
   }
 
   @Get(':storeSlug/orders/track')

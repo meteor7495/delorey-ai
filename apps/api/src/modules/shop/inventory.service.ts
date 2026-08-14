@@ -401,6 +401,134 @@ export class InventoryService {
     return this.mapLevel(full);
   }
 
+  async decrementInTx(
+    tx: Prisma.TransactionClient,
+    tenantId: string,
+    lines: Array<{
+      productId: string;
+      variantId: string | null;
+      quantity: number;
+      title: string;
+    }>,
+    reference: { orderId: string; orderNumber: string },
+  ) {
+    const settings = await this.commerceSettings(tenantId);
+    const productIds = new Set<string>();
+    for (const line of lines) {
+      const level = await this.resolveLevelIn(
+        tx,
+        tenantId,
+        line.variantId
+          ? { variantId: line.variantId }
+          : { productId: line.productId },
+      );
+      if (level.onHand <= 0) {
+        continue;
+      }
+      const result = applyAdjustment({
+        level: { onHand: level.onHand, reserved: level.reserved },
+        delta: -line.quantity,
+        lowStockThreshold: level.lowStockThreshold,
+        allowNegativeInventory: settings.allowNegativeInventory,
+      });
+      await tx.inventoryLevel.update({
+        where: { id: level.id },
+        data: { onHand: result.onHand },
+      });
+      await tx.inventoryTransaction.create({
+        data: {
+          tenantId,
+          inventoryLevelId: level.id,
+          type: 'sale',
+          quantityDelta: -line.quantity,
+          resultingOnHand: result.onHand,
+          reason: `فروش سفارش ${reference.orderNumber}`,
+          referenceType: 'storefront_order',
+          referenceId: reference.orderId,
+        },
+      });
+      productIds.add(level.productId);
+    }
+    return [...productIds];
+  }
+
+  async restockOrder(tenantId: string, orderId: string, orderNumber: string) {
+    const items = await this.prisma.storefrontOrderItem.findMany({
+      where: { orderId },
+    });
+    for (const item of items) {
+      if (!item.productId) continue;
+      try {
+        await this.adjust(tenantId, {
+          productId: item.variantId ? undefined : item.productId,
+          variantId: item.variantId ?? undefined,
+          delta: item.quantity,
+          type: 'return',
+          referenceType: 'storefront_order',
+          referenceId: orderId,
+          reason: `برگشت موجودی لغو ${orderNumber}`,
+        });
+      } catch {
+        // already restocked or untracked
+      }
+    }
+  }
+
+  private async resolveLevelIn(
+    db: Prisma.TransactionClient,
+    tenantId: string,
+    input: { productId?: string; variantId?: string | null },
+  ) {
+    if (input.variantId) {
+      const variant = await db.productVariant.findFirst({
+        where: { id: input.variantId, tenantId },
+        select: { id: true, productId: true },
+      });
+      if (!variant) throw new NotFoundException('تنوع محصول پیدا نشد');
+      let level = await db.inventoryLevel.findFirst({
+        where: {
+          tenantId,
+          productId: variant.productId,
+          variantId: variant.id,
+        },
+      });
+      if (!level) {
+        const settings = await this.commerceSettings(tenantId);
+        level = await db.inventoryLevel.create({
+          data: {
+            tenantId,
+            productId: variant.productId,
+            variantId: variant.id,
+            onHand: 0,
+            reserved: 0,
+            lowStockThreshold: settings.lowStockThreshold,
+          },
+        });
+      }
+      return level;
+    }
+    if (input.productId) {
+      let level = await db.inventoryLevel.findFirst({
+        where: { tenantId, productId: input.productId, variantId: null },
+      });
+      if (!level) {
+        const settings = await this.commerceSettings(tenantId);
+        level = await db.inventoryLevel.create({
+          data: {
+            tenantId,
+            productId: input.productId,
+            variantId: null,
+            onHand: 0,
+            reserved: 0,
+            lowStockThreshold: settings.lowStockThreshold,
+          },
+        });
+      }
+      return level;
+    }
+    throw new BadRequestException('شناسه محصول یا تنوع الزامی است');
+  }
+
   /** Removes the product-level row once a product starts using variants. */
   async dropProductLevel(tenantId: string, productId: string) {
     await this.prisma.inventoryLevel.deleteMany({
