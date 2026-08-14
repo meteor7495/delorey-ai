@@ -20,6 +20,9 @@
   --zh-100: #e1e2e3;
   --zh-50: #f0f1f1;
   --zh-bg: #ffffff;
+  --zh-surface: #ffffff;
+  --zh-primary-hover: #7d3c98;
+  --zh-radius: 8px;
   --brand: var(--zh-primary);
 
   /* legacy aliases */
@@ -45,7 +48,7 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #ffffff;
+  background: var(--zh-bg);
   color: var(--zh-800);
   font-family: Vazirmatn, Tahoma, sans-serif;
   font-size: 14px;
@@ -116,8 +119,8 @@ input {
 
 .zh-card {
   border: 1px solid var(--zh-300);
-  border-radius: 16px;
-  background: #fff;
+  border-radius: var(--zh-radius, 16px);
+  background: var(--zh-surface);
 }
 
 .zh-btn-primary {
@@ -137,7 +140,7 @@ input {
   transition: background 0.15s ease;
 }
 .zh-btn-primary:hover {
-  background: #7d3c98;
+  background: var(--zh-primary-hover, #7d3c98);
 }
 .zh-btn-primary:disabled {
   opacity: 0.4;

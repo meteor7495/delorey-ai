@@ -31,18 +31,31 @@ export default function ShopAppearancePage() {
   const [href, setHref] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#ef4056');
   const [secondaryColor, setSecondaryColor] = useState('#0c0c0c');
+  const [themeId, setThemeId] = useState('zi-home');
+  const [themes, setThemes] = useState<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      defaults: { primaryColor: string; secondaryColor: string };
+      swatches: { bg: string; fg: string; accent: string };
+    }>
+  >([]);
   const [logoUrl, setLogoUrl] = useState('');
   const [bannerDialogOpen, setBannerDialogOpen] = useState(false);
 
   async function refresh() {
-    const [b, s] = await Promise.all([
+    const [b, s, packs] = await Promise.all([
       api.listShopBanners(),
       api.shopSettings(),
+      api.listShopThemes().catch(() => []),
     ]);
     setBanners(b as unknown as Banner[]);
     setSettings(s);
+    setThemes(packs);
     setPrimaryColor(String(s.primaryColor ?? '#ef4056'));
     setSecondaryColor(String(s.secondaryColor ?? '#0c0c0c'));
+    setThemeId(String(s.themeId ?? 'zi-home'));
     setLogoUrl(String(s.logoUrl ?? ''));
   }
 
@@ -71,6 +84,7 @@ export default function ShopAppearancePage() {
     e.preventDefault();
     try {
       await api.updateShopSettings({
+        themeId,
         primaryColor,
         secondaryColor,
         logoUrl: logoUrl || null,
@@ -105,7 +119,7 @@ export default function ShopAppearancePage() {
       <div className="space-y-6">
         <PageHeader
           title="ظاهر و بنر"
-          description="رنگ‌ها و بنرهای صفحهٔ اول ویترین"
+          description="تم ویترین را عوض کنید — محصولات، سفارش‌ها و بنرها سر جایشان می‌مانند"
           actions={
             <Button onClick={openBannerCreate}>
               <Plus className="ms-1 h-4 w-4" />
@@ -118,7 +132,56 @@ export default function ShopAppearancePage() {
           <CardHeader>
             <CardTitle>تم فروشگاه</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-[var(--text-3)]">
+              هر تم فقط ظاهر ویترین را عوض می‌کند. کاتالوگ و سفارش‌ها دست نمی‌خورند.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {themes.map((pack) => {
+                const selected = themeId === pack.id;
+                return (
+                  <button
+                    key={pack.id}
+                    type="button"
+                    onClick={() => {
+                      setThemeId(pack.id);
+                      setPrimaryColor(pack.defaults.primaryColor);
+                      setSecondaryColor(pack.defaults.secondaryColor);
+                    }}
+                    className={`rounded-xl border p-3 text-start transition ${
+                      selected
+                        ? 'border-[var(--brand-500)] ring-2 ring-[var(--brand-500)]/30'
+                        : 'border-[var(--line-1,#e5e7eb)] hover:border-[var(--brand-400)]'
+                    }`}
+                  >
+                    <div
+                      className="mb-3 h-16 overflow-hidden rounded-lg border"
+                      style={{
+                        background: pack.swatches.bg,
+                        borderColor: pack.swatches.fg,
+                      }}
+                    >
+                      <div className="flex h-full">
+                        <div
+                          className="w-1/3"
+                          style={{ background: pack.swatches.accent }}
+                        />
+                        <div
+                          className="w-2/3 p-2 text-[10px] font-semibold"
+                          style={{ color: pack.swatches.fg }}
+                        >
+                          {pack.name}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="font-semibold">{pack.name}</div>
+                    <div className="mt-1 text-xs text-[var(--text-3)]">
+                      {pack.description}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
             <form onSubmit={saveColors} className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>رنگ اصلی</Label>

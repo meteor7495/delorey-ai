@@ -40,7 +40,7 @@ export function ProductCard({
     >
       <div className="flex flex-col gap-4 px-4 py-6 h-full">
         <div
-          className={`relative rounded-dk overflow-hidden bg-white ${
+          className={`relative overflow-hidden bg-zh-surface ${
             compact ? 'h-[140px]' : 'h-[160px]'
           }`}
         >

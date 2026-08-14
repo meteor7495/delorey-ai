@@ -19,6 +19,11 @@ import { VariantsService } from './variants.service';
 import { CustomersService, type SalesChannel } from './customers.service';
 import { PaymentsService } from './payments.service';
 import { isValidMobile, normalizePhone } from './phone';
+import {
+  getStorefrontTheme,
+  isStorefrontThemeId,
+  STOREFRONT_THEMES,
+} from './storefront-themes';
 
 function mapProduct(row: {
   id: string;
@@ -194,6 +199,10 @@ export class ShopService {
     };
   }
 
+  async listThemes() {
+    return STOREFRONT_THEMES;
+  }
+
   async getSettings(tenantId: string) {
     const settings = await this.store.ensureStorefrontSettings(tenantId);
     return {
@@ -210,6 +219,7 @@ export class ShopService {
       logoUrl?: string | null;
       primaryColor?: string;
       secondaryColor?: string;
+      themeId?: string;
       tagline?: string | null;
       codEnabled?: boolean;
       onlinePaymentEnabled?: boolean;
@@ -242,9 +252,21 @@ export class ShopService {
       if (clash) throw new BadRequestException('این اسلاگ قبلاً گرفته شده');
       patch.storeSlug = slug;
     }
+    if (patch.themeId && !isStorefrontThemeId(patch.themeId)) {
+      throw new BadRequestException('تم فروشگاه نامعتبر است');
+    }
     const current = await this.prisma.storefrontSettings.findUniqueOrThrow({
       where: { tenantId },
     });
+    if (patch.themeId && patch.themeId !== current.themeId) {
+      const pack = getStorefrontTheme(patch.themeId);
+      if (patch.primaryColor === undefined) {
+        patch.primaryColor = pack.defaults.primaryColor;
+      }
+      if (patch.secondaryColor === undefined) {
+        patch.secondaryColor = pack.defaults.secondaryColor;
+      }
+    }
     const nextCod = patch.codEnabled ?? current.codEnabled;
     const nextOnline =
       patch.onlinePaymentEnabled ?? current.onlinePaymentEnabled;
@@ -261,6 +283,7 @@ export class ShopService {
         logoUrl: patch.logoUrl === undefined ? undefined : patch.logoUrl,
         primaryColor: patch.primaryColor,
         secondaryColor: patch.secondaryColor,
+        themeId: patch.themeId,
         tagline: patch.tagline === undefined ? undefined : patch.tagline,
         codEnabled: patch.codEnabled,
         onlinePaymentEnabled: patch.onlinePaymentEnabled,
@@ -1724,6 +1747,7 @@ export class ShopService {
     logoUrl: string | null;
     primaryColor: string;
     secondaryColor: string;
+    themeId?: string;
     tagline: string | null;
     codEnabled: boolean;
     onlinePaymentEnabled?: boolean;
@@ -1742,6 +1766,7 @@ export class ShopService {
       logoUrl: row.logoUrl,
       primaryColor: row.primaryColor,
       secondaryColor: row.secondaryColor,
+      themeId: row.themeId ?? 'zi-home',
       tagline: row.tagline,
       codEnabled: row.codEnabled,
       onlinePaymentEnabled: row.onlinePaymentEnabled ?? false,

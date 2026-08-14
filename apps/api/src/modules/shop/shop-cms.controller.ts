@@ -196,6 +196,10 @@ class SettingsDto {
 
   @IsOptional()
   @IsString()
+  themeId?: string;
+
+  @IsOptional()
+  @IsString()
   tagline?: string | null;
 
   @IsOptional()
@@ -280,6 +284,11 @@ export class ShopCmsController {
   @Get('settings')
   settings(@CurrentAuth() auth: AuthContext) {
     return this.shop.getSettings(auth.tenantId);
+  }
+
+  @Get('themes')
+  themes() {
+    return this.shop.listThemes();
   }
 
   @Put('settings')

@@ -400,6 +400,8 @@ model StorefrontSettings {
   logoUrl         String?  @map("logo_url")
   primaryColor    String   @default("#ef4056") @map("primary_color")
   secondaryColor  String   @default("#0c0c0c") @map("secondary_color")
+  /// Presentation pack only — catalog, orders, banners stay on their own tables.
+  themeId         String   @default("zi-home") @map("theme_id")
   tagline         String?
   codEnabled      Boolean  @default(true) @map("cod_enabled")
   onlinePaymentEnabled Boolean @default(false) @map("online_payment_enabled")

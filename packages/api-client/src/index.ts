@@ -809,6 +809,17 @@ export function createApiClient(opts: ApiClientOptions) {
       }>(opts, '/shop/overview'),
     shopSettings: () =>
       request<Record<string, unknown>>(opts, '/shop/settings'),
+    listShopThemes: () =>
+      request<
+        Array<{
+          id: string;
+          name: string;
+          description: string;
+          layout: string;
+          defaults: { primaryColor: string; secondaryColor: string };
+          swatches: { bg: string; fg: string; accent: string };
+        }>
+      >(opts, '/shop/themes'),
     updateShopSettings: (body: Record<string, unknown>) =>
       request<Record<string, unknown>>(opts, '/shop/settings', {
         method: 'PUT',
