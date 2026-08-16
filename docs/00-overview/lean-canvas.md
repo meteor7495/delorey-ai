@@ -93,7 +93,7 @@ Online merchants lose revenue and burn capacity because **selling and ops are fr
 
 ### One sentence
 
-**DeloRey gives online shops one native storefront and Workspace so sales from website, Telegram, and Bale stay trackable in one product — with an optional AI Sales Employee on the same catalog.**
+**Seloma gives online shops one native storefront and Workspace so sales from website, Telegram, and Bale stay trackable in one product — with an optional AI Sales Employee on the same catalog.**
 
 ### Supporting benefits
 
@@ -165,7 +165,7 @@ A focused **native commerce platform** for online shops, with optional AI:
 
 ## Channels
 
-### How customers discover DeloRey AI
+### How customers discover Seloma AI
 
 | Channel | Approach | Realism note |
 |---------|----------|--------------|

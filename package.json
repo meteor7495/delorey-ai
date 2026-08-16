@@ -1,23 +1,23 @@
 {
-  "name": "delorey-ai",
+  "name": "seloma-ai",
   "private": true,
   "packageManager": "pnpm@10.6.5",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @delorey/api --filter @delorey/workspace --filter @delorey/widget --filter @delorey/storefront --filter @delorey/web run dev",
-    "dev:api": "pnpm --filter @delorey/api dev",
-    "dev:workspace": "pnpm --filter @delorey/workspace dev",
-    "dev:widget": "pnpm --filter @delorey/widget dev",
-    "dev:storefront": "pnpm --filter @delorey/storefront dev",
-    "dev:web": "pnpm --filter @delorey/web dev",
+    "dev": "pnpm --parallel --filter @seloma/api --filter @seloma/workspace --filter @seloma/widget --filter @seloma/storefront --filter @seloma/web run dev",
+    "dev:api": "pnpm --filter @seloma/api dev",
+    "dev:workspace": "pnpm --filter @seloma/workspace dev",
+    "dev:widget": "pnpm --filter @seloma/widget dev",
+    "dev:storefront": "pnpm --filter @seloma/storefront dev",
+    "dev:web": "pnpm --filter @seloma/web dev",
     "build": "pnpm -r run build",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
     "db:up": "docker compose up -d postgres",
     "db:down": "docker compose down",
-    "db:migrate": "pnpm --filter @delorey/api prisma:migrate"
+    "db:migrate": "pnpm --filter @seloma/api prisma:migrate"
   }
 }

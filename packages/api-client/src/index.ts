@@ -1267,4 +1267,6 @@ export function createApiClient(opts: ApiClientOptions) {
   };
 }
 
-export type DeloreyApiClient = ReturnType<typeof createApiClient>;
+export type SelomaApiClient = ReturnType<typeof createApiClient>;
+/** @deprecated Use SelomaApiClient. Kept for existing internal imports. */
+export type DeloreyApiClient = SelomaApiClient;

@@ -2,8 +2,8 @@
 
 | Field | Value |
 |-------|-------|
-| **Scope** | BoxAPI Instagram Official API as future DeloRey transport |
-| **Standard** | DeloRey Security Architecture + multi-tenant SaaS bar |
+| **Scope** | BoxAPI Instagram Official API as future Seloma transport |
+| **Standard** | Seloma Security Architecture + multi-tenant SaaS bar |
 | **Method** | Docs-only threat assessment |
 | **Verdict** | **Fail for production** until signature, tenancy, and custody gaps closed |
 
@@ -18,7 +18,7 @@ Critical blockers:
 1. No documented **webhook signature / authenticity**.
 2. Likely **single shared webhook** for all pages under one API key.
 3. **Silent revoke** without notification.
-4. Ambiguous **data custody** (provider stores customer data; DeloRey still needs transcripts).
+4. Ambiguous **data custody** (provider stores customer data; Seloma still needs transcripts).
 5. **`internal_token` exposure** in account list responses.
 6. Unilateral provider termination clause.
 
@@ -31,10 +31,10 @@ Critical blockers:
 | API key lifetime | Unknown | Assume long-lived static secret until proven otherwise |
 | Rotation procedure | Unknown | Must require panel rotation + zero-downtime dual-key — **Unknown** |
 | Page `expires_at` | Yes | Forces re-OAuth; good that expiry exists, bad if no proactive webhook |
-| Refresh tokens | Unknown / likely N/A | DeloRey never holds Meta tokens — cannot self-heal without merchant |
+| Refresh tokens | Unknown / likely N/A | Seloma never holds Meta tokens — cannot self-heal without merchant |
 | Compromised key blast radius | High | One `X-Api-Key` appears to authorize all pages under the BoxAPI account |
 
-**Risk:** Static platform API key = god key for all connected merchant pages if DeloRey uses one BoxAPI account.
+**Risk:** Static platform API key = god key for all connected merchant pages if Seloma uses one BoxAPI account.
 
 **Required design:** Prefer **one BoxAPI sub-account per tenant** *or* contractual scoped keys per tenant. Neither is documented as supported. **Unknown — must ask.**
 
@@ -46,8 +46,8 @@ Critical blockers:
 |-------|--------|
 | Transit | Assume TLS to `boxapi.ir` — **verify cert, TLS version, HSTS in lab** |
 | At rest (provider) | **Unknown** |
-| DeloRey storage of `X-Api-Key` | Must use existing `encryptSecret` / AES-256-GCM pattern |
-| DeloRey storage of page `account_id` | Non-secret identifier; still tenant-scoped |
+| Seloma storage of `X-Api-Key` | Must use existing `encryptSecret` / AES-256-GCM pattern |
+| Seloma storage of page `account_id` | Non-secret identifier; still tenant-scoped |
 | Media at rest | N/A until media supported |
 
 ---
@@ -62,7 +62,7 @@ Critical blockers:
 | Shared secret header | Common (Telegram-style) | **Not documented** |
 | IP allowlist of provider egress | Sometimes | **Not documented** |
 
-**Attack scenario:** Attacker POSTs forged Instagram DMs to DeloRey webhook URL → AI replies / leaks commerce actions / pollutes Inbox.
+**Attack scenario:** Attacker POSTs forged Instagram DMs to Seloma webhook URL → AI replies / leaks commerce actions / pollutes Inbox.
 
 **Mitigations if vendor has no signature (insufficient alone):**
 
@@ -82,7 +82,7 @@ Critical blockers:
 | Are `event_id` values unique forever? | Unknown |
 | Can old webhooks be resent? | Unknown |
 | Timestamp skew window? | Sample has timestamps; no verification rules |
-| DeloRey control | Mandatory idempotency keys on `event_id` + `message.mid` |
+| Seloma control | Mandatory idempotency keys on `event_id` + `message.mid` |
 
 Replay of a “confirm order” style utterance is lower risk if Runtime is read-only for money movements, but still pollutes conversations and may trigger duplicate sends.
 
@@ -94,7 +94,7 @@ Replay of a “confirm order” style utterance is lower risk if Runtime is read
 |------|--------|
 | Provider documents egress IPs | **No** |
 | Provider allows ingress IP allowlist for API key | **Unknown** |
-| DeloRey should allowlist webhook sources | Only if stable IPs exist |
+| Seloma should allowlist webhook sources | Only if stable IPs exist |
 
 ---
 
@@ -103,7 +103,7 @@ Replay of a “confirm order” style utterance is lower risk if Runtime is read
 | Secret | Rotation path |
 |--------|---------------|
 | BoxAPI `X-Api-Key` | Panel — procedure **Unknown**; dual-key support **Unknown** |
-| Webhook URL secret segment | DeloRey-controlled — rotate by re-registering URL |
+| Webhook URL secret segment | Seloma-controlled — rotate by re-registering URL |
 | OAuth connected pages | Merchant re-login |
 | `internal_token` | Purpose Unknown — never log |
 
@@ -111,14 +111,14 @@ Replay of a “confirm order” style utterance is lower risk if Runtime is read
 
 ## 8. Audit
 
-| Need | Provider | DeloRey |
+| Need | Provider | Seloma |
 |------|----------|---------|
 | Who connected a page | Unknown | Must audit in Workspace |
 | Who sent a DM via API | Unknown | Audit outbound via our Audit Logs |
 | Webhook delivery log | Unknown | Persist raw envelope (redacted) temporarily |
 | Support access to merchant IG data at BoxAPI | Unknown — ask | Contractual DPA required |
 
-Without provider audit APIs, DeloRey Audit Logs can only cover **our** side.
+Without provider audit APIs, Seloma Audit Logs can only cover **our** side.
 
 ---
 
@@ -127,12 +127,12 @@ Without provider audit APIs, DeloRey Audit Logs can only cover **our** side.
 | Principle | Assessment |
 |-----------|------------|
 | Least privilege API keys | **Fail (docs)** — single key model |
-| Per-page scoped credentials for DeloRey | Not available (by design: Meta tokens hidden) |
+| Per-page scoped credentials for Seloma | Not available (by design: Meta tokens hidden) |
 | OAuth scopes minimized | Claimed; list Unknown |
 | Separation of Data API vs Official API credentials | Required — different products; do not share secrets |
 | Panel user access control (SSO, 2FA) | **Unknown** |
 
-Hiding Meta tokens from DeloRey reduces token exfiltration risk **but increases vendor lock-in and reduces DeloRey’s ability to rotate/respond independently**.
+Hiding Meta tokens from Seloma reduces token exfiltration risk **but increases vendor lock-in and reduces Seloma’s ability to rotate/respond independently**.
 
 ---
 
@@ -153,8 +153,8 @@ Hiding Meta tokens from DeloRey reduces token exfiltration risk **but increases 
 
 ## 11. Compliance / privacy notes (Iran + platform)
 
-- Customer chat content is personal data. If BoxAPI stores it, DeloRey needs **processor terms**, retention limits, deletion APIs, and breach notification.
-- Docs claim full wipe on page delete — verify whether DeloRey-local copies remain (they should, for Audit — with policy).
+- Customer chat content is personal data. If BoxAPI stores it, Seloma needs **processor terms**, retention limits, deletion APIs, and breach notification.
+- Docs claim full wipe on page delete — verify whether Seloma-local copies remain (they should, for Audit — with policy).
 - “No user data given to developer” conflicts with operating an AI agent that must read message text. **Get written clarification.**
 
 ---
@@ -186,5 +186,5 @@ Hiding Meta tokens from DeloRey reduces token exfiltration risk **but increases 
 - [ ] Key rotation runbook tested
 - [ ] No secrets in logs (ci lint)
 - [ ] Channel disconnect detection < 15 minutes (poll or event)
-- [ ] Penetration test of DeloRey Instagram webhook ingress
+- [ ] Penetration test of Seloma Instagram webhook ingress
 - [ ] Legal review of Meta ToS / Iranian intermediary risk (**outside eng scope, required**)

@@ -32,7 +32,7 @@ Never invent features outside Product Scope. Never expand MVP. Never contradict 
 
 # 1. Architecture Philosophy
 
-DeloRey AI is an **AI Commerce Platform**, not a CRUD SaaS with a chat widget bolted on. The center of gravity is the **AI Employee Runtime**. Databases, REST APIs, and UIs exist to serve that Runtime — not the other way around.
+Seloma AI is an **AI Commerce Platform**, not a CRUD SaaS with a chat widget bolted on. The center of gravity is the **AI Employee Runtime**. Databases, REST APIs, and UIs exist to serve that Runtime — not the other way around.
 
 ### Governing beliefs
 
@@ -95,24 +95,24 @@ flowchart TB
 
 ```mermaid
 C4Context
-    title DeloRey AI — System Context
+    title Seloma AI — System Context
 
     Person(merchant, "Merchant Operator", "Founder / store manager")
     Person(shopper, "Shopper", "Customer on web / Telegram / Bale")
 
-    System(delorey, "DeloRey AI", "AI Commerce Platform — AI Sales Employee Runtime")
+    System(seloma, "Seloma AI", "AI Commerce Platform — AI Sales Employee Runtime")
 
     System_Ext(shopify, "Shopify / WooCommerce", "Catalog, inventory, orders, policies")
     System_Ext(telegram, "Telegram Bot API", "Messaging delivery")
     System_Ext(bale, "Bale Bot API", "Messaging delivery")
     System_Ext(llm, "LLM Providers", "OpenAI, Anthropic, others via Gateway")
 
-    Rel(merchant, delorey, "Configures Employee, reviews inbox, metrics")
-    Rel(shopper, delorey, "Messages via channels")
-    Rel(delorey, shopify, "Sync + order lookup")
-    Rel(delorey, telegram, "Send / receive")
-    Rel(delorey, bale, "Send / receive")
-    Rel(delorey, llm, "Grounded generation via AI Gateway")
+    Rel(merchant, seloma, "Configures Employee, reviews inbox, metrics")
+    Rel(shopper, seloma, "Messages via channels")
+    Rel(seloma, shopify, "Sync + order lookup")
+    Rel(seloma, telegram, "Send / receive")
+    Rel(seloma, bale, "Send / receive")
+    Rel(seloma, llm, "Grounded generation via AI Gateway")
 ```
 
 ### Logical topology
@@ -516,7 +516,7 @@ Cost Optimization Layer, Runtime, Knowledge System (embeddings), Context Engine 
 
 ### Purpose
 
-Own the merchant’s **live commerce truth** required for conversations: catalog, variants, inventory signals, pricing, structured policies (shipping/returns/COD), and orders. Without Commerce Core, DeloRey is a generic chatbot.
+Own the merchant’s **live commerce truth** required for conversations: catalog, variants, inventory signals, pricing, structured policies (shipping/returns/COD), and orders. Without Commerce Core, Seloma is a generic chatbot.
 
 ### Responsibilities
 
@@ -837,7 +837,7 @@ Channel Adapters, Runtime, Human Handoff, Memory, Analytics, Workspace Inbox.
 
 ### Purpose
 
-Translate between external channel APIs and DeloRey’s normalized Conversation model. **Adapters format and deliver; they do not own catalog truth, discount policy, or escalation rules.**
+Translate between external channel APIs and Seloma’s normalized Conversation model. **Adapters format and deliver; they do not own catalog truth, discount policy, or escalation rules.**
 
 ### MVP adapters
 
@@ -1505,7 +1505,7 @@ For implementation tickets, every service must document the fields used througho
 
 # Summary
 
-DeloRey AI’s system architecture is an **AI-first, context-first, multi-tenant Commerce Runtime** with thin Channel Adapters (Website, Telegram, Bale), a provider-agnostic **AI Gateway**, a **Cost Optimization Layer**, and merchant control via **Guardrails, Human Handoff, Audit, and Workspace**.
+Seloma AI’s system architecture is an **AI-first, context-first, multi-tenant Commerce Runtime** with thin Channel Adapters (Website, Telegram, Bale), a provider-agnostic **AI Gateway**, a **Cost Optimization Layer**, and merchant control via **Guardrails, Human Handoff, Audit, and Workspace**.
 
 **Build:** Runtime, Context, Commerce Core, Knowledge/RAG, Conversation Engine, Adapters, Gateway, tenancy, events where valuable, measurement.  
 **Do not build:** Chatbot builders, CRM/helpdesk cores, channel-forked logic, or autonomy that skips context and humans.

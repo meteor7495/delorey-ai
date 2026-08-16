@@ -16,7 +16,7 @@
 
 # 1. Problem
 
-Without live storefront truth, DeloRey is a generic chatbot. Merchants lose trust when chat invents price/stock.
+Without live storefront truth, Seloma is a generic chatbot. Merchants lose trust when chat invents price/stock.
 
 # 2. Goal
 

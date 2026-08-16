@@ -23,7 +23,7 @@
 
 ```bash
 pnpm db:up
-pnpm --filter @delorey/api exec prisma migrate deploy
+pnpm --filter @seloma/api exec prisma migrate deploy
 pnpm install
 pnpm dev
 ```

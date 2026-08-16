@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 80" width="390" height="80" fill="none">
+  <defs>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Vazirmatn:wght@500&amp;display=swap");
+    </style>
+  </defs>
+    <defs>
+    <mask id="iconMask">
+      <rect width="80" height="80" fill="black"/>
+      <path d="M 56.226 18.944 A 17.5 17.5 0 1 0 49.798 40.000 A 17.5 17.5 0 1 1 23.774 61.056" fill="none" stroke="white" stroke-width="11.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 56.226 18.944 A 17.5 17.5 0 1 0 49.798 40.000 A 17.5 17.5 0 1 1 23.774 61.056" fill="none" stroke="black" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <rect width="80" height="80" rx="18" fill="#4C3A78"/>
+  <rect width="80" height="80" fill="#FFFFFF" mask="url(#iconMask)"/>
+
+  <text x="96" y="54" font-family="Vazirmatn, Tahoma, sans-serif" font-size="34" font-weight="500" fill="#1A1625" direction="rtl" unicode-bidi="plaintext">سِلوما</text>
+</svg>

@@ -16,13 +16,13 @@
 
 # Executive Summary
 
-DeloRey is a **unified commerce platform** for Iranian online shops: a **native storefront (سایت‌ساز)** plus multi-channel selling and **one Workspace** so orders and catalog stay coherent whether the buyer came from the website, Telegram, Bale, or later Instagram. It is not a CRM, helpdesk, chatbot builder, or free-form page-builder IDE. The **AI Sales Employee** is an **optional add-on** sold to merchants who want automation on top of that same commerce truth — not the only path to product value.
+Seloma is a **unified commerce platform** for Iranian online shops: a **native storefront (سایت‌ساز)** plus multi-channel selling and **one Workspace** so orders and catalog stay coherent whether the buyer came from the website, Telegram, Bale, or later Instagram. It is not a CRM, helpdesk, chatbot builder, or free-form page-builder IDE. The **AI Sales Employee** is an **optional add-on** sold to merchants who want automation on top of that same commerce truth — not the only path to product value.
 
-**Why it exists:** SMB shop managers are lost across tools — site here, messaging elsewhere, orders in spreadsheets. They lose revenue to silence and fragmentation. DeloRey closes that gap with one shop + ops hub, and offers grounded AI when the merchant needs coverage without hiring a night shift.
+**Why it exists:** SMB shop managers are lost across tools — site here, messaging elsewhere, orders in spreadsheets. They lose revenue to silence and fragmentation. Seloma closes that gap with one shop + ops hub, and offers grounded AI when the merchant needs coverage without hiring a night shift.
 
 **Who it serves:** SMB online merchants (fashion, cosmetics, accessories, electronics, home, gifts / D2C) who need a coherent place to sell online and via messaging. Buyer: founder or head of e-commerce. Daily users: store managers and support leads.
 
-**Why now:** Messaging-first buying is already how Iranian shoppers behave; native storefront + channel adapters can meet them without five vendors. AI quality is good enough to *optionally* automate answers — but only when grounded in the same catalog the shop already runs in DeloRey. See [Product Positioning](../00-overview/product-positioning.md).
+**Why now:** Messaging-first buying is already how Iranian shoppers behave; native storefront + channel adapters can meet them without five vendors. AI quality is good enough to *optionally* automate answers — but only when grounded in the same catalog the shop already runs in Seloma. See [Product Positioning](../00-overview/product-positioning.md).
 
 ---
 
@@ -34,7 +34,7 @@ Iranian online shops operate on a fragmented stack: storefront, Instagram presen
 
 Three structural failures repeat across verticals:
 
-1. **Revenue lost to silence** — Shoppers abandon purchases when sizing, compatibility, payment, or delivery questions are not answered before intent cools. Industry-wide cart abandonment rates are commonly cited in the 60–70% range globally; we treat that as directional context, not a DeloRey-specific measurement. Our assumption — to be validated in merchant interviews — is that a meaningful share of abandonment in question-heavy categories (fashion, cosmetics, electronics) is driven by unanswered pre-purchase questions, not price alone.
+1. **Revenue lost to silence** — Shoppers abandon purchases when sizing, compatibility, payment, or delivery questions are not answered before intent cools. Industry-wide cart abandonment rates are commonly cited in the 60–70% range globally; we treat that as directional context, not a Seloma-specific measurement. Our assumption — to be validated in merchant interviews — is that a meaningful share of abandonment in question-heavy categories (fashion, cosmetics, electronics) is driven by unanswered pre-purchase questions, not price alone.
 
 2. **Support that does not scale** — The same 15–20 questions (return policy, authenticity, delivery time, size fit) are answered manually, repeatedly, across channels. Adding one human per channel is economically unrealistic for SMB merchants.
 
@@ -46,7 +46,7 @@ A typical journey for a fashion or cosmetics shopper in the initial target marke
 
 ```mermaid
 journey
-    title Shopper Journey — Current State (Without DeloRey AI)
+    title Shopper Journey — Current State (Without Seloma AI)
     section Discovery
       Sees product on Instagram or Telegram: 4: Merchant
       Clicks to website or messages directly: 3: Merchant
@@ -77,7 +77,7 @@ journey
 
 ## Lost Sales
 
-Lost sales in this context are not primarily competitive losses — they are **latency and accuracy losses**. A shopper ready to buy asks whether the 128 GB variant is available; the message sits unread until the next morning. A chatbot replies with outdated stock information. A human answers correctly but only on one channel while the same customer asked on another. DeloRey AI targets recoverable revenue from faster, accurate, omnichannel responses and eventual proactive recovery workflows — with attribution built in so merchants see the impact.
+Lost sales in this context are not primarily competitive losses — they are **latency and accuracy losses**. A shopper ready to buy asks whether the 128 GB variant is available; the message sits unread until the next morning. A chatbot replies with outdated stock information. A human answers correctly but only on one channel while the same customer asked on another. Seloma AI targets recoverable revenue from faster, accurate, omnichannel responses and eventual proactive recovery workflows — with attribution built in so merchants see the impact.
 
 ## Support Challenges
 
@@ -91,9 +91,9 @@ Support is treated as a cost center because tools frame it that way. Merchants h
 
 Commerce conversations are shifting from email and phone to asynchronous messaging — a trend visible globally and acute in messaging-first markets. Large language models made fluent dialogue cheap, but **fluent wrong answers** are worse than silence for product-critical categories. The next wave is not "chatbots everywhere" — it is a **Commerce OS**: context-grounded AI Employees connected to catalog, cart, and orders, with Skills, Guardrails, and human handoff. Platforms that integrate deeply with commerce stacks and measure revenue outcomes will compound advantage through permissioned conversation data, objection patterns, and attribution graphs — not through model size alone.
 
-## Digital Commerce Trends (Relevant to DeloRey AI)
+## Digital Commerce Trends (Relevant to Seloma AI)
 
-| Trend | Relevance to DeloRey AI |
+| Trend | Relevance to Seloma AI |
 |-------|-------------------------|
 | **Messaging-first shopping** | Telegram and Bale are primary sales and support surfaces for many Iranian D2C brands — not optional add-ons |
 | **D2C brand proliferation** | More SMBs sell direct online with limited ops headcount |
@@ -193,7 +193,7 @@ flowchart LR
 | **Service businesses** (clinics, law, real estate, etc.) | Valid Phase 2 expansion; Architecture supports them, but MVP proves commerce wedge first |
 | **Pure marketplace operators** | Different workflow (multi-seller) — not MVP scope |
 | **Businesses without online catalog** | Commerce Core requires syncable product and order data |
-| **Merchants wanting arbitrary chatbot flows** | DeloRey AI is a Commerce OS with opinionated AI Employees, not a bot builder |
+| **Merchants wanting arbitrary chatbot flows** | Seloma AI is a Commerce OS with opinionated AI Employees, not a bot builder |
 | **Shops with no messaging channel activity** | MVP value proposition is omnichannel; web-only with no chat volume is weak fit |
 | **Agencies as primary buyer** | Partner channel comes after product stability |
 
@@ -228,7 +228,7 @@ flowchart LR
 | **Behavior** | Discovers products on Instagram, asks questions on Telegram, may complete purchase on website |
 | **Expectation** | Instant accurate answers about size, delivery to her city, and return options |
 | **Drop-off trigger** | Wrong bot answer or no reply within a few hours |
-| **DeloRey AI value** | Consistent answers across channels without repeating herself |
+| **Seloma AI value** | Consistent answers across channels without repeating herself |
 
 ---
 
@@ -253,7 +253,7 @@ Prioritized by revenue impact and validation status from discovery hypotheses:
 
 ## Core Value Proposition
 
-**DeloRey AI is the Commerce OS that gives online shops AI Employees that sell and support customers on web chat, Telegram, and Bale — grounded in live catalog and order data, with measurable revenue impact and merchant-controlled guardrails.**
+**Seloma AI is the Commerce OS that gives online shops AI Employees that sell and support customers on web chat, Telegram, and Bale — grounded in live catalog and order data, with measurable revenue impact and merchant-controlled guardrails.**
 
 ## Supporting Benefits
 
@@ -317,7 +317,7 @@ Businesses will eventually hire and compose these Employees like a virtual org c
 
 ## Why Omnichannel
 
-Iranian shoppers do not stay on one surface. They discover on Instagram, ask on Telegram, and checkout on the website — sometimes the reverse. Without omnichannel memory, every channel restart wastes time and kills conversion. DeloRey AI deploys one AI Employee Runtime with channel adapters; formatting adapts, business logic and Customer Profile do not. MVP focuses on web, Telegram, and Bale — the channels where initial ICP already operates.
+Iranian shoppers do not stay on one surface. They discover on Instagram, ask on Telegram, and checkout on the website — sometimes the reverse. Without omnichannel memory, every channel restart wastes time and kills conversion. Seloma AI deploys one AI Employee Runtime with channel adapters; formatting adapts, business logic and Customer Profile do not. MVP focuses on web, Telegram, and Bale — the channels where initial ICP already operates.
 
 ## Why Context Engine
 
@@ -356,7 +356,7 @@ Response Formatter
 | **Guardrails** | Discount limits, blocked topics, confidence thresholds, approval gates |
 | **Response Formatter** | Adapts output to channel (web widget, Telegram, Bale) |
 
-This Runtime is what makes DeloRey AI an **operating system for AI Employees** rather than another chatbot wrapper. New industries and roles plug into the same pipeline by adding Skills and connectors — not by rebuilding conversation trees.
+This Runtime is what makes Seloma AI an **operating system for AI Employees** rather than another chatbot wrapper. New industries and roles plug into the same pipeline by adding Skills and connectors — not by rebuilding conversation trees.
 
 ## Why Skills
 
@@ -397,13 +397,13 @@ Autonomy is earned, not assumed. Merchants must override AI, approve high-value 
 
 # Competitive Landscape
 
-DeloRey AI competes for **merchant budget and attention** against the status quo, local tools, live chat, helpdesk, bot builders, CRMs, and human teams — not always against a single SaaS SKU.
+Seloma AI competes for **merchant budget and attention** against the status quo, local tools, live chat, helpdesk, bot builders, CRMs, and human teams — not always against a single SaaS SKU.
 
 **Doing nothing is often the biggest competitor.** Most Iranian SMB shops already "solve" customer communication with Excel, manual Telegram replies, Instagram DMs, and the founder's phone. Switching costs are psychological and operational — not contractual. Winning means proving ROI against the status quo, not only against Intercom.
 
 ## Status Quo and Local Alternatives
 
-| Alternative | Strengths | Weaknesses | DeloRey differentiation |
+| Alternative | Strengths | Weaknesses | Seloma differentiation |
 |-------------|-----------|------------|-------------------------|
 | **Doing nothing / Excel + informal notes** | Free; familiar | No scale; knowledge siloed; zero attribution | Measurable revenue and hours saved; shared Knowledge Base |
 | **Manual Telegram / Bale replies** | Personal; trusted | Hours of latency; founder bottleneck; no nights/weekends | 24/7 AI Employees with human handoff |
@@ -416,7 +416,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 
 ## SaaS Competitor Summary Positioning
 
-| Competitor | Primary job | DeloRey AI difference |
+| Competitor | Primary job | Seloma AI difference |
 |------------|-------------|------------------------|
 | **Intercom** | Conversational support + product tours | Commerce grounding, Bale/Telegram-first, revenue attribution |
 | **Zendesk** | Ticket management | Conversation-as-commerce-event, not ticket closure |
@@ -425,7 +425,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Botpress** | Custom bot development | Opinionated commerce agents, faster TTV for non-developers |
 | **Crisp** | Lightweight live chat | Omnichannel memory + Commerce Core |
 | **Traditional CRM** | Pipeline and contact records | Real-time conversational selling on messaging channels |
-| **Human support teams** | Flexible, trusted | 24/7 coverage at linear cost; DeloRey augments, then reduces load |
+| **Human support teams** | Flexible, trusted | 24/7 coverage at linear cost; Seloma augments, then reduces load |
 
 ## Detailed Comparison
 
@@ -436,7 +436,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Mature inbox, workflows, brand recognition, Fin AI for support |
 | **Weaknesses** | Weak Bale/Telegram commerce workflows; not built for Iranian messaging stack; commerce integration secondary |
 | **Positioning** | Premium support suite for product-led SaaS |
-| **DeloRey differentiation** | Commerce Core, regional channels, conversion attribution, Persian commerce context |
+| **Seloma differentiation** | Commerce Core, regional channels, conversion attribution, Persian commerce context |
 
 ### Zendesk
 
@@ -445,7 +445,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Ticketing scale, enterprise trust, integrations marketplace |
 | **Weaknesses** | Ticket-centric UX; slow for same-session selling; heavy for SMB D2C |
 | **Positioning** | Helpdesk system of record |
-| **DeloRey differentiation** | Pre-purchase conversion focus, agent recommends products, unified messaging inbox |
+| **Seloma differentiation** | Pre-purchase conversion focus, agent recommends products, unified messaging inbox |
 
 ### Tidio
 
@@ -454,7 +454,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Easy SMB onboarding, affordable entry, Shopify familiarity |
 | **Weaknesses** | AI often FAQ-level; limited order-aware dialogue; bot builder mindset |
 | **Positioning** | SMB chat widget + marketing |
-| **DeloRey differentiation** | AI Employee model, order lookup, escalation discipline, Bale/Telegram |
+| **Seloma differentiation** | AI Employee model, order lookup, escalation discipline, Bale/Telegram |
 
 ### ManyChat
 
@@ -463,7 +463,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Strong Instagram/Facebook automation, visual flows |
 | **Weaknesses** | Broadcast and funnel automation, not live catalog-grounded Q&A; wrong mental model for accurate product answers |
 | **Positioning** | Social marketing automation |
-| **DeloRey differentiation** | Two-way commerce conversations grounded in sync'd catalog and inventory |
+| **Seloma differentiation** | Two-way commerce conversations grounded in sync'd catalog and inventory |
 
 ### Botpress
 
@@ -472,7 +472,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Flexible, developer-friendly, self-host option |
 | **Weaknesses** | Requires build effort; no commerce opinion; time-to-value weeks not hours |
 | **Positioning** | Bot development platform |
-| **DeloRey differentiation** | Pre-built Sales Employee, Commerce Core connectors, merchant control plane out of box |
+| **Seloma differentiation** | Pre-built Sales Employee, Commerce Core connectors, merchant control plane out of box |
 
 ### Crisp
 
@@ -481,7 +481,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Simple, affordable chat, good for early-stage |
 | **Weaknesses** | Limited AI commerce depth; human-chat centric |
 | **Positioning** | Lightweight team inbox |
-| **DeloRey differentiation** | AI-first with guardrails, revenue metrics, regional messaging |
+| **Seloma differentiation** | AI-first with guardrails, revenue metrics, regional messaging |
 
 ### Traditional CRM (HubSpot, etc.)
 
@@ -490,7 +490,7 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Customer record, marketing automation, reporting |
 | **Weaknesses** | Not real-time conversational layer on Telegram/Bale; migration-heavy |
 | **Positioning** | System of record for marketing/sales |
-| **DeloRey differentiation** | Operates in the conversation; syncs insights to CRM later — does not replace it |
+| **Seloma differentiation** | Operates in the conversation; syncs insights to CRM later — does not replace it |
 
 ### Human Support Teams
 
@@ -499,11 +499,11 @@ DeloRey AI competes for **merchant budget and attention** against the status quo
 | **Strengths** | Trust, nuance, complex exceptions |
 | **Weaknesses** | Linear cost, inconsistent coverage, knowledge walks out the door |
 | **Positioning** | Default alternative for quality-conscious merchants |
-| **DeloRey differentiation** | Handles routine 60–70%+ of volume (target); humans focus on high-stakes cases |
+| **Seloma differentiation** | Handles routine 60–70%+ of volume (target); humans focus on high-stakes cases |
 
 ## Feature Matrix (Qualitative)
 
-| Capability | DeloRey AI | Intercom | Zendesk | Tidio | ManyChat | Botpress |
+| Capability | Seloma AI | Intercom | Zendesk | Tidio | ManyChat | Botpress |
 |------------|:----------:|:--------:|:-------:|:-----:|:--------:|:--------:|
 | Live catalog grounding | ● | ○ | ○ | ○ | ○ | ○ |
 | Order status lookup | ● | ○ | ○ | ○ | ○ | ○ |
@@ -658,7 +658,7 @@ Mandatory for first 50 merchants. Founder closes, learns objections, feeds produ
 
 ## Partner Sales
 
-Agencies and integrators sell setup + DeloRey subscription from Growth phase. Partner certification: integration health check, guardrail setup, ROI reporting.
+Agencies and integrators sell setup + Seloma subscription from Growth phase. Partner certification: integration health check, guardrail setup, ROI reporting.
 
 ---
 
@@ -670,7 +670,7 @@ Agencies and integrators sell setup + DeloRey subscription from Growth phase. Pa
 
 | Tier | Target Customer | Included (hypothesis) |
 |------|-----------------|------------------------|
-| **Free** | Evaluation / micro shops | 1 channel, very low monthly conversation cap, DeloRey branding, no attribution export — **cost-bounded by LLM spend** |
+| **Free** | Evaluation / micro shops | 1 channel, very low monthly conversation cap, Seloma branding, no attribution export — **cost-bounded by LLM spend** |
 | **Starter** | Small shop, single primary channel | 1 store, 1 channel (web OR Telegram OR Bale), baseline conversation allowance, basic analytics |
 | **Professional** | Active shop, omnichannel | 1 store, up to 3 channels, higher conversation allowance, unified inbox, conversion attribution |
 | **Business** | Higher GMV, small team | Multiple operators, priority support, advanced guardrails, higher limits |
@@ -871,7 +871,7 @@ MVP is successful when **all** conditions below are met — not when features sh
 
 # Long-Term Vision
 
-In 3–5 years, DeloRey AI becomes the **Commerce OS** businesses install alongside their payment processor — essential infrastructure for AI-native operations, not a chat widget. Online commerce remains the beachhead; Services and Enterprise expand on the same Runtime.
+In 3–5 years, Seloma AI becomes the **Commerce OS** businesses install alongside their payment processor — essential infrastructure for AI-native operations, not a chat widget. Online commerce remains the beachhead; Services and Enterprise expand on the same Runtime.
 
 ## Beyond Chat
 
@@ -881,7 +881,7 @@ Conversations become structured commerce signals: objection taxonomies, demand f
 
 - **Composed AI Employee teams** — Sales, Support, Marketing, Analytics, Inventory, Order, Finance, Knowledge, Operations, HR, and Custom Employees share one context graph and hand off without customer repetition.
 - **AI Employee Runtime + Skills** — reusable Skills and Workflows make new roles and industries extensible without rebuilding chatbots.
-- **Developer ecosystem** — REST API, webhooks, SDKs, sandbox for agencies building on the DeloRey Runtime.
+- **Developer ecosystem** — REST API, webhooks, SDKs, sandbox for agencies building on the Seloma Runtime.
 - **Skill Marketplace** — Partner-certified Skills and Employee templates (returns specialist, B2B quoting, subscription retention) with revenue share.
 - **Vertical editions** — Pre-trained packs for fashion, electronics, cosmetics — then service verticals — with domain objection libraries.
 - **Enterprise governance** — Multi-brand Employee fleets, SSO, regional data residency, SLA tiers.
@@ -918,13 +918,13 @@ flowchart TB
     Today --> Y2 --> Y3
 ```
 
-DeloRey AI wins if removing it would **visibly hurt revenue and operations** — not because AI is trendy, but because the business runs on AI Employees that know products, customers, orders, and rules better than any generic alternative.
+Seloma AI wins if removing it would **visibly hurt revenue and operations** — not because AI is trendy, but because the business runs on AI Employees that know products, customers, orders, and rules better than any generic alternative.
 
 ---
 
 # Strategic Defensibility
 
-DeloRey AI's long-term competitive advantage is not a single model or a chat widget. It compounds from the Commerce OS layers that competitors must rebuild end-to-end:
+Seloma AI's long-term competitive advantage is not a single model or a chat widget. It compounds from the Commerce OS layers that competitors must rebuild end-to-end:
 
 | Moat layer | Why it defends |
 |------------|----------------|
@@ -942,7 +942,7 @@ A deeper treatment of these moats — and how they compound — lives in [Produc
 
 ## Document Notes
 
-This Business Plan v0.2 is a **living strategy document**. It translates [Vision](../00-overview/vision.md), [Lean Canvas](../00-overview/lean-canvas.md), and [Roadmap](../00-overview/roadmap.md) into investor- and team-ready narrative. Numeric claims are hypotheses unless sourced from validated experiments. Version 0.2 repositions DeloRey AI as a Commerce OS, expands market phases and AI Employees, and introduces Runtime, Skills, and Strategic Defensibility.
+This Business Plan v0.2 is a **living strategy document**. It translates [Vision](../00-overview/vision.md), [Lean Canvas](../00-overview/lean-canvas.md), and [Roadmap](../00-overview/roadmap.md) into investor- and team-ready narrative. Numeric claims are hypotheses unless sourced from validated experiments. Version 0.2 repositions Seloma AI as a Commerce OS, expands market phases and AI Employees, and introduces Runtime, Skills, and Strategic Defensibility.
 
 **Next review:** After Phase 0 merchant interviews — update Market Opportunity, Pricing Hypothesis, and Assumptions sections with evidence.
 

@@ -42,7 +42,8 @@ function PayInner() {
       setDone(true);
       const token =
         typeof window !== 'undefined'
-          ? sessionStorage.getItem('delorey_pending_token')
+          ? sessionStorage.getItem('seloma_pending_token') ??
+            sessionStorage.getItem('delorey_pending_token')
           : null;
       const target = token
         ? `${WORKSPACE_URL}/access?token=${encodeURIComponent(token)}`
@@ -102,7 +103,7 @@ function PayInner() {
           </div>
           <p className="text-sm leading-7 text-ink/60 rounded-2xl bg-sand p-4">
             {plan.consultative
-              ? 'درخواست شما ثبت شد. تیم DeloRey برای تعیین قیمت و بستهٔ مناسب با شما هماهنگ می‌کند. فعلاً می‌توانید وارد Workspace شوید و فروشگاه را آماده کنید.'
+              ? 'درخواست شما ثبت شد. تیم سِلوما برای تعیین قیمت و بستهٔ مناسب با شما هماهنگ می‌کند. فعلاً می‌توانید وارد Workspace شوید و فروشگاه را آماده کنید.'
               : 'پس از اتصال درگاه (زرین‌پال / مشابه)، همین صفحه به پرداخت واقعی هدایت می‌شود. تا آن موقع با دکمهٔ زیر اشتراک سالیانه را فعال و وارد Workspace شوید.'}
           </p>
           {error && <p className="text-sm text-red-600">{error}</p>}

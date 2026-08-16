@@ -20,7 +20,7 @@
 
 This document exists to answer one operational question with no ambiguity:
 
-**What will DeloRey AI build, and what will it refuse to build?**
+**What will Seloma AI build, and what will it refuse to build?**
 
 It is not a product description. [Product Vision](./product-vision.md) already defines identity, users, goals, and long-term direction. This document converts that identity into an executable boundary: included capabilities, excluded capabilities, phase placement, and decision rules.
 
@@ -40,7 +40,7 @@ This document is the primary protection against scope creep. Engineering velocit
 
 # Scope Philosophy
 
-DeloRey is Pre-MVP / early build. Scope is therefore deliberately narrow. The following rules are not preferences; they are operating constraints.
+Seloma is Pre-MVP / early build. Scope is therefore deliberately narrow. The following rules are not preferences; they are operating constraints.
 
 **Identity gate:** [Product Positioning](../00-overview/product-positioning.md) — native storefront + unified ops first; AI Sales Employee as optional add-on.
 
@@ -50,7 +50,7 @@ We deepen the **native storefront + CMS**, order lifecycle, and Website + Telegr
 
 ### Opinionated commerce platform
 
-Merchants **run a DeloRey shop**. They do not assemble a bot from a blank canvas. Default CMS, COD checkout, and channel adapters ship ready. When they enable AI, default Skills and guardrails ship ready. Infinite configurability is not a goal for MVP or V1.
+Merchants **run a Seloma shop**. They do not assemble a bot from a blank canvas. Default CMS, COD checkout, and channel adapters ship ready. When they enable AI, default Skills and guardrails ship ready. Infinite configurability is not a goal for MVP or V1.
 
 ### Unification before features
 
@@ -100,7 +100,7 @@ Scope is layered. Work may only move forward when the previous layer’s exit cr
 
 **Growth** expands reach and automation *after* retention and ROI are real. Channels and workflows remain adapters and Skills — not a new product category.
 
-**Platform** makes DeloRey extensible without becoming a generic agent IDE. Marketplace and multi-agent orchestration arrive only when first-party Skills and Runtime are stable.
+**Platform** makes Seloma extensible without becoming a generic agent IDE. Marketplace and multi-agent orchestration arrive only when first-party Skills and Runtime are stable.
 
 **Future** holds Vision-aligned ideas without granting them sprint seats. Future is not a promise; it is a parking lot with priorities.
 
@@ -108,7 +108,7 @@ Scope is layered. Work may only move forward when the previous layer’s exit cr
 
 # MVP Scope
 
-**Objective:** Ship the minimum system that proves: *a merchant can sell and manage an online shop in one DeloRey product (storefront + orders + channels), and optionally add a grounded AI Sales Employee without destroying trust.*
+**Objective:** Ship the minimum system that proves: *a merchant can sell and manage an online shop in one Seloma product (storefront + orders + channels), and optionally add a grounded AI Sales Employee without destroying trust.*
 
 **Primary product:** Native Storefront + CMS (سایت‌ساز) + unified order ops  
 **Optional add-on:** AI Sales Employee  
@@ -289,7 +289,7 @@ Growth is where many OUT-OF-MVP items become eligible — **individually**, afte
 | **Voice** | Possible phone/IVR adapter on same brain | Still Channel Adapter pattern |
 | **Custom Employee builder** | Within Runtime guardrails | Never a blank chatbot IDE as the product center |
 
-Platform success means DeloRey is painful to remove because context, Skills, and measurement compound — not because merchants are trapped in a flow builder.
+Platform success means Seloma is painful to remove because context, Skills, and measurement compound — not because merchants are trapped in a flow builder.
 
 ---
 
@@ -370,7 +370,7 @@ Also required: **One Brain, Multiple Channels**; **AI Assists, Humans Control**;
 | Arbitrary non-commerce agents | Dilutes category |
 | Channel-native business rules | Rules live in Runtime |
 
-**Boundary test:** Does the proposal improve grounded sell/support conversations, safe actions, channel delivery, merchant control, or honest commerce measurement? If no → outside DeloRey AI.
+**Boundary test:** Does the proposal improve grounded sell/support conversations, safe actions, channel delivery, merchant control, or honest commerce measurement? If no → outside Seloma AI.
 
 ---
 
@@ -495,7 +495,7 @@ Future ideas are assets, not threats — if handled correctly.
 | **Honest labeling** | Prefer “Future / Growth” over “Phase 1 stretch.” Stretch language is how creep enters. |
 | **Never as identity** | Items classified **Never** stay out unless Vision and Principles are formally revised. |
 
-Future Backlog is how DeloRey stays focused without gaslighting teams that good ideas exist. The discipline is sequencing, not amnesia.
+Future Backlog is how Seloma stays focused without gaslighting teams that good ideas exist. The discipline is sequencing, not amnesia.
 
 ---
 
@@ -531,11 +531,11 @@ flowchart TD
 
 # Summary
 
-**What DeloRey AI builds**
+**What Seloma AI builds**
 
 A cloud SaaS **AI Commerce Platform** whose primary product is an **AI Sales Employee** for small and medium online shops in Iran, operating on **Website, Telegram, and Bale**, grounded in **Commerce Core** and **Context Engine**, operated from a **Workspace**, controlled by **guardrails** and **Human Handoff**, and judged by **basic Revenue / conversation analytics** — on a multi-tenant foundation with **Audit Logs** and **Tenant Isolation**.
 
-**What DeloRey AI refuses to build (now, and as identity)**
+**What Seloma AI refuses to build (now, and as identity)**
 
 Instagram/WhatsApp/email/voice as MVP requirements; CRM and helpdesk replacements; marketing automation suites; visual flow / workflow builders; marketplaces and agent marketplaces; multi-brand enterprise governance; white label; native apps; advanced BI; and any black-box autonomy that trades trust for demo metrics.
 

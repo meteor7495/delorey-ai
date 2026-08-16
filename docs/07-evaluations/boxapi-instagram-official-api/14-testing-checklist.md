@@ -1,7 +1,7 @@
 # 14 — Testing Checklist (QA Master)
 
 **Provider under test:** BoxAPI Instagram Official API  
-**DeloRey scope:** Provider validation only (stub Runtime; no LLM quality tests)  
+**Seloma scope:** Provider validation only (stub Runtime; no LLM quality tests)  
 **Rule:** Nothing skipped. Mark `PASS` / `FAIL` / `BLOCKED` / `N/A` / `UNKNOWN`.
 
 ---
@@ -13,13 +13,13 @@
 | A01 | Trial account created | | |
 | A02 | `X-Api-Key` issued | | |
 | A03 | Base URL confirmed in writing | | |
-| A04 | Domain registered for DeloRey callback | | |
+| A04 | Domain registered for Seloma callback | | |
 | A05 | Redirect URL accepted (subset of Domain) | | |
 | A06 | Redirect URL rejected outside Domain | | |
 | A07 | Webhook URL registered (POST) | | |
 | A08 | Webhook URL registered (GET) if claimed | | |
 | A09 | Panel shows plan, `account_limit`, expiry | | |
-| A10 | Staging DeloRey receiver deployed | | |
+| A10 | Staging Seloma receiver deployed | | |
 | A11 | Second IG page available (multi-tenant) | | |
 | A12 | Clock sync NTP verified | | |
 | A13 | Secret redaction in logs verified | | |
@@ -47,7 +47,7 @@
 | ID | Check | Result | Evidence |
 |----|-------|--------|----------|
 | C01 | Connect page via oauth URL succeeds | | |
-| C02 | Redirect hits DeloRey callback | | |
+| C02 | Redirect hits Seloma callback | | |
 | C03 | Page appears in `/service/accounts` | | |
 | C04 | Fields: id, username, instagram_user_id, profile_photo, is_active, expires_at | | |
 | C05 | `internal_token` present; never logged | | |
@@ -143,7 +143,7 @@
 | H08 | Inbound shared reel | | |
 | H09 | Inbound story reply media | | |
 | H10 | Inbound album / multi-attach | | |
-| H11 | Media URL downloadable from DeloRey IP | | |
+| H11 | Media URL downloadable from Seloma IP | | |
 | H12 | Media URL expiry | | |
 | H13 | Outbound image send API | | |
 | H14 | Outbound video send API | | |
@@ -375,7 +375,7 @@
 | ID | Check | Result |
 |----|-------|--------|
 | V01 | No secrets in frontend | |
-| V02 | Credentials encrypted at rest (DeloRey) | |
+| V02 | Credentials encrypted at rest (Seloma) | |
 | V03 | Webhook auth gate | |
 | V04 | Tenant fail-closed routing | |
 | V05 | PII redaction in logs | |
@@ -385,7 +385,7 @@
 
 ---
 
-## W. Architecture compliance (DeloRey)
+## W. Architecture compliance (Seloma)
 
 | ID | Check | Result |
 |----|-------|--------|

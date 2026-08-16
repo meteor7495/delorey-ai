@@ -4,8 +4,9 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata = {
-  title: 'DeloRey — فضای کاری',
-  description: 'کنترل‌پنل کارمند فروش هوش مصنوعی',
+  title: 'سِلوما — فضای کاری',
+  applicationName: 'Seloma',
+  description: 'کنترل‌پنل کارمند فروش هوش مصنوعی سِلوما',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

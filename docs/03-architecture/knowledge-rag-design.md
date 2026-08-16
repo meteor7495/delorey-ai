@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — Knowledge Base + RAG for DeloRey AI MVP |
+| **Status** | Active — Knowledge Base + RAG for Seloma AI MVP |
 | **Owner** | Founder / AI Platform / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [Context Engine Design](./context-engine-design.md) · [Database Design](./database-design.md) · [AI Gateway Design](./ai-gateway-design.md) · [Backend Architecture](./backend-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) |
@@ -64,7 +64,7 @@ flowchart TB
 | Shipping / returns / COD structured fields | Commerce policies (synced) | Optional **seed**; merchant FAQ/overrides win for edge cases |
 | FAQ, edge policies, sizing charts, brand guides | **Knowledge Base** | Canonical for RAG |
 
-Without Commerce Core, DeloRey is a generic chatbot. Without Knowledge, policy/edge answers stay thin and escalate ([User Journey](../02-product/user-journey.md) failure: thin KB).
+Without Commerce Core, Seloma is a generic chatbot. Without Knowledge, policy/edge answers stay thin and escalate ([User Journey](../02-product/user-journey.md) failure: thin KB).
 
 **Non-goal:** Billing by Knowledge Base size ([Pricing Strategy](../01-business/pricing-strategy.md); [DDD](./domain-driven-design.md)).
 
@@ -417,7 +417,7 @@ Dependencies: `ai-gateway` for Embed only; never provider SDKs inside Knowledge.
 
 # Summary
 
-Knowledge & RAG give DeloRey **grounded policy/FAQ memory** with inspectable sources: canonical docs in Postgres, uploads in Object Storage, embeddings via AI Gateway into **tenant-scoped** vectors, async reindex on `batch.embed`, and retrieval (+ keyword fallback) for the Context Engine. Commerce remains live catalog/order truth; Knowledge covers what sync cannot — never an unattributed dump, never a token/KB-size invoice meter.
+Knowledge & RAG give Seloma **grounded policy/FAQ memory** with inspectable sources: canonical docs in Postgres, uploads in Object Storage, embeddings via AI Gateway into **tenant-scoped** vectors, async reindex on `batch.embed`, and retrieval (+ keyword fallback) for the Context Engine. Commerce remains live catalog/order truth; Knowledge covers what sync cannot — never an unattributed dump, never a token/KB-size invoice meter.
 
 ---
 

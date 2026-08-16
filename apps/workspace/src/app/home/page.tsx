@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, Package, Radio, RefreshCw } from 'lucide-react';
-import { channelStatusLabel, syncHealthLabel } from '@delorey/ui';
+import { channelStatusLabel, syncHealthLabel } from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

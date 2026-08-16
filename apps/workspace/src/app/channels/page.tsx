@@ -2,7 +2,7 @@
 
 import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
-import { aiStateLabel, channelStatusLabel, decisionLabel } from '@delorey/ui';
+import { aiStateLabel, channelStatusLabel, decisionLabel } from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

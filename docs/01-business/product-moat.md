@@ -26,11 +26,11 @@ Without a moat, growth is rented. Customer acquisition can look healthy while re
 
 A moat matters operationally as well. It tells the product and engineering organizations what to deepen, what to leave commoditized, and where not to chase fashion. It separates work that compounds from work that only looks impressive in a demo.
 
-### Why does DeloRey AI need one?
+### Why does Seloma AI need one?
 
-DeloRey AI sits in a category that is already crowded with wrappers: chat widgets, helpdesk AI add-ons, and “AI for Instagram DMs.” The company will not win by claiming smarter language generation. Language generation is becoming a utility. DeloRey AI must win by becoming the **operating layer** that connects commerce reality — products, customers, orders, policies, inventory — to AI Employees that sell and support across channels, and by proving revenue outcomes merchants can measure.
+Seloma AI sits in a category that is already crowded with wrappers: chat widgets, helpdesk AI add-ons, and “AI for Instagram DMs.” The company will not win by claiming smarter language generation. Language generation is becoming a utility. Seloma AI must win by becoming the **operating layer** that connects commerce reality — products, customers, orders, policies, inventory — to AI Employees that sell and support across channels, and by proving revenue outcomes merchants can measure.
 
-This document explains the strategic stack that can create that moat, the mechanisms by which each layer compounds, the honest limits of our network effects today, the risks that can erode advantage, and the continuous practices required to strengthen defensibility over time. The thesis is simple: **DeloRey AI becomes defensible when removing it would visibly hurt revenue, knowledge continuity, and operational coverage** — not when it merely answers questions faster than a human for a week.
+This document explains the strategic stack that can create that moat, the mechanisms by which each layer compounds, the honest limits of our network effects today, the risks that can erode advantage, and the continuous practices required to strengthen defensibility over time. The thesis is simple: **Seloma AI becomes defensible when removing it would visibly hurt revenue, knowledge continuity, and operational coverage** — not when it merely answers questions faster than a human for a week.
 
 ---
 
@@ -48,13 +48,13 @@ A durable business in this category must own the **system around the model**: li
 
 A beautiful chat widget or inbox does not create switching costs. Live chat vendors have competed on interface for a decade; merchants still churn when ROI is unclear. UI can accelerate adoption and reduce training friction, but it does not protect against a competitor who ships a similar surface with deeper integrations or better distribution.
 
-For DeloRey AI, interface quality is table stakes for trust — merchants must see conversations, escalations, and attribution clearly — but the moat lives underneath the glass: Commerce Context Graph, Memory, Knowledge Engine, Skill Runtime, and Revenue Intelligence.
+For Seloma AI, interface quality is table stakes for trust — merchants must see conversations, escalations, and attribution clearly — but the moat lives underneath the glass: Commerce Context Graph, Memory, Knowledge Engine, Skill Runtime, and Revenue Intelligence.
 
 ### Prompts are not a moat
 
 Prompt engineering can improve demos. It cannot survive as a competitive barrier. Prompts leak through employees, agencies, screenshots, and reverse engineering. They do not accumulate customer-specific truth. A prompt that says “be helpful and sell more” does not know that size M of the blue hoodie is out of stock, that this customer already asked about COD on Telegram yesterday, or that refunds over a threshold require manager approval.
 
-In DeloRey AI’s product philosophy, **context beats clever prompts**. Prompts remain necessary as control surfaces for tone and role. They are not the asset. The asset is the grounded business state the AI Employee operates on, and the Skills and Workflows that turn language into commerce actions.
+In Seloma AI’s product philosophy, **context beats clever prompts**. Prompts remain necessary as control surfaces for tone and role. They are not the asset. The asset is the grounded business state the AI Employee operates on, and the Skills and Workflows that turn language into commerce actions.
 
 | Thin layer (fails as moat) | Structural layer (can compound) |
 |----------------------------|----------------------------------|
@@ -66,9 +66,9 @@ In DeloRey AI’s product philosophy, **context beats clever prompts**. Prompts 
 
 ---
 
-## DeloRey AI Strategic Layers
+## Seloma AI Strategic Layers
 
-DeloRey AI is designed as a layered Commerce Operating System. Each layer has a job. Upper layers create merchant value; lower layers create durability. Competitors can copy a single layer. Copying the stacked system — and the data that fills it over years — is a different problem.
+Seloma AI is designed as a layered Commerce Operating System. Each layer has a job. Upper layers create merchant value; lower layers create durability. Competitors can copy a single layer. Copying the stacked system — and the data that fills it over years — is a different problem.
 
 ```mermaid
 flowchart TB
@@ -149,7 +149,7 @@ Conversation Memory is the continuity layer that makes an AI Employee behave lik
 
 ### Why memory is a moat
 
-Memory is easy to demo and hard to operationalize. It requires identity resolution across channels (often imperfect), careful retention and privacy controls, and retrieval that stays relevant without drowning the model in noise. Merchants who rely on DeloRey AI for omnichannel continuity face a real cost to switch: their customer history and intervention patterns live in our Workspace. Competitors offering “memory” as a feature flag without commerce linkage produce sticky chat logs, not sticky revenue systems.
+Memory is easy to demo and hard to operationalize. It requires identity resolution across channels (often imperfect), careful retention and privacy controls, and retrieval that stays relevant without drowning the model in noise. Merchants who rely on Seloma AI for omnichannel continuity face a real cost to switch: their customer history and intervention patterns live in our Workspace. Competitors offering “memory” as a feature flag without commerce linkage produce sticky chat logs, not sticky revenue systems.
 
 Memory also feeds Revenue Intelligence and the Knowledge Engine: repeated objections become structured insight; corrected answers become better grounding. Memory that is only a transcript store is weak. Memory that is linked to products, orders, and outcomes compounds.
 
@@ -174,7 +174,7 @@ Store sync captures catalog and orders. It does not capture everything a human s
 
 ### Why it strengthens defensibility
 
-Knowledge quality is a retention engine. Merchants who invest hours uploading documents, correcting answers, and refining rules are building **private training signal** into DeloRey AI. That investment is the merchant’s asset, but it is also DeloRey’s switching cost — similar to how companies stay on Salesforce after years of process encoding.
+Knowledge quality is a retention engine. Merchants who invest hours uploading documents, correcting answers, and refining rules are building **private training signal** into Seloma AI. That investment is the merchant’s asset, but it is also Seloma’s switching cost — similar to how companies stay on Salesforce after years of process encoding.
 
 RAG alone is not a moat; every vendor claims RAG. The moat is the combination of RAG with Commerce Context Graph, Memory, Skills, and auditability: merchants can see what the Employee knew, why it answered, and when it escalated. Trust compounds when wrong answers are rare and recoverable. Trust collapses when the system is a black box.
 
@@ -214,7 +214,7 @@ The Runtime creates three strategic advantages:
 2. **Control** — Merchants buy autonomy gradually; handoff and audit are first-class.
 3. **Expandability** — Services and enterprise industries can plug into the same Runtime with different Skills and connectors — protecting the long-term architecture thesis without diluting the commerce wedge.
 
-A chatbot competitor can add an LLM tomorrow. Rebuilding a reliable Runtime with commerce tools, guardrails, and multi-channel formatting is multi-year product work. That gap is where DeloRey AI must live.
+A chatbot competitor can add an LLM tomorrow. Rebuilding a reliable Runtime with commerce tools, guardrails, and multi-channel formatting is multi-year product work. That gap is where Seloma AI must live.
 
 ---
 
@@ -222,7 +222,7 @@ A chatbot competitor can add an LLM tomorrow. Rebuilding a reliable Runtime with
 
 ### What it is
 
-Skills are the unit of extensibility. Product Search, Recommendation, Refund, Escalation, Shipping, Coupon — each is a capability the Skill Engine can invoke under Guardrails. Over time, Skills become a marketplace: reusable packages built by DeloRey, partners, and third-party developers, distributed through a Skill Store.
+Skills are the unit of extensibility. Product Search, Recommendation, Refund, Escalation, Shipping, Coupon — each is a capability the Skill Engine can invoke under Guardrails. Over time, Skills become a marketplace: reusable packages built by Seloma, partners, and third-party developers, distributed through a Skill Store.
 
 | Stage | Skill ecosystem state | Monetization |
 |-------|----------------------|--------------|
@@ -236,7 +236,7 @@ Marketplaces create **developer ecosystem effects**: more Skills attract more me
 
 This moat is **aspirational until earned**. Shipping a marketplace too early produces empty shelves and support burden. The correct sequence is: prove first-party Skills on real GMV → open APIs for agencies → certify partner Skills → Skill Store. The architectural investment (Skill Engine, permissions, sandboxing, billing hooks) must start early so the marketplace is possible later. The business claim of “ecosystem moat” should wait until third parties generate meaningful merchant value.
 
-**Strategic caution:** A Skill Marketplace must not turn DeloRey AI into a generic bot builder. Opinionated Employees remain the product; Skills extend them. We stay a Commerce OS, not an IFTTT for chat.
+**Strategic caution:** A Skill Marketplace must not turn Seloma AI into a generic bot builder. Opinionated Employees remain the product; Skills extend them. We stay a Commerce OS, not an IFTTT for chat.
 
 ---
 
@@ -244,7 +244,7 @@ This moat is **aspirational until earned**. Shipping a marketplace too early pro
 
 ### What it is
 
-Channel Adapters translate between DeloRey AI’s internal Conversation model and each surface’s API, formatting rules, and authentication: website widget, Telegram, Bale, Instagram, WhatsApp, and future channels (email, SMS, voice).
+Channel Adapters translate between Seloma AI’s internal Conversation model and each surface’s API, formatting rules, and authentication: website widget, Telegram, Bale, Instagram, WhatsApp, and future channels (email, SMS, voice).
 
 | Channel | Role in strategy |
 |---------|------------------|
@@ -267,7 +267,7 @@ Regional adapters (Bale + Telegram commerce workflows) are an **early distributi
 
 ### What it is
 
-Revenue Intelligence turns conversations into economic signal. Without it, DeloRey AI is another inbox with AI. With it, merchants renew because they can see money and time.
+Revenue Intelligence turns conversations into economic signal. Without it, Seloma AI is another inbox with AI. With it, merchants renew because they can see money and time.
 
 | Capability | What it surfaces |
 |------------|------------------|
@@ -289,7 +289,7 @@ Revenue Intelligence feeds the flywheel: better insight → better Skills and Kn
 
 ## Flywheel
 
-The compounding loop DeloRey AI must build and protect:
+The compounding loop Seloma AI must build and protect:
 
 ```mermaid
 flowchart LR
@@ -322,15 +322,15 @@ Secondary loops sit inside the primary one:
 
 Honest assessment — what we have, what we might earn, and what we should not claim.
 
-| Effect type | Status for DeloRey AI | Explanation |
+| Effect type | Status for Seloma AI | Explanation |
 |-------------|----------------------|-------------|
 | **Data network effects** | **Weak → potential medium (tenant-local strong)** | Each merchant’s data strongly improves *that* merchant’s Employees. Cross-merchant learning is limited by privacy and heterogeneity. Aggregated, anonymized objection patterns *may* improve vertical packs later — not a classic two-sided data flywheel today. |
 | **Product network effects** | **Low today; medium if marketplace lands** | Users do not become more valuable to each other merely by chatting. Value is B2B SaaS utility, not social network density. |
 | **Developer ecosystem effects** | **Latent** | Appear only when Skill Store / APIs have real third-party supply. Until then, treat as roadmap optionality, not current moat. |
-| **Partner effects** | **Emerging** | Agencies and storefront implementers can create distribution. Strong if onboarding and Skill packaging make DeloRey the default “AI Employee layer” they install. |
+| **Partner effects** | **Emerging** | Agencies and storefront implementers can create distribution. Strong if onboarding and Skill packaging make Seloma the default “AI Employee layer” they install. |
 | **Brand effects** | **Early / fragile** | Brand can help in a regional niche (“the Commerce OS for messaging-first shops”), but brand alone will not stop Shopify AI or Meta. Brand follows retained ROI case studies. |
 
-**Investor-grade summary:** DeloRey AI’s near-term defensibility is primarily **integration depth + switching cost + ROI measurement**, not classical network effects. Claiming “AI network effects” without cross-tenant mechanisms would be dishonest. Building toward privacy-safe vertical intelligence and a Skill ecosystem is the path to stronger network dynamics later.
+**Investor-grade summary:** Seloma AI’s near-term defensibility is primarily **integration depth + switching cost + ROI measurement**, not classical network effects. Claiming “AI network effects” without cross-tenant mechanisms would be dishonest. Building toward privacy-safe vertical intelligence and a Skill ecosystem is the path to stronger network dynamics later.
 
 ---
 
@@ -346,7 +346,7 @@ Difficulty to copy is not impossibility. Well-funded teams can rebuild pieces. T
 | **Customer integrations** | Deep store + messaging connections, failure modes, and edge-case handling create implementation debt competitors must re-pay. |
 | **Data quality** | Clean Context Graphs and reliable attribution require discipline; most wrappers skip this and fail on accuracy. |
 | **Experience** | Human handoff, audit logs, and merchant control plane build trust that takes repeated successful interventions. |
-| **Trust** | Once merchants depend on DeloRey for night/weekend revenue coverage, rip-and-replace risk rises — but only if accuracy stays high. |
+| **Trust** | Once merchants depend on Seloma for night/weekend revenue coverage, rip-and-replace risk rises — but only if accuracy stays high. |
 
 Copying the **idea** of AI Employees is trivial. Copying a merchant’s operational dependency is not. The strategy is to convert early channel advantages into dependency before better-distributed competitors arrive with “good enough” AI.
 
@@ -354,7 +354,7 @@ Copying the **idea** of AI Employees is trivial. Copying a merchant’s operatio
 
 ## Strategic Risks
 
-Moats erode. The following risks can weaken DeloRey AI’s defensibility if ignored.
+Moats erode. The following risks can weaken Seloma AI’s defensibility if ignored.
 
 | Risk | How it weakens the moat | Response direction |
 |------|-------------------------|--------------------|
@@ -378,7 +378,7 @@ Defensibility is a practice, not a press release. The long-term strategy:
 
 1. **Deepen Commerce Context Graph every quarter** — More entities, fresher sync, better relationship edges, explicit handling of stale data. Prefer one deeper storefront integration over five shallow ones until quality is proven.
 
-2. **Make Memory operationally indispensable** — Cross-channel Customer Profiles, durable preferences, and handoff summaries that humans also rely on. If humans use DeloRey as the system of record for conversation context, switching costs rise.
+2. **Make Memory operationally indispensable** — Cross-channel Customer Profiles, durable preferences, and handoff summaries that humans also rely on. If humans use Seloma as the system of record for conversation context, switching costs rise.
 
 3. **Invest in Knowledge tooling merchants love** — Upload, cite, correct, audit. Every merchant correction should improve future answers. Measure grounded response rate and hallucination rate as board-level metrics.
 
@@ -400,13 +400,13 @@ Defensibility is a practice, not a press release. The long-term strategy:
 
 ## Final Strategic Statement
 
-DeloRey AI can become a defensible long-term business if — and only if — it becomes the system merchants rely on to connect **what they sell** to **how they converse** and **what they earn from those conversations**. That is an operating system problem, not a chatbot problem.
+Seloma AI can become a defensible long-term business if — and only if — it becomes the system merchants rely on to connect **what they sell** to **how they converse** and **what they earn from those conversations**. That is an operating system problem, not a chatbot problem.
 
 The moat will not come from access to large language models. It will come from a Commerce Context Graph that grows denser with use; Conversation Memory that makes omnichannel continuity real; a Knowledge Engine merchants continuously enrich; an AI Employee Runtime that turns goals into guarded actions; Channel Adapters that keep the brain portable; and Revenue Intelligence that makes renewal an economic decision. A Skill Marketplace may amplify that stack later. Classical network effects are limited today and should not be oversold.
 
-Competitors will ship AI replies. Storefront platforms will ship AI inside the admin. Messaging platforms will ship AI inside the inbox. DeloRey AI’s path is narrower and more durable: **own the merchant’s commerce conversation operations end to end**, prove measurable ROI, and make removal costly because knowledge, memory, workflows, and attribution live in one place.
+Competitors will ship AI replies. Storefront platforms will ship AI inside the admin. Messaging platforms will ship AI inside the inbox. Seloma AI’s path is narrower and more durable: **own the merchant’s commerce conversation operations end to end**, prove measurable ROI, and make removal costly because knowledge, memory, workflows, and attribution live in one place.
 
-If we execute that stack with discipline — accuracy before autonomy, depth before breadth, outcomes before theater — DeloRey AI earns the right to be infrastructure. If we chase wrapper features and marketing narratives instead, we will be replaced by whoever has better distribution. The strategy is not to look like the future of AI. The strategy is to become difficult to remove from the businesses that grow with us.
+If we execute that stack with discipline — accuracy before autonomy, depth before breadth, outcomes before theater — Seloma AI earns the right to be infrastructure. If we chase wrapper features and marketing narratives instead, we will be replaced by whoever has better distribution. The strategy is not to look like the future of AI. The strategy is to become difficult to remove from the businesses that grow with us.
 
 ---
 

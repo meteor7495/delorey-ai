@@ -3,7 +3,7 @@
 import { toastSuccess, toastWarning, toastFromError } from '@/lib/notify';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Package, Plus } from 'lucide-react';
-import type { ShopCategory, ShopProduct } from '@delorey/api-client';
+import type { ShopCategory, ShopProduct } from '@seloma/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

@@ -2,9 +2,9 @@
 
 | Field | Value |
 |-------|-------|
-| **Subject** | BoxAPI Instagram Official API as DeloRey Growth transport |
+| **Subject** | BoxAPI Instagram Official API as Seloma Growth transport |
 | **Date** | 2026-07-27 |
-| **Basis** | Documentation review + DeloRey architecture fit (no live lab yet) |
+| **Basis** | Documentation review + Seloma architecture fit (no live lab yet) |
 | **Decision** | **GO with limitations** |
 
 ---
@@ -36,7 +36,7 @@ Scores will be revised after spike lab. Do not treat this as final production ce
 
 - Approve a **time-boxed technical spike** using the 7-day trial (and paid single-page extension if needed).
 - Approve **design work** for `InstagramProviderPort` + adapter boundaries (docs only / non-MVP code behind flags if needed).
-- **Do not** approve Instagram as a generally available DeloRey channel.
+- **Do not** approve Instagram as a generally available Seloma channel.
 - **Do not** put BoxAPI calls in Runtime, Commerce, or n8n production brains.
 - **Do not** promise merchants Meta-parity features.
 
@@ -99,7 +99,7 @@ BoxAPI is a **credible access bridge** to Official Instagram messaging for Irani
 
 **Proceed to validate, not to integrate for GA.**
 
-Preserve DeloRey’s channel adapter discipline so a future vendor swap is a provider implementation change, not a brain rewrite.
+Preserve Seloma’s channel adapter discipline so a future vendor swap is a provider implementation change, not a brain rewrite.
 
 ---
 

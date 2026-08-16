@@ -1,16 +1,20 @@
+# Local Postgres only. Existing `delorey_pg` volumes are not auto-migrated;
+# recreate the volume (`docker compose down -v`) or keep pointing DATABASE_URL
+# at the old credentials if you still need that local data.
+name: seloma
 services:
   postgres:
     image: postgres:16-alpine
     ports:
       - "55432:5432"
     environment:
-      POSTGRES_USER: delorey
-      POSTGRES_PASSWORD: delorey
-      POSTGRES_DB: delorey
+      POSTGRES_USER: seloma
+      POSTGRES_PASSWORD: seloma
+      POSTGRES_DB: seloma
     volumes:
-      - delorey_pg:/var/lib/postgresql/data
+      - pg:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U delorey"]
+      test: ["CMD-SHELL", "pg_isready -U seloma"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -26,4 +30,4 @@ services:
       retries: 10
 
 volumes:
-  delorey_pg:
+  pg:

@@ -141,7 +141,7 @@ export default function LandingPage() {
         <div className="relative container grid min-h-[100dvh] items-center gap-12 pt-24 pb-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
           <div className="max-w-2xl">
             <p className="animate-fadeUp font-display text-[2rem] sm:text-[2.6rem] font-bold tracking-tight text-white mb-3">
-              DeloRey
+              Seloma
             </p>
             <h1
               className="animate-fadeUp text-[2rem] sm:text-5xl lg:text-[3.35rem] font-black leading-[1.2] tracking-tight"
@@ -222,7 +222,7 @@ export default function LandingPage() {
               یک محصول برای فروش و مدیریت — نه چند ابزار پراکنده
             </h2>
             <p className="text-ink/65 leading-8 text-base sm:text-lg">
-              DeloRey اول یک سایت‌ساز و عملیات فروش یکپارچه است: ویترین بومی،
+              سِلوما اول یک سایت‌ساز و عملیات فروش یکپارچه است: ویترین بومی،
               سفارش‌ها و کانال‌ها در یک Workspace. کارمند فروش AI را روی همین
               داده، وقتی نیاز دارید، به‌عنوان آفر جدا می‌فروشیم — تا تمرکز روی
               یکپارچگی بماند و مدیر فروشگاه گیج نشود.
@@ -393,7 +393,7 @@ export default function LandingPage() {
         <div className="container flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-display text-base font-bold text-ink/75">
-              DeloRey AI
+              Seloma AI
             </p>
             <p className="mt-1">سایت‌ساز و فروش یکپارچه برای فروشگاه‌های ایران</p>
           </div>

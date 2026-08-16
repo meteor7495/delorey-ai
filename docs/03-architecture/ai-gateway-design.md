@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — provider-agnostic AI access for DeloRey AI |
+| **Status** | Active — provider-agnostic AI access for Seloma AI |
 | **Owner** | Founder / AI Platform / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) · [Backend Architecture](./backend-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) |
@@ -503,7 +503,7 @@ Config via environment + secret store — no secrets in images ([System Architec
 
 # Summary
 
-The AI Gateway is DeloRey’s **Model Independence boundary**: stable `Complete` / `Embed` APIs, provider plugins, Cost-driven routing, failover, metering, and observability — with **no** commerce or Skill logic inside. Runtime stays vendor-blind; self-hosted and alternate providers plug in without rewriting the Employee brain.
+The AI Gateway is Seloma’s **Model Independence boundary**: stable `Complete` / `Embed` APIs, provider plugins, Cost-driven routing, failover, metering, and observability — with **no** commerce or Skill logic inside. Runtime stays vendor-blind; self-hosted and alternate providers plug in without rewriting the Employee brain.
 
 ---
 

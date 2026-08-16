@@ -2,13 +2,13 @@
 
 **This is the most important document in the pack.**
 
-DeloRey is multi-tenant by design. Instagram Growth cannot ship if BoxAPI forces a single-tenant automation model.
+Seloma is multi-tenant by design. Instagram Growth cannot ship if BoxAPI forces a single-tenant automation model.
 
 ---
 
 ## 1. Question
 
-Can multiple DeloRey merchants use BoxAPI simultaneously **without cross-tenant leakage**, with operable onboarding, and with credentials/events correctly isolated?
+Can multiple Seloma merchants use BoxAPI simultaneously **without cross-tenant leakage**, with operable onboarding, and with credentials/events correctly isolated?
 
 **Docs-only answer:** **Not proven. Likely weak. Treat as high risk.**
 
@@ -30,11 +30,11 @@ This is a **multi-page, single-integrator** model — common for agencies — **
 
 ## 3. Two integration topologies
 
-### Topology A — Platform key (one BoxAPI account for all DeloRey merchants)
+### Topology A — Platform key (one BoxAPI account for all Seloma merchants)
 
 ```
 [Merchant A IG]─┐
-[Merchant B IG]─┼─► BoxAPI account (DeloRey) ─webhook─► DeloRey /webhooks/instagram
+[Merchant B IG]─┼─► BoxAPI account (Seloma) ─webhook─► Seloma /webhooks/instagram
 [Merchant C IG]─┘         X-Api-Key (god key)
 ```
 
@@ -50,8 +50,8 @@ This is a **multi-page, single-integrator** model — common for agencies — **
 ### Topology B — Per-merchant BoxAPI account
 
 ```
-Merchant A → BoxAPI key A → webhook A → DeloRey binding A
-Merchant B → BoxAPI key B → webhook B → DeloRey binding B
+Merchant A → BoxAPI key A → webhook A → Seloma binding A
+Merchant B → BoxAPI key B → webhook B → Seloma binding B
 ```
 
 | Pros | Cons |
@@ -59,21 +59,21 @@ Merchant B → BoxAPI key B → webhook B → DeloRey binding B
 | Stronger isolation | Onboarding nightmare |
 | Separate rate-limit queues | Domain/redirect per merchant or complex routing |
 | Smaller blast radius | Pricing × N accounts |
-| | DeloRey becomes BoxAPI reseller ops |
+| | Seloma becomes BoxAPI reseller ops |
 
 ### Topology C — Hybrid (recommended direction if vendor cooperates)
 
-- DeloRey platform owns Meta-facing relationship via BoxAPI **with contractual tenant isolation features**:
+- Seloma platform owns Meta-facing relationship via BoxAPI **with contractual tenant isolation features**:
   - per-page webhook path OR signed tenant claim
   - scoped API credentials
   - per-tenant billing telemetry
-- DeloRey `ChannelBinding` remains SoR for tenant mapping
+- Seloma `ChannelBinding` remains SoR for tenant mapping
 
 **Vendor support for Topology C: Unknown / not documented.**
 
 ---
 
-## 4. How tokens should be stored (DeloRey)
+## 4. How tokens should be stored (Seloma)
 
 Regardless of topology:
 
@@ -112,7 +112,7 @@ Unique constraints:
 
 ## 5. Tenant isolation rules (mandatory)
 
-1. Resolve tenant **only** from DeloRey binding lookup (`account_id` → binding → `tenantId`).
+1. Resolve tenant **only** from Seloma binding lookup (`account_id` → binding → `tenantId`).
 2. If `account_id` unknown → **drop + alert** (do not infer).
 3. Ignore any tenant identifiers inside webhook body if BoxAPI ever adds them.
 4. Outbound send must load credentials by `tenantId` and verify `account_id` belongs to that tenant.
@@ -126,7 +126,7 @@ Unique constraints:
 | Risk | Mechanism | Severity |
 |------|-----------|----------|
 | Webhook mis-map | Bug maps `account_id` to wrong tenant | **Critical** |
-| Shared logs | Provider or DeloRey logs include message text + wrong tenant index | High |
+| Shared logs | Provider or Seloma logs include message text + wrong tenant index | High |
 | God key leak | Attacker enumerates `/service/accounts` and messages all pages | **Critical** |
 | OAuth redirect confusion | state param missing → page attaches to wrong tenant | **Critical** |
 | Panel operator error | Human connects page under wrong BoxAPI subaccount | High |
@@ -144,12 +144,12 @@ BoxAPI requires Redirect URL ⊆ registered Domain.
 **Safe pattern:**
 
 ```text
-https://api.delorey.ai/v1/channels/instagram/oauth/callback
+https://<public-api-host>/v1/channels/instagram/oauth/callback
 ```
 
 - Single callback
 - `state` = signed `{tenantId, nonce, exp}`
-- After BoxAPI redirect, DeloRey associates newly appeared account via `/service/accounts` diff **scoped by state**
+- After BoxAPI redirect, Seloma associates newly appeared account via `/service/accounts` diff **scoped by state**
 
 **Unsafe pattern:** trusting “last connected page” globally.
 
@@ -159,7 +159,7 @@ https://api.delorey.ai/v1/channels/instagram/oauth/callback
 
 ## 8. Data isolation vs provider custody
 
-Even with perfect DeloRey isolation:
+Even with perfect Seloma isolation:
 
 - BoxAPI staff / systems may see multi-merchant data under Topology A.
 - Merchants may reject “another Iranian SaaS holds our Instagram inbox.”

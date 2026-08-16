@@ -14,12 +14,12 @@
 
 BoxAPI offers two distinct Instagram-related products. **Do not conflate them.**
 
-| Product | Auth model | Purpose | Relevant to DeloRey IG Sales Employee? |
+| Product | Auth model | Purpose | Relevant to Seloma IG Sales Employee? |
 |---------|------------|---------|----------------------------------------|
 | **Official Direct & Comment API** (this eval) | `X-Api-Key` | OAuth-connected pages, DMs, comments, webhooks | **Yes** — potential adapter transport |
 | **Instagram Data API** | Basic Auth / Bearer (docs inconsistent) | Public data scrape (profiles, followers, media, hashtags, etc.) | **No** for messaging; optional analytics later |
 
-Marketing claims Meta Verified access and “official Instagram Graph API without page password.” That claim is **vendor assertion** until DeloRey independently verifies Meta app ownership / partnership paperwork.
+Marketing claims Meta Verified access and “official Instagram Graph API without page password.” That claim is **vendor assertion** until Seloma independently verifies Meta app ownership / partnership paperwork.
 
 **Trial (context from product discussion):** 7-day free trial, one Instagram page. SaaS pricing later. Exact trial terms must be confirmed in panel / contract (**Unknown** in public Official API docs).
 
@@ -75,7 +75,7 @@ Marketing claims Meta Verified access and “official Instagram Graph API withou
 
 Documented merchant connect flow:
 
-1. DeloRey (or integrator) obtains `instagram_oauth_url` from `/service/info`.
+1. Seloma (or integrator) obtains `instagram_oauth_url` from `/service/info`.
 2. Merchant authenticates via official Instagram login (no page password to BoxAPI, per FAQ).
 3. Merchant redirected to integrator `Redirect URL`.
 4. Page appears in `/service/accounts`.
@@ -84,7 +84,7 @@ Documented merchant connect flow:
 
 - Service **Domain** must be registered in BoxAPI panel (default `https://boxapi.ir` if unset).
 - `Redirect URL` **must be a subset of registered Domain** — cannot redirect outside that domain.
-- Implication for DeloRey SaaS: OAuth callback must live on a DeloRey-owned domain registered with BoxAPI. Multi-environment (dev/staging/prod) needs multiple domains or a single controlled callback router — **must design carefully**.
+- Implication for Seloma SaaS: OAuth callback must live on a Seloma-owned domain registered with BoxAPI. Multi-environment (dev/staging/prod) needs multiple domains or a single controlled callback router — **must design carefully**.
 
 ### Permission scopes
 
@@ -112,7 +112,7 @@ Documented merchant connect flow:
 
 ### Webhook design smell
 
-The sample payload looks like an **automation-platform replay envelope** (`executionMode: "test"`, nested `headers.host`, `webhookUrl`). That is not Meta’s native webhook shape. DeloRey must treat BoxAPI as an intermediate normalizer and validate:
+The sample payload looks like an **automation-platform replay envelope** (`executionMode: "test"`, nested `headers.host`, `webhookUrl`). That is not Meta’s native webhook shape. Seloma must treat BoxAPI as an intermediate normalizer and validate:
 
 - Stable production vs test modes
 - Whether the outer array is always present
@@ -143,7 +143,7 @@ The sample payload looks like an **automation-platform replay envelope** (`execu
 1. **Rate limit:** 200 requests/hour/page (Meta-originated). BoxAPI says it enforces this and queues overflow with “smart queueing.”
 2. **Silent access removal:** If end user revokes Instagram access or page is deleted via API, removal can happen **without prior notice**.
 3. **Hard wipe:** Page delete removes all related data at BoxAPI irreversibly.
-4. **Data custody:** BoxAPI states customer Instagram data is **not provided directly** to the developer; held/processed at BoxAPI. This is a **privacy / SoR / audit conflict** with DeloRey’s need to store conversation transcripts for Inbox, Audit Logs, and Human Handoff.
+4. **Data custody:** BoxAPI states customer Instagram data is **not provided directly** to the developer; held/processed at BoxAPI. This is a **privacy / SoR / audit conflict** with Seloma’s need to store conversation transcripts for Inbox, Audit Logs, and Human Handoff.
 5. **Unilateral cut-off:** BoxAPI may terminate access for policy violations without prior notice.
 6. **Plan `account_limit`:** Caps how many pages one BoxAPI account may connect.
 
@@ -160,7 +160,7 @@ The sample payload looks like an **automation-platform replay envelope** (`execu
 | Overage | **Unknown** |
 | Enterprise multi-tenant terms | **Unknown** |
 
-Cost model for DeloRey scale is in [12-cost-analysis.md](./12-cost-analysis.md) using **explicit hypotheses**.
+Cost model for Seloma scale is in [12-cost-analysis.md](./12-cost-analysis.md) using **explicit hypotheses**.
 
 ---
 
@@ -240,14 +240,14 @@ The [Instagram Data API](https://boxapi.ir/docs/instagram/api/) is a scraper-sty
 
 ## 12. Immediate hidden risks (overview)
 
-1. **Single webhook fan-in** vs multi-tenant DeloRey.
+1. **Single webhook fan-in** vs multi-tenant Seloma.
 2. **No documented webhook authenticity.**
-3. **Provider holds conversation data**; DeloRey still needs local SoR for Inbox/Audit — confirm what webhooks actually deliver (full text? IDs only?).
-4. **Privacy statement vs product need** may be marketing language — must clarify in writing what payload content DeloRey receives.
+3. **Provider holds conversation data**; Seloma still needs local SoR for Inbox/Audit — confirm what webhooks actually deliver (full text? IDs only?).
+4. **Privacy statement vs product need** may be marketing language — must clarify in writing what payload content Seloma receives.
 5. **`internal_token` in API responses** — accidental log leakage risk.
 6. **Async actions without documented correlation IDs.**
 7. **Vendor lock-in** via non-standard envelope + missing Meta token portability.
-8. **200/h/page** insufficient for chatty AI without aggressive batching/queueing on DeloRey side.
+8. **200/h/page** insufficient for chatty AI without aggressive batching/queueing on Seloma side.
 9. **Silent revoke** breaks merchant channel health without webhook — need polling `/service/accounts` health jobs.
 10. **Base URL / environments undocumented** — ops fragility.
 

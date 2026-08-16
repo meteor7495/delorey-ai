@@ -67,7 +67,7 @@ async function bootstrap() {
   const port = Number(process.env.API_PORT ?? 3001);
   await app.listen(port);
   // eslint-disable-next-line no-console
-  console.log(`DeloRey API listening on http://localhost:${port}/v1`);
+  console.log(`Seloma API listening on http://localhost:${port}/v1`);
 }
 
 bootstrap();

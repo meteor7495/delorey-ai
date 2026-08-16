@@ -24,7 +24,7 @@
 
 ## Product Strategy
 
-DeloRey is built as a **unified commerce platform** (native storefront + ops), not a chatbot builder and not an AI-only wrapper. The roadmap follows: prove the shop works, prove multi-channel orders stay coherent, prove merchants pay for the platform, then expand AI add-ons and channels.
+Seloma is built as a **unified commerce platform** (native storefront + ops), not a chatbot builder and not an AI-only wrapper. The roadmap follows: prove the shop works, prove multi-channel orders stay coherent, prove merchants pay for the platform, then expand AI add-ons and channels.
 
 ### Roadmap philosophy
 
@@ -382,7 +382,7 @@ Customer asks about delayed order (Support)
 | **REST API** | Conversations, customers, agents, analytics, webhooks |
 | **Webhooks** | Real-time events: new conversation, escalation, conversion, sync failure |
 | **SDKs** | JavaScript (widget extension), Python, Node.js for server-side integrations |
-| **Embed SDK** | Custom UI on top of DeloRey agent runtime |
+| **Embed SDK** | Custom UI on top of Seloma agent runtime |
 | **Data export API** | Merchant-owned conversation and analytics export |
 | **Sandbox environment** | Safe testing for agencies and developers |
 
@@ -404,7 +404,7 @@ Customer asks about delayed order (Support)
 
 **Marketplace model:**
 
-- Partner-built extensions certified for DeloRey runtime.
+- Partner-built extensions certified for Seloma runtime.
 - Revenue share on paid marketplace listings.
 - Review and security audit before publication.
 
@@ -436,7 +436,7 @@ Customer asks about delayed order (Support)
 
 ## 3 Year Vision
 
-By July 2029, DeloRey AI evolves from a focused AI sales tool into the **commerce operating layer** merchants install alongside their payment processor.
+By July 2029, Seloma AI evolves from a focused AI sales tool into the **commerce operating layer** merchants install alongside their payment processor.
 
 ### Year 1 — Foundation (Discovery → Beta → Early Growth)
 

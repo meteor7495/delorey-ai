@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — logical `/v1` contracts for DeloRey AI MVP |
+| **Status** | Active — logical `/v1` contracts for Seloma AI MVP |
 | **Owner** | Founder / Backend / Frontend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [Backend Architecture](./backend-architecture.md) · [Frontend Architecture](./frontend-architecture.md) · [Database Design](./database-design.md) · [Conversation Engine Design](./conversation-engine-design.md) · [System Architecture](./system-architecture.md) |
@@ -530,7 +530,7 @@ MVP may omit merchant-subscribed webhooks. Domain events remain internal (`conve
 
 # Summary
 
-DeloRey’s MVP API is a versioned **`/v1` Workspace + Widget + Webhooks** surface: Auth, Employee, Channels, Store/Sync, Knowledge, Inbox/Handoff, Audit, Analytics — API-first, tenant-fail-closed, secret-safe, and free of ticket/CRM/flow-builder/platform-marketplace endpoints. The same contracts are what a future public Platform API will harden — not a parallel UI-only backend.
+Seloma’s MVP API is a versioned **`/v1` Workspace + Widget + Webhooks** surface: Auth, Employee, Channels, Store/Sync, Knowledge, Inbox/Handoff, Audit, Analytics — API-first, tenant-fail-closed, secret-safe, and free of ticket/CRM/flow-builder/platform-marketplace endpoints. The same contracts are what a future public Platform API will harden — not a parallel UI-only backend.
 
 ---
 

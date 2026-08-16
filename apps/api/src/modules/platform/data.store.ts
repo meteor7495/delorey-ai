@@ -37,8 +37,12 @@ export class DataStore implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit() {
-    const email = 'demo@delorey.local';
-    const existing = await this.prisma.user.findUnique({ where: { email } });
+    const email = 'demo@seloma.local';
+    const existing =
+      (await this.prisma.user.findUnique({ where: { email } })) ??
+      (await this.prisma.user.findUnique({
+        where: { email: 'demo@delorey.local' },
+      }));
     if (!existing) {
       await this.seedDemo(email);
     } else {

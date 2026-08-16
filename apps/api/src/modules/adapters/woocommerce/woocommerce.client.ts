@@ -193,11 +193,11 @@ export function normalizeWooOrderRecord(o: WooOrder, fallbackCurrency: string) {
 }
 
 const WEBHOOK_TOPICS: Array<{ name: string; topic: string }> = [
-  { name: 'DeloRey product created', topic: 'product.created' },
-  { name: 'DeloRey product updated', topic: 'product.updated' },
-  { name: 'DeloRey product deleted', topic: 'product.deleted' },
-  { name: 'DeloRey order created', topic: 'order.created' },
-  { name: 'DeloRey order updated', topic: 'order.updated' },
+  { name: 'Seloma product created', topic: 'product.created' },
+  { name: 'Seloma product updated', topic: 'product.updated' },
+  { name: 'Seloma product deleted', topic: 'product.deleted' },
+  { name: 'Seloma order created', topic: 'order.created' },
+  { name: 'Seloma order updated', topic: 'order.updated' },
 ];
 
 export async function registerWooWebhooks(

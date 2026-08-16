@@ -27,7 +27,7 @@ import {
   Percent,
   FileText,
 } from 'lucide-react';
-import { AiStateChip } from '@delorey/ui';
+import { AiStateChip } from '@seloma/ui';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { setToken } from '@/shared/api';
@@ -121,7 +121,7 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
           </div>
           <div className="leading-tight">
             <div className="font-extrabold text-[17px] tracking-tight text-white">
-              DeloRey
+              سِلوما
             </div>
             <div className="text-[9.5px] tracking-[0.18em] text-white/45 font-semibold">
               COMMERCE

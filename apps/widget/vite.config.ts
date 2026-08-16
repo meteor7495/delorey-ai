@@ -12,7 +12,7 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
  */
 function serveEmbedDev(): Plugin {
   return {
-    name: 'delorey-serve-embed',
+    name: 'seloma-serve-embed',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         const url = req.url?.split('?')[0];
@@ -47,7 +47,8 @@ import("/src/embed.tsx");
   var publicKey = (el && el.getAttribute('data-public-key')) || '';
   var apiBase = (el && el.getAttribute('data-api-base')) || undefined;
   var base = el && el.src ? el.src.replace(/\\/embed\\.js(\\?.*)?$/, '') : '';
-  window.__DELOREY_EMBED__ = { publicKey: publicKey, apiBase: apiBase };
+  window.__SELOMA_EMBED__ = { publicKey: publicKey, apiBase: apiBase };
+  window.__DELOREY_EMBED__ = window.__SELOMA_EMBED__;
   var s = document.createElement('script');
   s.type = 'module';
   s.crossOrigin = 'anonymous';
@@ -69,7 +70,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(dir, 'src/embed.tsx'),
-      name: 'DeloReyWidget',
+      name: 'SelomaWidget',
       formats: ['iife'],
       fileName: () => 'embed.js',
     },

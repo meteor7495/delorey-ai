@@ -16,7 +16,7 @@
 
 # 1. Problem
 
-DeloRey sells outcomes (commerce help), not chat volume. Merchants need a revenue-adjacent view tied to Employee-assisted journeys — without fake attribution theater.
+Seloma sells outcomes (commerce help), not chat volume. Merchants need a revenue-adjacent view tied to Employee-assisted journeys — without fake attribution theater.
 
 # 2. Goal
 

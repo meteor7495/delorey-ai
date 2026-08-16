@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — domain model and bounded contexts for DeloRey AI |
+| **Status** | Active — domain model and bounded contexts for Seloma AI |
 | **Owner** | Founder / Backend / Product |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) |
@@ -39,7 +39,7 @@ Database Design and Backend Architecture derive from this map. They do not redef
 
 # 1. Purpose
 
-DeloRey AI is an **AI Commerce Platform**. The domain is not “tickets,” “CRM pipelines,” or “chatbot flows.” The domain is:
+Seloma AI is an **AI Commerce Platform**. The domain is not “tickets,” “CRM pipelines,” or “chatbot flows.” The domain is:
 
 > A merchant hires an **AI Sales Employee** that, across **Channel Adapters**, conducts **Conversations** grounded in **Commerce Core** and **Knowledge**, controlled by **Guardrails** and **Human Handoff**, operated from a **Workspace**, isolated by **Tenant**.
 
@@ -57,7 +57,7 @@ Domain-Driven Design here means:
 
 ### Core domain
 
-What makes DeloRey DeloRey (lose this and the product thesis fails — [Product Scope](../02-product/product-scope.md) Core tier):
+What makes Seloma Seloma (lose this and the product thesis fails — [Product Scope](../02-product/product-scope.md) Core tier):
 
 | Domain focus | Why core |
 |--------------|----------|
@@ -133,7 +133,7 @@ flowchart TB
 
 Terms below are **product language**. Prefer these names in code modules, APIs, events, and PRDs. Full definitions: [Glossary](../00-overview/glossary.md).
 
-| Term | Meaning (DeloRey) | Anti-term (do not use as SoR) |
+| Term | Meaning (Seloma) | Anti-term (do not use as SoR) |
 |------|-------------------|-------------------------------|
 | **AI Employee** | Commerce role merchant hires (MVP: Sales) | “Bot,” “assistant,” “chatbot tree” |
 | **Agent** | Technical runtime unit behind an Employee | Independent product name for merchants |
@@ -287,7 +287,7 @@ Instagram, WhatsApp, email, SMS, voice — Depth before breadth.
 | **Owns** | StoreConnection, sync health, normalized Product/Variant/Inventory/Price, Order, structured policies |
 | **Does not own** | LLM prompts, channel formatting, ticket queues |
 | **Ubiquitous language** | Commerce Core, Catalog Sync, Sync health, Order Lookup (Skill consuming Orders) |
-| **Key rule** | Without Commerce Core, DeloRey is a generic chatbot |
+| **Key rule** | Without Commerce Core, Seloma is a generic chatbot |
 
 ### Subdomains (inside Commerce — not separate BCs)
 
@@ -684,7 +684,7 @@ Aligned with Product Scope OUT OF MVP and Architecture anti-patterns:
 
 # Summary
 
-DeloRey’s domain is an **AI Sales Employee operating across thin Channel Adapters**, grounded in **Commerce + Knowledge**, orchestrated by **AI Runtime**, controlled by **Guardrails + Human Handoff**, inside a **Tenant/Workspace**, made trustworthy by **Audit** and measurable by **Analytics**.
+Seloma’s domain is an **AI Sales Employee operating across thin Channel Adapters**, grounded in **Commerce + Knowledge**, orchestrated by **AI Runtime**, controlled by **Guardrails + Human Handoff**, inside a **Tenant/Workspace**, made trustworthy by **Audit** and measurable by **Analytics**.
 
 **Catalog** and **Orders** live inside **Commerce**. **Billing** is real domain language now and a full bounded context at **V1**. **Automations** and **Marketplace** wait for Growth/Platform.
 

@@ -11,7 +11,7 @@ Measure BoxAPI Official API and webhook path. **Do not measure LLM latency** in 
 | API p50 send | < 800 ms |
 | API p95 send | < 2.5 s |
 | API p99 send | < 5 s |
-| Webhook delay p50 (user send → DeloRey receive) | < 2 s |
+| Webhook delay p50 (user send → Seloma receive) | < 2 s |
 | Webhook delay p95 | < 10 s |
 | Webhook delay p99 | < 30 s |
 | Rate-limit queue delay at 180 req/h | < 30 s extra |
@@ -26,7 +26,7 @@ All targets are **hypotheses** until measured.
 
 | Component | Requirement |
 |-----------|-------------|
-| Environment | Staging DeloRey + BoxAPI trial page |
+| Environment | Staging Seloma + BoxAPI trial page |
 | Runtime | Stub that ACKs without OpenAI |
 | Clock | NTP; record T0 at Instagram client if possible |
 | Instrumentation | `request_id`, `account_id`, `mid`, timestamps |
@@ -76,7 +76,7 @@ delay = t_webhook_received - t_user_message_sent
 
 | Test | MTTDetect | MTTRecover | Data loss? |
 |------|-----------|------------|------------|
-| Kill DeloRey webhook 5 min | | | |
+| Kill Seloma webhook 5 min | | | |
 | BoxAPI API 5xx injection / observed outage | | | |
 | Exceed rate limit 30 min | | | |
 
@@ -98,7 +98,7 @@ delay = t_webhook_received - t_user_message_sent
 ### 4.3 Media upload/download
 
 1. If send image exists — 20 images 100KB / 1MB / 5MB.
-2. If inbound image — download URLs from DeloRey IPs (Iran hosting nuance).
+2. If inbound image — download URLs from Seloma IPs (Iran hosting nuance).
 
 ### 4.4 Failure recovery
 
@@ -110,8 +110,8 @@ delay = t_webhook_received - t_user_message_sent
 
 | Case | Method | Observe |
 |------|--------|---------|
-| 200-message thread | Manual / script | Provider history? DeloRey DB only? |
-| 2,000-message local history | DeloRey Inbox load | Not provider — ensure provider doesn’t require full history pull |
+| 200-message thread | Manual / script | Provider history? Seloma DB only? |
+| 2,000-message local history | Seloma Inbox load | Not provider — ensure provider doesn’t require full history pull |
 
 ### 4.6 Concurrent requests
 
@@ -158,6 +158,6 @@ PASS / FAIL / PASS WITH LIMITS
 
 - [ ] p95 webhook delay measured and accepted by Product
 - [ ] Over-limit behavior characterized (delay vs drop)
-- [ ] No unbounded memory/queue growth on DeloRey ingress
+- [ ] No unbounded memory/queue growth on Seloma ingress
 - [ ] Concurrent multi-page test completed
 - [ ] Media path characterized or waived

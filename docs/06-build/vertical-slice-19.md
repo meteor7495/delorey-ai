@@ -29,7 +29,7 @@
 
 ```bash
 pnpm db:up
-pnpm --filter @delorey/api exec prisma migrate deploy
+pnpm --filter @seloma/api exec prisma migrate deploy
 pnpm dev
 ```
 
@@ -37,7 +37,7 @@ pnpm dev
 - Widget harness: http://localhost:5173  
 - API: http://localhost:3001/v1  
 
-Demo: `demo@delorey.local` / `demo1234` (or signup).
+Demo: `demo@seloma.local` / `demo1234` (or signup).
 
 Keep `AI_GATEWAY_MODE=mock` until a third-party key exists (GapGPT/Liara/BoxAPI).
 

@@ -1,6 +1,6 @@
 # Build epics
 
-Active implementation slices for DeloRey AI MVP.
+Active implementation slices for Seloma AI MVP.
 
 | Slice | Doc | Status |
 |-------|-----|--------|

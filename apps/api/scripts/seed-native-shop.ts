@@ -3,9 +3,13 @@ import { seedNativeShop } from '../src/modules/platform/demo-catalog';
 
 async function main() {
   const prisma = new PrismaClient();
-  const user = await prisma.user.findUnique({
-    where: { email: 'demo@delorey.local' },
-  });
+  const user =
+    (await prisma.user.findUnique({
+      where: { email: 'demo@seloma.local' },
+    })) ??
+    (await prisma.user.findUnique({
+      where: { email: 'demo@delorey.local' },
+    }));
   if (!user) throw new Error('demo user missing');
   const membership = await prisma.workspaceMembership.findFirst({
     where: { userId: user.id },

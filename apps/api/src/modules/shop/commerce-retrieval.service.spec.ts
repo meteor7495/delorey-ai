@@ -17,7 +17,7 @@ function product(overrides: Partial<ProductRow> = {}): ProductRow {
     sku: 'SHIRT-1',
     slug: 'shirt-1',
     title: 'پیراهن لینن',
-    brand: 'DeloRey',
+    brand: 'Seloma',
     price: 1_000_000,
     currency: 'IRR',
     status: 'published',

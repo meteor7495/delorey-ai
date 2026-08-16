@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 import './globals.css';
 
 export const metadata = {
-  title: 'DeloRey Store',
-  description: 'فروشگاه آنلاین',
+  title: 'فروشگاه سِلوما',
+  applicationName: 'Seloma',
+  description: 'فروشگاه آنلاین سِلوما',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

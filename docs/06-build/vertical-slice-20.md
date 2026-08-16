@@ -10,7 +10,7 @@
 | **Depends on** | [Slice 17](./vertical-slice-17.md) Live AI Gateway |
 | **Architecture** | [AI Provider Layer](../03-architecture/ai-provider-layer.md) · [AI Gateway Design](../03-architecture/ai-gateway-design.md) |
 
-**Goal:** Operationalize the Provider Layer behind DeloRey’s AI Gateway: Redis circuit breakers, `ai_call_events` ledger, tenant AI policies, model binding bootstrap, and session-auth ops endpoints — without making 9Router (or any vendor) the architecture, and without a merchant model playground.
+**Goal:** Operationalize the Provider Layer behind Seloma’s AI Gateway: Redis circuit breakers, `ai_call_events` ledger, tenant AI policies, model binding bootstrap, and session-auth ops endpoints — without making 9Router (or any vendor) the architecture, and without a merchant model playground.
 
 ---
 

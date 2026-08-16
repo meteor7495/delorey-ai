@@ -12,7 +12,7 @@ import { api, setToken } from '@/shared/api';
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
-  const [email, setEmail] = useState('demo@delorey.local');
+  const [email, setEmail] = useState('demo@seloma.local');
   const [password, setPassword] = useState('demo1234');
   const [workspaceName, setWorkspaceName] = useState('فروشگاه من');
   const [showPassword, setShowPassword] = useState(false);
@@ -58,7 +58,7 @@ export default function LoginPage() {
           </div>
           <div className="text-center">
             <h1 className="text-[24px] font-extrabold tracking-tight text-white">
-              DeloRey
+              سِلوما
             </h1>
             <p className="mt-1 text-[13px] text-[rgba(148,163,184,0.7)]">
               کارمند فروش هوش مصنوعی برای فروشگاه شما
@@ -185,7 +185,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[12px] text-[#334155]">
-          دمو: demo@delorey.local / demo1234
+          دمو: demo@seloma.local / demo1234
         </p>
       </div>
     </div>

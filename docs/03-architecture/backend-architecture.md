@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — NestJS backend shape for DeloRey AI MVP |
+| **Status** | Active — NestJS backend shape for Seloma AI MVP |
 | **Owner** | Founder / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) · [Database Design](./database-design.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) |
@@ -31,7 +31,7 @@ This document
 
 # 1. Purpose
 
-Define how the DeloRey **backend** is structured so teams can implement:
+Define how the Seloma **backend** is structured so teams can implement:
 
 - API-first Workspace and Conversation contracts  
 - Stateless, horizontally scalable handlers  
@@ -573,7 +573,7 @@ Aligned with System Architecture implementation guidance:
 
 # Summary
 
-DeloRey’s backend is a **NestJS modular monolith** deployed as **api / webhook / runtime-worker / sync-worker / index-worker**, using **PostgreSQL + Redis**, **BullMQ** for the documented Job/Queue System, and an **outbox-based Event Bus** for sync, Knowledge, conversation lifecycle, and attribution. Modules match DDD Bounded Contexts. Runtime stays provider-agnostic via `ai-gateway`. Adapters stay thin. Kafka waits until it is needed.
+Seloma’s backend is a **NestJS modular monolith** deployed as **api / webhook / runtime-worker / sync-worker / index-worker**, using **PostgreSQL + Redis**, **BullMQ** for the documented Job/Queue System, and an **outbox-based Event Bus** for sync, Knowledge, conversation lifecycle, and attribution. Modules match DDD Bounded Contexts. Runtime stays provider-agnostic via `ai-gateway`. Adapters stay thin. Kafka waits until it is needed.
 
 ---
 

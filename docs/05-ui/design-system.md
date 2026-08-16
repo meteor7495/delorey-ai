@@ -33,7 +33,7 @@
 | `--color-danger` | Degraded / blocked / escalate | Clear red-orange |
 | `--color-info` | Syncing / neutral info | Cool blue |
 
-Widget may map merchant brand color as **optional** accent overlay; defaults stay DeloRey calm.
+Widget may map merchant brand color as **optional** accent overlay; defaults stay Seloma calm.
 
 ### Typography
 

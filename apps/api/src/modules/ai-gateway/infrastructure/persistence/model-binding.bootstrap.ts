@@ -48,7 +48,8 @@ export class ModelBindingBootstrap implements OnModuleInit {
       for (const tier of ['cheap', 'premium'] as const) {
         const upstream =
           tier === 'cheap' ? resolved.modelCheap : resolved.modelPremium;
-        const internalModelId = `delorey.${providerId}.${tier}.v1`;
+        const internalModelId = `seloma.${providerId}.${tier}.v1`;
+        const legacyModelId = `delorey.${providerId}.${tier}.v1`;
         const pricePrompt =
           preset.pricePromptPer1k != null
             ? new Prisma.Decimal(preset.pricePromptPer1k)
@@ -59,13 +60,17 @@ export class ModelBindingBootstrap implements OnModuleInit {
             : undefined;
 
         try {
-          const existing = await this.prisma.aiModelBinding.findUnique({
-            where: { internalModelId },
-          });
+          const existing =
+            (await this.prisma.aiModelBinding.findUnique({
+              where: { internalModelId },
+            })) ??
+            (await this.prisma.aiModelBinding.findUnique({
+              where: { internalModelId: legacyModelId },
+            }));
           if (existing && !force) continue;
 
           await this.prisma.aiModelBinding.upsert({
-            where: { internalModelId },
+            where: { internalModelId: existing?.internalModelId ?? internalModelId },
             create: {
               internalModelId,
               providerId,

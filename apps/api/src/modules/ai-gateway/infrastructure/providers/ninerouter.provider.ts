@@ -5,7 +5,7 @@ import {
 
 /**
  * 9Router upstream adapter — OpenAI-compatible transport only.
- * DeloRey Gateway owns routing, retries, fallbacks, metering, and policy.
+ * Seloma Gateway owns routing, retries, fallbacks, metering, and policy.
  * 9Router must never become system architecture or hold business rules.
  */
 export class NineRouterProvider extends OpenAiCompatibleProvider {

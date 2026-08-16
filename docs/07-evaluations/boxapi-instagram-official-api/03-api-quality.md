@@ -23,7 +23,7 @@
 | Examples | 3 | Minimal happy-path JSON; “No code available” footer |
 | SDKs / Postman / OpenAPI | 1 | n8n node only; no OpenAPI/Swagger/Postman/SDK |
 
-**Weighted judgment:** Below production SaaS partner bar. Acceptable for early spike if DeloRey owns a hardened client wrapper.
+**Weighted judgment:** Below production SaaS partner bar. Acceptable for early spike if Seloma owns a hardened client wrapper.
 
 ---
 
@@ -71,7 +71,7 @@ Documented error model for Official API: **effectively none**.
 
 Data API docs say errors may occur and to contact support — not acceptable for automated systems.
 
-### DeloRey requirements (must demand from vendor)
+### Seloma requirements (must demand from vendor)
 
 | Requirement | Why |
 |-------------|-----|
@@ -121,9 +121,9 @@ Only accounts list is paginated. Message history pagination: **N/A (no API)**.
 | Idempotent send | No | Critical for AI retries |
 | Provider queue under 200/h | Claimed | Opacity: when does message actually send? |
 | Dead-letter / failed queue visibility | No | Silent loss risk |
-| Webhook retry backoff | No | DeloRey must ack fast + queue internally |
+| Webhook retry backoff | No | Seloma must ack fast + queue internally |
 
-**DeloRey mitigation (mandatory if integrating):**
+**Seloma mitigation (mandatory if integrating):**
 
 1. Generate `client_message_id` locally; store before send.
 2. Treat provider send as at-least-once; dedupe on `mid` if returned (**Unknown if returned**).
@@ -174,7 +174,7 @@ Documentation is **adequate to start a spike**, **inadequate to certify a channe
 | Sandbox event simulator | **Unknown** |
 | Webhook log viewer in panel | **Unknown** (ask) |
 
-DeloRey should generate an internal OpenAPI for the **InstagramProviderPort** (our abstraction), not depend on BoxAPI docs quality.
+Seloma should generate an internal OpenAPI for the **InstagramProviderPort** (our abstraction), not depend on BoxAPI docs quality.
 
 ---
 
@@ -193,7 +193,7 @@ DeloRey should generate an internal OpenAPI for the **InstagramProviderPort** (o
 
 ---
 
-## 11. Quality gate for DeloRey
+## 11. Quality gate for Seloma
 
 Do **not** mark API quality as acceptable for Growth production until:
 

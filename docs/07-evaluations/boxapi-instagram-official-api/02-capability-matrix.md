@@ -1,6 +1,6 @@
 # 02 — Capability Matrix
 
-Evaluation of BoxAPI Instagram Official API vs Meta Official Instagram Messaging capabilities and DeloRey adapter needs.
+Evaluation of BoxAPI Instagram Official API vs Meta Official Instagram Messaging capabilities and Seloma adapter needs.
 
 **Legend**
 
@@ -44,7 +44,7 @@ Values: `Y` = yes · `N` = no · `P` = partial · `U` = unknown · `M` = marketi
 | Customer typing event | U | P | N | Y | Y | |
 | Read receipts inbound | U | Y | N | Y | Y | |
 | Delivery receipts | U | Y | N | Y | Y | |
-| Conversation history API | N | P | N | | Y | Not documented — DeloRey must store locally from webhooks |
+| Conversation history API | N | P | N | | Y | Not documented — Seloma must store locally from webhooks |
 | Deleted / unsent message event | U | P | N | Y | Y | |
 | Duplicate webhook handling | U | Y | N | Y | Y | Need idempotency on `event_id` / `mid` |
 | Out-of-order events | U | P | N | Y | Y | |
@@ -110,9 +110,9 @@ Values: `Y` = yes · `N` = no · `P` = partial · `U` = unknown · `M` = marketi
 
 ---
 
-## DeloRey MVP-channel parity (Telegram / Bale baseline)
+## Seloma MVP-channel parity (Telegram / Bale baseline)
 
-| DeloRey adapter need | BoxAPI today | Gap severity |
+| Seloma adapter need | BoxAPI today | Gap severity |
 |----------------------|--------------|--------------|
 | Connect channel + store encrypted creds | Partial (OAuth via provider; no Meta token to store) | High — different trust model |
 | Inbound text → Runtime | Likely | Medium — must prove |

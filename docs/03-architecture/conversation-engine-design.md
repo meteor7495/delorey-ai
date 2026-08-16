@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — conversation threads as commerce events for DeloRey AI MVP |
+| **Status** | Active — conversation threads as commerce events for Seloma AI MVP |
 | **Owner** | Founder / Backend / Frontend (Inbox) |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) · [Database Design](./database-design.md) · [Backend Architecture](./backend-architecture.md) |
@@ -504,7 +504,7 @@ modules/adapters/{website,telegram,bale}/
 
 # Summary
 
-The Conversation Engine is DeloRey’s **thread SoR for commerce conversations**: idempotent ingest, ownership (`ai_active` / `human_owned` / `paused` / `ended`), safe handoff with context packets, history for Context, and thin adapter delivery — **never** a ticket product, **never** a place for Skills or catalog truth, **never** a reason to hide escalations.
+The Conversation Engine is Seloma’s **thread SoR for commerce conversations**: idempotent ingest, ownership (`ai_active` / `human_owned` / `paused` / `ended`), safe handoff with context packets, history for Context, and thin adapter delivery — **never** a ticket product, **never** a place for Skills or catalog truth, **never** a reason to hide escalations.
 
 ---
 

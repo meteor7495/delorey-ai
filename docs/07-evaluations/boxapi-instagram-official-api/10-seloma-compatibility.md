@@ -1,6 +1,6 @@
-# 10 — DeloRey Compatibility
+# 10 — Seloma Compatibility
 
-Evaluate BoxAPI against DeloRey architecture principles.
+Evaluate BoxAPI against Seloma architecture principles.
 
 **Primary principle:** *One Brain, Multiple Channels — adapters format and deliver only.*
 
@@ -10,18 +10,18 @@ Instagram is **Growth**, not MVP. Compatibility assessment is for future `Instag
 
 ## 1. Architecture alignment map
 
-| DeloRey component | Must BoxAPI touch it? | Compatible approach |
+| Seloma component | Must BoxAPI touch it? | Compatible approach |
 |-------------------|-----------------------|---------------------|
 | Channel Adapter | **Yes** | Thin `InstagramAdapter` + `BoxApiClient` |
 | Conversation Engine | No | Receives `NormalizedInboundMessage` only |
 | Runtime / AI Employee | No | `executeTurn` unchanged |
-| Context Engine | No | Uses DeloRey history + commerce context |
+| Context Engine | No | Uses Seloma history + commerce context |
 | Commerce Core | No | Skills remain tenant-scoped |
 | Knowledge Base | No | Untouched |
 | Human Handoff / Inbox | Indirect | `deliverOperatorReply` via adapter |
 | Workspace | Indirect | Connect/status UX |
 | Audit Logs | Indirect | Log adapter actions, not provider internals as SoR |
-| Revenue Dashboard | No | Attribution stays DeloRey |
+| Revenue Dashboard | No | Attribution stays Seloma |
 
 **Pass condition:** BoxAPI remains a **provider behind the adapter**, never a place where Skills, pricing, or escalation rules live.
 
@@ -29,7 +29,7 @@ Instagram is **Growth**, not MVP. Compatibility assessment is for future `Instag
 
 ## 2. Fit with existing adapter patterns
 
-DeloRey messaging adapters (Telegram/Bale) provide:
+Seloma messaging adapters (Telegram/Bale) provide:
 
 1. `connect` → verify + encrypt credentials + `ChannelBinding`
 2. Webhook with binding id + secret
@@ -75,7 +75,7 @@ For Iranian D2C, Instagram without reliable media/product cards is a **degraded 
 | Operator reply delivery | Text send — likely OK |
 | Handoff packet channel metadata | Store `instagram` + external thread id — OK |
 | Real-time typing to operator | Unknown events — weak |
-| Historical transcript | Must be DeloRey-local from webhooks — OK if webhooks reliable |
+| Historical transcript | Must be Seloma-local from webhooks — OK if webhooks reliable |
 
 **Risk:** Lost webhooks create Inbox holes operators cannot recover from provider APIs (no history API).
 
@@ -102,10 +102,10 @@ Incompatible patterns to forbid:
 
 | Event | Who logs |
 |-------|----------|
-| Page connected / disconnected | DeloRey |
-| Inbound message received | DeloRey (metadata; careful with PII policy) |
-| Outbound AI/operator send | DeloRey |
-| Provider errors | DeloRey |
+| Page connected / disconnected | Seloma |
+| Inbound message received | Seloma (metadata; careful with PII policy) |
+| Outbound AI/operator send | Seloma |
+| Provider errors | Seloma |
 | Provider-side wipes | Detect + audit |
 
 Provider audit APIs: **Unknown** — do not rely.
@@ -121,7 +121,7 @@ Needed Workspace surfaces (Growth):
 - Reconnect CTA
 - Disconnect (call DELETE account + local binding clear)
 
-Domain/Redirect constraints make self-serve connect **harder** than Telegram token paste — still doable with DeloRey-hosted callback.
+Domain/Redirect constraints make self-serve connect **harder** than Telegram token paste — still doable with Seloma-hosted callback.
 
 ---
 
@@ -132,10 +132,10 @@ Domain/Redirect constraints make self-serve connect **harder** than Telegram tok
 | Put FAQ automation only in n8n via BoxAPI | Splits brain | Forbid parallel bots on same page |
 | Use BoxAPI GPT for replies | Two brains | Ban in architecture review |
 | Follow-status sales rules inside provider workflows | Logic leak | Keep in Skills/Runtime |
-| Merchant configures ManyChat + DeloRey same page | Conflict | Detect/echo loops; policy |
+| Merchant configures ManyChat + Seloma same page | Conflict | Detect/echo loops; policy |
 | Rely on BoxAPI storage as Inbox | SoR leak | Local persistence mandatory |
 
-**Compatibility verdict:** BoxAPI can fit **only** if DeloRey enforces exclusive page ownership and a hard adapter boundary.
+**Compatibility verdict:** BoxAPI can fit **only** if Seloma enforces exclusive page ownership and a hard adapter boundary.
 
 ---
 
@@ -156,7 +156,7 @@ Domain/Redirect constraints make self-serve connect **harder** than Telegram tok
 
 ---
 
-## 10. Required DeloRey changes (when Growth starts)
+## 10. Required Seloma changes (when Growth starts)
 
 1. Extend `ChannelBinding.channel` with `instagram`
 2. Add `provider` discriminator (`boxapi` | `meta_direct` | …)

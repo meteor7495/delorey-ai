@@ -1,6 +1,6 @@
 # 05 — Scalability
 
-Can BoxAPI support DeloRey Growth-scale Instagram traffic?
+Can BoxAPI support Seloma Growth-scale Instagram traffic?
 
 **Assumption set (explicit hypotheses — replace with lab numbers):**
 
@@ -11,7 +11,7 @@ Can BoxAPI support DeloRey Growth-scale Instagram traffic?
 | Conversations / page / day | 50 (SMB) → 500 (busy) | Hypothesis |
 | Webhook fan-in capacity | Unknown | Must test |
 | BoxAPI account_limit | Plan-dependent | Documented field, value Unknown |
-| DeloRey merchants with IG enabled | Scale scenarios below | |
+| Seloma merchants with IG enabled | Scale scenarios below | |
 
 ---
 
@@ -20,7 +20,7 @@ Can BoxAPI support DeloRey Growth-scale Instagram traffic?
 | Merchants (IG on) | Pages (1:1) | Sustained send budget @200/h | Notes |
 |-------------------|-------------|------------------------------|-------|
 | 100 | 100 | 20,000 req/h aggregate | Feasible **if** provider horizontally scales webhooks |
-| 500 | 500 | 100,000 req/h aggregate | Provider + DeloRey queue mandatory |
+| 500 | 500 | 100,000 req/h aggregate | Provider + Seloma queue mandatory |
 | 1,000 | 1,000 | 200,000 req/h aggregate | Needs proven multi-tenant ops |
 | 5,000 | 5,000 | 1,000,000 req/h aggregate | Unlikely without enterprise contract |
 | 10,000 | 10,000 | 2,000,000 req/h aggregate | Treat as **not credible** on current docs |
@@ -40,7 +40,7 @@ Aggregate Meta budget scales linearly with pages. **Bottleneck is rarely the mat
 | Concern | Assessment |
 |---------|------------|
 | Pages per BoxAPI account | Bound by `account_limit` — **Unknown numbers** |
-| One DeloRey platform key for all merchants | Operationally simple; isolation **dangerous** |
+| One Seloma platform key for all merchants | Operationally simple; isolation **dangerous** |
 | One BoxAPI account per merchant | Better isolation; onboarding & billing complexity explode |
 | Concurrent OAuth connects | Unknown |
 | Connection expiry waves | Many `expires_at` aligning → mass re-auth incidents |
@@ -56,12 +56,12 @@ Aggregate Meta budget scales linearly with pages. **Bottleneck is rarely the mat
 | Single webhook URL for all pages | Hot endpoint; noisy neighbor; blast radius |
 | Burst (campaign / viral reel comments) | Comment storms can dwarf DM rates |
 | Async action results mixed with messaging | Same pipe contention |
-| DeloRey processing time | Must ACK fast → internal queue (match Shopify webhook pattern) |
+| Seloma processing time | Must ACK fast → internal queue (match Shopify webhook pattern) |
 
 **Unknowns to measure:**
 
 - Max sustained webhook POST rate
-- Timeout / retry when DeloRey returns 500
+- Timeout / retry when Seloma returns 500
 - Payload size limits
 - Whether provider collapses under slow consumers
 
@@ -80,7 +80,7 @@ Aggregate Meta budget scales linearly with pages. **Bottleneck is rarely the mat
 
 AI Sales Employee that “sounds human” with many short turns will **hit 200/h sooner than Telegram**.
 
-DeloRey must:
+Seloma must:
 
 - Coalesce replies
 - Prefer one rich message over three fragments
@@ -105,14 +105,14 @@ Documented qualitatively only. Critical Unknowns:
 
 Without idempotent send:
 
-- DeloRey retry storms amplify rate-limit pressure
+- Seloma retry storms amplify rate-limit pressure
 - Duplicate customer messages damage trust
 
-**Rule:** Scale is impossible without idempotency + centralized per-page token bucket on DeloRey side (even if provider also queues).
+**Rule:** Scale is impossible without idempotency + centralized per-page token bucket on Seloma side (even if provider also queues).
 
 ---
 
-## 6. Queue requirements (DeloRey)
+## 6. Queue requirements (Seloma)
 
 | Queue | Purpose |
 |-------|---------|
@@ -142,7 +142,7 @@ Mirror existing `batch.sync` discipline from commerce adapters.
 1. **Comment viral bursts** overwhelm DM-oriented capacity planning.
 2. **Single panel webhook** becomes organizational SPOF.
 3. **Manual OAuth domain constraints** slow self-serve onboarding.
-4. **Provider-side data wipe** on disconnect destroys forensic ability if DeloRey did not persist.
+4. **Provider-side data wipe** on disconnect destroys forensic ability if Seloma did not persist.
 5. **Support channel (Telegram/Bale)** does not scale as enterprise NOC.
 6. **No published status page / SLA** → cannot offer merchant Instagram SLA stronger than “best effort.”
 
@@ -155,6 +155,6 @@ Before approving “supports N merchants”:
 - [ ] Soak test: 1 page @ 180 req/h for 24h
 - [ ] Burst test: 5 minutes @ 5× average inbound webhooks
 - [ ] Multi-page test: 50 pages concurrent
-- [ ] Slow-consumer test: DeloRey responds in 10s / 30s
+- [ ] Slow-consumer test: Seloma responds in 10s / 30s
 - [ ] Rate-limit queue delay histogram
 - [ ] Re-OAuth storm simulation (20 pages expire same hour)

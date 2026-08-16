@@ -10,9 +10,9 @@
 | **Last Updated** | July 22, 2026 |
 | **Related Documents** | [Vision](../00-overview/vision.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Business Plan](./business-plan.md) · [Product Moat](./product-moat.md) · [Product Principles](../02-product/product-principles.md) · [Roadmap](../00-overview/roadmap.md) · [Glossary](../00-overview/glossary.md) |
 
-**Purpose of this document:** Validate whether DeloRey AI is solving a real market problem. This is not a marketing article and not a business plan. Every claim is either evidence-backed, explicitly marked as a hypothesis, or paired with a validation idea.
+**Purpose of this document:** Validate whether Seloma AI is solving a real market problem. This is not a marketing article and not a business plan. Every claim is either evidence-backed, explicitly marked as a hypothesis, or paired with a validation idea.
 
-**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee. Explicit non-positioning: not CRM, not helpdesk, not chatbot builder, not free-form page-builder IDE. See [Product Positioning](../00-overview/product-positioning.md).
+**Product under study:** Seloma — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee. Explicit non-positioning: not CRM, not helpdesk, not chatbot builder, not free-form page-builder IDE. See [Product Positioning](../00-overview/product-positioning.md).
 
 **Initial geography:** Iran. **Primary channels (MVP):** Website, Telegram, Bale. **Target industries:** Fashion, Cosmetics, Accessories, Electronics, Home Products, Gift Shops.
 
@@ -28,9 +28,9 @@ Iran e-commerce transaction value reached **5,500 هزار میلیارد توم
 
 Online merchants in question-heavy categories (fashion, cosmetics, electronics, home, gifts) lose sales and burn staff time because customer conversations are slow, fragmented across website / Telegram / Bale (and often Instagram), and disconnected from live catalog, inventory, and order data. Generic chatbots scale fluency without commerce truth. Human-only coverage does not scale to nights, weekends, and multi-channel volume.
 
-**Critical nuance:** Global cart abandonment averages ~**70.22%** (Baymard Institute meta-analysis of 50 studies, updated September 2025). That number is real but multi-causal (shipping fees, checkout friction, browsing). The share attributable to *unanswered pre-purchase questions in Iran* is **Unknown – requires validation.** Treating all abandonment as DeloRey’s addressable problem would overstate the opportunity.
+**Critical nuance:** Global cart abandonment averages ~**70.22%** (Baymard Institute meta-analysis of 50 studies, updated September 2025). That number is real but multi-causal (shipping fees, checkout friction, browsing). The share attributable to *unanswered pre-purchase questions in Iran* is **Unknown – requires validation.** Treating all abandonment as Seloma’s addressable problem would overstate the opportunity.
 
-**Second critical nuance (Validated Fact from تتا challenge rankings via Zoomit):** Iranian online businesses rank **financing (28.4%)**, **market/sales conditions (25.3%)**, and **infrastructure quality (18.1%)** as top challenges — ahead of talent, culture, and governance. “Unanswered chats” does not appear as a named top challenge in that survey. DeloRey’s wedge may be **real but latent** (operators feel inbox pain daily without ranking it as a strategic bottleneck). That is a research risk, not a marketing inconvenience.
+**Second critical nuance (Validated Fact from تتا challenge rankings via Zoomit):** Iranian online businesses rank **financing (28.4%)**, **market/sales conditions (25.3%)**, and **infrastructure quality (18.1%)** as top challenges — ahead of talent, culture, and governance. “Unanswered chats” does not appear as a named top challenge in that survey. Seloma’s wedge may be **real but latent** (operators feel inbox pain daily without ranking it as a strategic bottleneck). That is a research risk, not a marketing inconvenience.
 
 ## Opportunity
 
@@ -46,7 +46,7 @@ If a meaningful share of lost or delayed conversions in messaging-first Iranian 
 | Gen Z shoppers cite “contact before purchase” as a major priority (~43.6%) | Validated Fact (تتا Gen Z behavior summary) |
 | Global cart abandonment is structurally high (~70%) | Validated Fact (Baymard) |
 | Top stated merchant challenges are financing and market access — not inbox latency | Validated Fact (تتا challenges) |
-| Unanswered questions are a primary abandonment driver *for DeloRey’s ICP in Iran* | Hypothesis |
+| Unanswered questions are a primary abandonment driver *for Seloma’s ICP in Iran* | Hypothesis |
 | Merchants will pay $99–499/month for AI Sales Employee ROI | Hypothesis (from Lean Canvas; unvalidated) |
 | Persian + Telegram/Bale commerce OS has weak *global* incumbent coverage; local Instagram-DM tools are active | Industry Observation |
 | Accuracy without commerce context is unacceptable for product/policy answers | Industry Observation |
@@ -77,7 +77,7 @@ This report separates evidence types deliberately. Mixing them is a decision-mak
 | Label | Meaning | How used |
 |-------|---------|----------|
 | **Validated Fact** | Public data, named methodology, or primary observation that can be cited | Treated as true for planning |
-| **Industry Observation** | Pattern widely reported by practitioners/analysts but not DeloRey-primary research | Directional; cite carefully |
+| **Industry Observation** | Pattern widely reported by practitioners/analysts but not Seloma-primary research | Directional; cite carefully |
 | **Founder Assumption** | Belief from founder proximity to market, not yet tested | Must be validated before capital commitment |
 | **Hypothesis** | Falsifiable claim about customers, willingness to pay, or product impact | Pair with success/fail criteria |
 | **Future Validation** | Planned experiment or data collection | Gates MVP continuation |
@@ -97,7 +97,7 @@ This report separates evidence types deliberately. Mixing them is a decision-mak
 
 - Primary merchant interview transcripts (n = 0 as of this draft)
 - Measured Telegram/Bale response-time audits for named shops
-- Paid conversion or retention data for DeloRey AI
+- Paid conversion or retention data for Seloma AI
 - Statistically valid willingness-to-pay study
 - Blind mystery-shop of local AI/DM tools on accuracy for fashion/cosmetics SKUs
 
@@ -109,7 +109,7 @@ This report separates evidence types deliberately. Mixing them is a decision-mak
 
 ## How online shops currently operate
 
-**Validated Fact (Iran 1403):** ~**66%** of online businesses sell goods, **34%** services. Within goods: wearables/personal & home **>40%**; equipment/machinery ~**16.8%**; cosmetics/hygiene ~**13.1%**; cultural/sports ~**7.9%** — aligned with DeloRey verticals.
+**Validated Fact (Iran 1403):** ~**66%** of online businesses sell goods, **34%** services. Within goods: wearables/personal & home **>40%**; equipment/machinery ~**16.8%**; cosmetics/hygiene ~**13.1%**; cultural/sports ~**7.9%** — aligned with Seloma verticals.
 
 **Validated Fact:** ~**35.4%** had a strong physical base before going digital; ~**27%** opened physical after online success. Omnichannel is structural.
 
@@ -147,7 +147,7 @@ flowchart LR
 
 **Platform risk note (Validated Fact historically):** Telegram has faced filtering/blocks in Iran; merchants and consumers adapt via VPNs and alternate apps. That makes **channel concentration a structural risk** for any Telegram-dependent product. Bale and website presence partially hedge; they do not eliminate platform risk.
 
-**Competitive implication:** Many local SaaS tools optimize for **Instagram DM** (where discovery happens). DeloRey’s MVP bets on **website + Telegram + Bale**. Whether ICP merchants experience enough pain on those three channels *without* Instagram in v1 is a P1 open question.
+**Competitive implication:** Many local SaaS tools optimize for **Instagram DM** (where discovery happens). Seloma’s MVP bets on **website + Telegram + Bale**. Whether ICP merchants experience enough pain on those three channels *without* Instagram in v1 is a P1 open question.
 
 ## How sales happen today
 
@@ -158,7 +158,7 @@ flowchart LR
 | Social DM order | Order placed entirely in chat; payment offline/COD | Common in social commerce — **Industry Observation** |
 | Hybrid | Discover social → ask chat → pay on site | Frequent — **Industry Observation** |
 
-**Hypothesis:** For DeloRey’s ICP verticals, a material share of GMV is *conversation-assisted* even when final payment occurs on the website.
+**Hypothesis:** For Seloma’s ICP verticals, a material share of GMV is *conversation-assisted* even when final payment occurs on the website.
 
 **Validation idea:** For 15 shops, sample 2 weeks of Telegram/Bale threads; classify % of threads that contain purchase intent vs pure support; estimate closed-won rate by response-time bucket.
 
@@ -260,7 +260,7 @@ journey
 
 ## Reasons customers abandon purchases
 
-| Reason | Evidence | Relevance to DeloRey |
+| Reason | Evidence | Relevance to Seloma |
 |--------|----------|----------------------|
 | Extra costs (shipping, fees) | Baymard: leading fixable reason in global studies (~39% of fixable abandonments) | Indirect — Employee can explain shipping early; cannot invent free shipping |
 | Checkout / account friction | Baymard / UX research | Mostly storefront problem |
@@ -269,7 +269,7 @@ journey
 | Wrong bot answer | **Industry Observation** | Trust risk for AI vendors |
 | Competitor found while waiting | **Hypothesis** | Latency-sensitive |
 
-**Honest research position:** DeloRey should claim addressable abandonment only after measuring *question-blocked* sessions in pilots — not by citing 70% as if it were DeloRey’s TAM.
+**Honest research position:** Seloma should claim addressable abandonment only after measuring *question-blocked* sessions in pilots — not by citing 70% as if it were Seloma’s TAM.
 
 ---
 
@@ -301,7 +301,7 @@ Severity scale: **1–5** (5 = existential / high revenue impact). Frequency: ho
 
 **Cost of doing nothing:** Unknown in IRR/USD. **Validation idea:** For each design partner, estimate messages/day, % purchase-intent, conversion by response-time cohort, and FAQ hours/week — then annualize.
 
-**Pain vs stated challenges:** Pains #1–#8 are operationally vivid, but تتا ranks financing and market conditions highest. Interviews must force-rank unread messages against ads, logistics, and inventory — or DeloRey risks solving a felt pain merchants will not budget for.
+**Pain vs stated challenges:** Pains #1–#8 are operationally vivid, but تتا ranks financing and market conditions highest. Interviews must force-rank unread messages against ads, logistics, and inventory — or Seloma risks solving a felt pain merchants will not budget for.
 
 ---
 
@@ -316,7 +316,7 @@ Severity scale: **1–5** (5 = existential / high revenue impact). Frequency: ho
 | **Customer expectations** | Instant answers normalized; Gen Z wants pre-purchase contact | Validated Fact (Gen Z) |
 | **Persian language AI** | Timing window; still needs commerce grounding | Industry Observation |
 | **SMB digitalization** | Enamad surge; women ownership ~28% — more formal sellers | Validated Fact |
-| **Local Instagram automation** | Category awareness exists; DeloRey must win on grounding + channel set | Industry Observation |
+| **Local Instagram automation** | Category awareness exists; Seloma must win on grounding + channel set | Industry Observation |
 
 AI hype does not help: merchants who disabled dumb bots are harder to win without accuracy and ROI. Local IG tools can become the mental default “AI employee” even if shallow on catalog truth — positioning discipline matters.
 
@@ -332,13 +332,13 @@ AI hype does not help: merchants who disabled dumb bots are harder to win withou
 |------|-----------------------------|
 | **TAM** | Global spend on software that enables AI/conversational selling & support for commerce (platform revenue), *or* alternatively the economic activity in conversational channels — **stated separately** |
 | **SAM** | Iran online commerce merchants who could rationally buy an AI Sales/Support Employee (reachable language, channels, catalog) |
-| **SOM** | Share DeloRey can capture in 24 months under realistic GTM constraints |
+| **SOM** | Share Seloma can capture in 24 months under realistic GTM constraints |
 
 ## Global TAM (software layer)
 
 Public 2025–2026 estimates for conversational commerce *software* cluster roughly **~$9–15B** (FMI / Fortune / R&M / Mordor), with definition-dependent CAGRs (~7–15%). Broader “conversational AI” figures are often higher and include non-commerce verticals. Separately, Juniper-style forecasts of ~**$290B** conversational *channel spend* by 2025 are **not SaaS revenue**.
 
-**Working statement:** Global commerce-relevant conversational software is on the order of **low tens of billions USD**. DeloRey needs a dense regional wedge, not global share early.
+**Working statement:** Global commerce-relevant conversational software is on the order of **low tens of billions USD**. Seloma needs a dense regional wedge, not global share early.
 
 ## Regional TAM (MENA / messaging-first commerce software)
 
@@ -414,7 +414,7 @@ These are **illustrative**, not forecasts. They exist to show that Iran alone ca
 
 | Segment | Why |
 |---------|-----|
-| Enterprise multi-brand retail | Needs governance DeloRey lacks |
+| Enterprise multi-brand retail | Needs governance Seloma lacks |
 | Pure marketplace operators | Multi-seller workflows out of scope |
 | Merchants wanting bot builders | Wrong product |
 | No catalog / no messaging volume | Weak value proof |
@@ -472,7 +472,7 @@ These are **illustrative**, not forecasts. They exist to show that Iran alone ca
 
 ## Competitor categories
 
-| Category | Examples (illustrative) | Gap vs DeloRey thesis |
+| Category | Examples (illustrative) | Gap vs Seloma thesis |
 |----------|-------------------------|------------------------|
 | **Global live chat / CX** | Intercom, Crisp, Zendesk, Gorgias | Ticket-centric; weak Bale; access friction in Iran |
 | **Global bots / wrappers** | GPT wrappers, ManyChat-class | Hallucination risk; not commerce OS |
@@ -489,11 +489,11 @@ quadrantChart
     title Competitive positioning hypothesis
     x-axis Human-dependent --> AI-autonomous
     y-axis Generic chat --> Commerce-grounded
-    quadrant-1 Ideal DeloRey zone
+    quadrant-1 Ideal Seloma zone
     quadrant-2 Storefront AI assistants
     quadrant-3 Live chat / helpdesk
     quadrant-4 Generic chatbot builders
-    DeloRey AI: [0.72, 0.78]
+    Seloma AI: [0.72, 0.78]
     Live chat tools: [0.25, 0.35]
     Generic bots: [0.70, 0.20]
     Local IG DM tools: [0.55, 0.40]
@@ -539,10 +539,10 @@ Founders want less anxiety about unread messages and brand mistakes. Staff want 
 | **Integration concerns** | API keys, sync lag, wrong catalog mapping | Medium | Sync health is product, not ops afterthought |
 | **Training effort** | Staff learn inbox + escalation | Low–medium | UX must beat “just reply on Telegram” |
 | **Risk perception** | Brand damage from AI | High | Biggest switching barrier |
-| **Competing IG tools** | Merchants may already pay for DM automation | Medium | Switching *away* from IG tool to DeloRey requires channel overlap or dual-run |
+| **Competing IG tools** | Merchants may already pay for DM automation | Medium | Switching *away* from IG tool to Seloma requires channel overlap or dual-run |
 | **Over time** | Knowledge + Memory + attribution accumulate | Switching cost rises if product works | Moat thesis — **unearned today** |
 
-**Hypothesis:** Early buyers switch *to* DeloRey easily; they switch *away* easily until Knowledge investment and proven ROI create dependency.
+**Hypothesis:** Early buyers switch *to* Seloma easily; they switch *away* easily until Knowledge investment and proven ROI create dependency.
 
 ---
 
@@ -706,13 +706,13 @@ Ordered by kill-or-continue decisiveness. Aligns with Lean Canvas Phase 0–3; e
 
 ## Is the market real?
 
-**Yes, at the macro level.** Iranian e-commerce transaction value and count growth in 1403, high messaging/social usage among businesses, goods-heavy vertical mix consistent with DeloRey’s ICP, and Gen Z demand for pre-purchase contact are **Validated Facts** (via public reporting). Global conversational software markets are also real as categories.
+**Yes, at the macro level.** Iranian e-commerce transaction value and count growth in 1403, high messaging/social usage among businesses, goods-heavy vertical mix consistent with Seloma’s ICP, and Gen Z demand for pre-purchase contact are **Validated Facts** (via public reporting). Global conversational software markets are also real as categories.
 
-**Partially unknown at the micro level:** Whether *DeloRey’s specific* problem — question latency and ungrounded answers as a top revenue leak for reachable SMBs who will pay SaaS prices — is large enough remains **Hypothesis**.
+**Partially unknown at the micro level:** Whether *Seloma’s specific* problem — question latency and ungrounded answers as a top revenue leak for reachable SMBs who will pay SaaS prices — is large enough remains **Hypothesis**.
 
 ## Is the pain urgent?
 
-**Unknown – requires validation.** Macro growth does not imply urgency for an AI Sales Employee. Public challenge rankings prioritize financing and market conditions. Urgency for DeloRey is supported by **Industry Observations** (inbox overload, messaging commerce, Gen Z contact preference) and **Founder Assumptions**, not by DeloRey primary research yet.
+**Unknown – requires validation.** Macro growth does not imply urgency for an AI Sales Employee. Public challenge rankings prioritize financing and market conditions. Urgency for Seloma is supported by **Industry Observations** (inbox overload, messaging commerce, Gen Z contact preference) and **Founder Assumptions**, not by Seloma primary research yet.
 
 ## Will merchants pay?
 
@@ -808,11 +808,11 @@ Prioritized for founder decision-making (P0 = block capital allocation).
 | Juniper Research conversational commerce forecasts (via secondary) | Channel spend vs software distinction |
 | Public sites: InstaCRM, Yektabot, Roboclick, Gofta, Mercon-class tools | Competitive positioning (marketing claims only) |
 | Atlantic Council / historical Telegram-Instagram Iran pieces | Qualitative messaging commerce context (often dated) |
-| DeloRey internal: Lean Canvas, Business Plan, Product Moat, Product Principles | Hypothesis register and positioning constraints |
+| Seloma internal: Lean Canvas, Business Plan, Product Moat, Product Principles | Hypothesis register and positioning constraints |
 
 ## D. Research notes
 
-- **Do not equate** Iran e-commerce GMV with DeloRey TAM. DeloRey sells software, not retail.
+- **Do not equate** Iran e-commerce GMV with Seloma TAM. Seloma sells software, not retail.
 - **Do not equate** ~70% cart abandonment with addressable market. Measure question-blocked intent separately.
 - **Do not treat** analyst SaaS TAM figures as additive across overlapping categories (conversational AI ∩ customer service AI ∩ chatbot platforms).
 - **Enamad issuance** is a flow metric; active merchant stock requires separate estimation.

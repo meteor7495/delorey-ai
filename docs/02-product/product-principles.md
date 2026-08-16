@@ -14,7 +14,7 @@
 
 ## Executive Summary
 
-Product Principles are the constitution of DeloRey. They define what the product is allowed to become, what it must refuse to become, and how Product, Design, and Engineering decide when those two collide.
+Product Principles are the constitution of Seloma. They define what the product is allowed to become, what it must refuse to become, and how Product, Design, and Engineering decide when those two collide.
 
 **Identity reminder:** Primary product is **native storefront + unified ops**; **AI Sales Employee is an optional add-on**. See [Product Positioning](../00-overview/product-positioning.md).
 
@@ -37,7 +37,7 @@ Principles are immutable by default. Changing them requires an explicit decision
 
 # Product Philosophy
 
-DeloRey AI is an **AI Commerce Operating System**: a multi-tenant, API-first, AI-native SaaS platform where merchants hire **AI Employees** to sell and support across channels, grounded in live commerce data.
+Seloma AI is an **AI Commerce Operating System**: a multi-tenant, API-first, AI-native SaaS platform where merchants hire **AI Employees** to sell and support across channels, grounded in live commerce data.
 
 ### The platform is NOT
 
@@ -58,14 +58,14 @@ Merchants do not “configure a bot.” They hire specialized roles — starting
 
 ```mermaid
 flowchart LR
-    subgraph Not["Not DeloRey AI"]
+    subgraph Not["Not Seloma AI"]
         CB[Chatbot builder]
         CRM[CRM]
         HD[Helpdesk]
         WB[Website builder]
     end
 
-    subgraph Is["DeloRey AI"]
+    subgraph Is["Seloma AI"]
         AE[AI Employees]
         CTX[Commerce Context]
         CH[Channel Adapters]
@@ -92,13 +92,13 @@ Operationally, that means:
 3. Keep humans in control through guardrails, escalation, and audit.
 4. Prove impact in revenue recovered, conversions gained, and support hours saved within the first billing cycle.
 
-If a proposed feature does not advance this mission, it does not belong in DeloRey AI.
+If a proposed feature does not advance this mission, it does not belong in Seloma AI.
 
 ---
 
 # Product Vision
 
-In three to five years, DeloRey AI becomes the commerce conversation operating layer merchants install alongside their storefront and payment stack — essential when it works, painful to remove once revenue and knowledge depend on it.
+In three to five years, Seloma AI becomes the commerce conversation operating layer merchants install alongside their storefront and payment stack — essential when it works, painful to remove once revenue and knowledge depend on it.
 
 | Horizon | What success looks like |
 |---------|-------------------------|
@@ -230,7 +230,7 @@ These fifteen principles govern every product decision. Each includes why it mat
 
 | | |
 |--|--|
-| **Description** | DeloRey AI has a point of view: AI Employees for commerce, not infinite customization. Defaults should be correct for the ICP. |
+| **Description** | Seloma AI has a point of view: AI Employees for commerce, not infinite customization. Defaults should be correct for the ICP. |
 | **Why it matters** | Infinite flexibility produces incoherent products and support hell. Opinion creates speed and quality. |
 | **Real-world example** | Sales Employee ships with catalog lookup, recommendation, and escalation — not a blank canvas of “any tools you want.” |
 | **Engineering implication** | Resist configuration surfaces that encode product indecision. Prefer strong defaults with few, sharp overrides. |
@@ -283,7 +283,7 @@ These fifteen principles govern every product decision. Each includes why it mat
 
 # UX Principles
 
-DeloRey AI’s UX philosophy: merchants are operators under time pressure. The Workspace must make AI Employees legible, controllable, and useful within minutes — not after a training course.
+Seloma AI’s UX philosophy: merchants are operators under time pressure. The Workspace must make AI Employees legible, controllable, and useful within minutes — not after a training course.
 
 ### UX doctrine
 
@@ -324,7 +324,7 @@ AI Employees are colleagues with tools and limits — not oracles. Their behavio
 | Principle | Rule |
 |-----------|------|
 | **LLMs are the last resort, not the first step** | Every request should be answered using deterministic systems (Rules, Commerce Core, Tools, Cache, Knowledge Retrieval) before invoking an LLM. The model is responsible for reasoning and natural language generation — not for data lookup, business logic, or information retrieval. |
-| **Model Independence** | DeloRey AI must never depend on a specific AI provider. Every AI capability must be routed through an internal AI Gateway that supports provider abstraction, intelligent model selection, cost optimization, fallback strategies, caching, observability, and future self-hosted models. Business logic must remain completely independent of the underlying LLM provider. |
+| **Model Independence** | Seloma AI must never depend on a specific AI provider. Every AI capability must be routed through an internal AI Gateway that supports provider abstraction, intelligent model selection, cost optimization, fallback strategies, caching, observability, and future self-hosted models. Business logic must remain completely independent of the underlying LLM provider. |
 | **Never hallucinate confidently** | If the system lacks grounded context, it must not invent product facts, prices, stock, or policies. |
 | **Prefer “I don’t know”** | Uncertainty + escalation beats a fluent wrong answer. Merchants would rather lose a turn than lose trust. |
 | **Always use business context** | Every reply consults Context Engine outputs relevant to the turn. |
@@ -349,7 +349,7 @@ AI Employees are colleagues with tools and limits — not oracles. Their behavio
 
 # Commerce Principles
 
-DeloRey AI exists to help online businesses sell and support — not to chat for its own sake.
+Seloma AI exists to help online businesses sell and support — not to chat for its own sake.
 
 | Principle | Rule |
 |-----------|------|
@@ -378,7 +378,7 @@ If any answer is no, redesign.
 
 # Technical Principles
 
-Architecture choices are product choices. DeloRey AI is API-first, multi-tenant, and AI-native by design.
+Architecture choices are product choices. Seloma AI is API-first, multi-tenant, and AI-native by design.
 
 | Principle | Requirement |
 |-----------|-------------|
@@ -463,7 +463,7 @@ When two compliant features compete:
 
 # Product Anti-Patterns
 
-DeloRey AI should **never** become the following. Treat these as organizational stop signs.
+Seloma AI should **never** become the following. Treat these as organizational stop signs.
 
 | Anti-pattern | Why it is forbidden |
 |--------------|---------------------|
@@ -545,14 +545,14 @@ Principles are only real if they are enforced. Enforcement is procedural, not as
 
 # Final Statement
 
-**Product Principles are mandatory for every future product decision at DeloRey AI.**
+**Product Principles are mandatory for every future product decision at Seloma AI.**
 
 They are the constitution of the product: higher than taste, higher than competitor checklists, higher than a single customer request. PRDs describe *how* we build something. These principles decide *whether* we should build it, and *what shape* it must take if we do.
 
-DeloRey AI will succeed as an AI Commerce Operating System — AI Employees, commerce context, channel adapters, and revenue truth — or it will fail as another chatbot wrapper. There is no stable middle.
+Seloma AI will succeed as an AI Commerce Operating System — AI Employees, commerce context, channel adapters, and revenue truth — or it will fail as another chatbot wrapper. There is no stable middle.
 
 Every feature either reinforces that constitution or erodes it. Choose accordingly.
 
 ---
 
-*This document is the product constitution for DeloRey AI v0.1. Changes require an explicit version bump and written rationale from Product ownership. Related strategy and sequencing live in Vision, Product Moat, Lean Canvas, and Roadmap.*
+*This document is the product constitution for Seloma AI v0.1. Changes require an explicit version bump and written rationale from Product ownership. Related strategy and sequencing live in Vision, Product Moat, Lean Canvas, and Roadmap.*

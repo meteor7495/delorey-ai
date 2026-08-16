@@ -16,7 +16,7 @@
 
 Every online shop deserves one place to sell, track, and run the business — across website, Telegram, Bale, and later Instagram — without juggling five tools and losing orders in the gaps.
 
-DeloRey will become the unified commerce platform Iranian merchants install as their storefront and operations hub. Optional AI Employees sit on top of that same catalog and order truth when merchants want automation — not instead of a coherent shop.
+Seloma will become the unified commerce platform Iranian merchants install as their storefront and operations hub. Optional AI Employees sit on top of that same catalog and order truth when merchants want automation — not instead of a coherent shop.
 
 ---
 

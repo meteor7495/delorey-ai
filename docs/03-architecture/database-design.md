@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — logical data model for DeloRey AI MVP |
+| **Status** | Active — logical data model for Seloma AI MVP |
 | **Owner** | Founder / Backend / Data |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [Domain-Driven Design](./domain-driven-design.md) · [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) |
@@ -33,7 +33,7 @@ Physical DDL (exact types, migration tool) is an implementation detail; this doc
 
 # 1. Purpose
 
-Translate DeloRey’s domain into durable stores so that:
+Translate Seloma’s domain into durable stores so that:
 
 1. **PostgreSQL** is the system of record for tenants, users, employees, conversations, messages, commerce entities, audit metadata, attributions ([System Architecture](./system-architecture.md) §14).  
 2. **Redis**, **Vector DB**, **Object Storage**, **Queues**, and **Analytics** follow the isolation matrix (§15).  
@@ -707,7 +707,7 @@ Acceptance: cross-tenant read of another tenant’s `products` / `messages` / ve
 
 # Summary
 
-DeloRey’s database is a **tenant-first PostgreSQL SoR** for Workspace, Employee, Channels, Commerce, Knowledge metadata, Conversations, Handoffs, and Audit — with **Redis / Vector / Object Storage / Queues** as isolated satellites. Catalog and Orders are commerce tables, not chatbot or ticket schemas. MVP ships isolation, idempotency, sync health, and audit; full Billing schema waits for V1.
+Seloma’s database is a **tenant-first PostgreSQL SoR** for Workspace, Employee, Channels, Commerce, Knowledge metadata, Conversations, Handoffs, and Audit — with **Redis / Vector / Object Storage / Queues** as isolated satellites. Catalog and Orders are commerce tables, not chatbot or ticket schemas. MVP ships isolation, idempotency, sync health, and audit; full Billing schema waits for V1.
 
 ---
 

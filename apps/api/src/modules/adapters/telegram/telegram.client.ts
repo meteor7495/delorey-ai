@@ -20,7 +20,7 @@ export class TelegramBotClient {
 
   async getMe(): Promise<{ ok: boolean; username?: string; error?: string }> {
     if (!this.live) {
-      return { ok: true, username: 'delorey_dev_bot' };
+      return { ok: true, username: 'seloma_dev_bot' };
     }
     try {
       const res = await fetch(this.url('getMe'));

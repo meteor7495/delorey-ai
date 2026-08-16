@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@delorey/api-client'],
+  transpilePackages: ['@seloma/api-client'],
 };
 
 export default nextConfig;

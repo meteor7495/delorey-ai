@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — deploy, observe, scale, recover for DeloRey AI MVP |
+| **Status** | Active — deploy, observe, scale, recover for Seloma AI MVP |
 | **Owner** | Founder / DevOps / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [Backend Architecture](./backend-architecture.md) · [Security Architecture](./security-architecture.md) · [Frontend Architecture](./frontend-architecture.md) · [Database Design](./database-design.md) |
@@ -31,7 +31,7 @@ This document
 
 # 1. Purpose
 
-Operate DeloRey as a **multi-tenant cloud SaaS** with:
+Operate Seloma as a **multi-tenant cloud SaaS** with:
 
 1. Separate **control plane** (Workspace API) and **conversation data plane** (webhooks + Runtime workers)  
 2. Fair scheduling so sync/embed storms do not starve shopper turns  
@@ -376,7 +376,7 @@ Documented in ops wiki / repo — Architecture requires these scenarios:
 
 # Summary
 
-DeloRey ops run a **containerized modular monolith** as api / webhook / runtime / sync / index workers behind TLS+WAF, with **Postgres + Redis + Vector + Object Storage**, **interactive vs batch queues**, independent HPA, CDN widget deploys, and observability that covers both **infra golden signals** and **commerce trust signals** (sync lag, escalation, grounded rate, cost/turn). DR favors accept-path + handoff over wrong autonomous answers; backups and isolation tests beat multi-region theater.
+Seloma ops run a **containerized modular monolith** as api / webhook / runtime / sync / index workers behind TLS+WAF, with **Postgres + Redis + Vector + Object Storage**, **interactive vs batch queues**, independent HPA, CDN widget deploys, and observability that covers both **infra golden signals** and **commerce trust signals** (sync lag, escalation, grounded rate, cost/turn). DR favors accept-path + handoff over wrong autonomous answers; backups and isolation tests beat multi-region theater.
 
 ---
 

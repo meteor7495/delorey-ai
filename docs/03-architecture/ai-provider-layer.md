@@ -31,7 +31,7 @@ This document (Provider Layer inside Gateway)
 
 # Non-Negotiable Invariant
 
-> **DeloRey’s AI Gateway is the only entry point for every AI request.**  
+> **Seloma’s AI Gateway is the only entry point for every AI request.**  
 > **9Router is an upstream provider behind that Gateway — never the system architecture.**
 
 Merchants hire an AI Sales Employee ([Product Vision](../02-product/product-vision.md)). They never configure models, vendors, or routers. Provider identity must never leak into Runtime, Skills, Channel Adapters, or Workspace product identity ([Product Principles](../02-product/product-principles.md) — *Model Independence*).
@@ -40,7 +40,7 @@ Merchants hire an AI Sales Employee ([Product Vision](../02-product/product-visi
 Channels → Runtime → Context Engine → OUR AI Gateway → Provider Layer → [9Router | OpenAI | Claude | Gemini | …]
 ```
 
-9Router may fan out to OpenAI, Claude, Gemini, DeepSeek, Qwen, Llama, and future models. That fan-out is **opaque transport**. DeloRey still owns routing policy, retries, fallbacks, caching, metering, guardrail-adjacent validation hooks, and tenant economics.
+9Router may fan out to OpenAI, Claude, Gemini, DeepSeek, Qwen, Llama, and future models. That fan-out is **opaque transport**. Seloma still owns routing policy, retries, fallbacks, caching, metering, guardrail-adjacent validation hooks, and tenant economics.
 
 ---
 
@@ -84,7 +84,7 @@ flowchart TB
     MOCK[MockProvider]
   end
 
-  subgraph upstream [Upstream only — no DeloRey business logic]
+  subgraph upstream [Upstream only — no Seloma business logic]
     N9U[9Router process]
     VENDORS[OpenAI / Claude / Gemini / DeepSeek / Qwen / Llama / …]
   end
@@ -115,14 +115,14 @@ flowchart TB
 | **Cost Optimization Layer** | “Need LLM?”, cache policy brain, cheap vs premium **intent** | Direct vendor HTTP |
 | **AI Gateway** | Routing, retries, fallbacks, abstraction, metering, observability, prompt versioning hooks, rate limits, failover | Catalog truth, Skill planning, merchant invoices |
 | **Provider Layer (this doc)** | Uniform adapter interface + vendor mapping | Business rules, tenant policies, fallback *strategy* |
-| **9Router (upstream)** | OpenAI-compatible proxy / multi-vendor transport | DeloRey routing, billing, cache, guardrails, tenant policy |
+| **9Router (upstream)** | OpenAI-compatible proxy / multi-vendor transport | Seloma routing, billing, cache, guardrails, tenant policy |
 
 ## 1.3 Why 9Router is not the architecture
 
 | Temptation | Why it is rejected |
 |------------|--------------------|
 | Point Runtime at 9Router directly | Breaks Model Independence; vendor coupling in the Employee brain |
-| Let 9Router decide cheap vs premium | Cost / quality policy is DeloRey product economics, not a coding proxy |
+| Let 9Router decide cheap vs premium | Cost / quality policy is Seloma product economics, not a coding proxy |
 | Use 9Router RTK as the only cache | Semantic / sync-version cache is Cost + Commerce integrity |
 | Expose 9Router dashboard to merchants | Merchants hire Employees, not model routers ([Product Scope](../02-product/product-scope.md)) |
 | Encode fallback order only inside 9Router | Gateway must own failover for *all* providers, including non-9Router paths |
@@ -224,7 +224,7 @@ apps/api/src/modules/ai-gateway/
 | Layer | Identifier | Example |
 |-------|------------|---------|
 | Caller / Runtime | `task_class` + `route_hint` | `chat.reply.cheap` |
-| Gateway Router | Internal `model_id` | `delorey.chat.cheap.v1` |
+| Gateway Router | Internal `model_id` | `seloma.chat.cheap.v1` |
 | Provider adapter | Vendor / upstream model string | `gpt-4o-mini`, `kr/claude-sonnet-…` |
 
 Runtime must never hard-code vendor strings. Ops maps internal models → provider bindings in config / DB.
@@ -441,7 +441,7 @@ export interface AiGatewayPort {
 ```typescript
 /**
  * Thin OpenAI-compatible client pointed at 9Router base URL.
- * MUST NOT implement DeloRey fallback policy, tenant budgets, or cache.
+ * MUST NOT implement Seloma fallback policy, tenant budgets, or cache.
  */
 export class NineRouterProvider implements AiProviderPort {
   readonly id = 'ninerouter';
@@ -528,7 +528,7 @@ export type RouteDecision = {
 | Cache a grounded FAQ answer | Cost Layer (+ Gateway hooks) |
 | Which internal model binds to which 9Router string | Gateway model catalog (ops config) |
 
-9Router’s own multi-tier fallback is treated as **transport resilience inside one provider id**, not as DeloRey’s cross-provider policy. Gateway still configures timeouts and may abandon `ninerouter` entirely for another adapter.
+9Router’s own multi-tier fallback is treated as **transport resilience inside one provider id**, not as Seloma’s cross-provider policy. Gateway still configures timeouts and may abandon `ninerouter` entirely for another adapter.
 
 ## 6.4 Shadow / A/B
 
@@ -616,7 +616,7 @@ Maps internal model ids → provider + upstream model string.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid PK | |
-| `internal_model_id` | text UNIQUE | e.g. `delorey.chat.cheap.v1` |
+| `internal_model_id` | text UNIQUE | e.g. `seloma.chat.cheap.v1` |
 | `provider_id` | text | `ninerouter`, `openai`, … |
 | `upstream_model` | text | Vendor / 9Router model string |
 | `task_classes` | text[] | Eligibility |
@@ -788,7 +788,7 @@ Transparent AI for merchants means **decision + sources**, not vendor marketing 
 
 # Summary
 
-DeloRey keeps **one AI Gateway** as the platform brain for model access. The **Provider Layer** standardizes every upstream behind `AiProviderPort`. **9Router is one adapter** — a convenient multi-model pipe — not the architecture, not the policy engine, and never something merchants (or Runtime) should know exists.
+Seloma keeps **one AI Gateway** as the platform brain for model access. The **Provider Layer** standardizes every upstream behind `AiProviderPort`. **9Router is one adapter** — a convenient multi-model pipe — not the architecture, not the policy engine, and never something merchants (or Runtime) should know exists.
 
 ```
 Channels → Runtime → Context → AI Gateway → Provider Layer → 9Router → vendors

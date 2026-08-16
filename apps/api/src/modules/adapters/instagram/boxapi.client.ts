@@ -111,9 +111,9 @@ export class BoxApiClient implements InstagramProviderPort {
         data: {
           success: true,
           data: {
-            domain: 'https://example.delorey.local',
+            domain: 'https://example.seloma.local',
             instagram_oauth_url: 'https://example.invalid/oauth',
-            login_redirect_url: 'https://example.delorey.local/v1/spike/boxapi/oauth/callback',
+            login_redirect_url: 'https://example.seloma.local/v1/spike/boxapi/oauth/callback',
             plan: { name: 'mock', account_limit: 1 },
             accounts: [],
           },

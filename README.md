@@ -1,6 +1,6 @@
-# DeloRey AI
+# Seloma AI
 
-AI Commerce Platform — primary product: **AI Sales Employee** (Website, Telegram, Bale).
+**سِلوما** — AI Commerce Platform. Primary product: **AI Sales Employee** (Website, Telegram, Bale).
 
 Build status: vertical slices **01–26** (see [`docs/06-build/README.md`](docs/06-build/README.md)).
 
@@ -41,7 +41,7 @@ pnpm install
 cp .env.example .env
 
 pnpm db:up
-pnpm --filter @delorey/api exec prisma migrate deploy
+pnpm --filter @seloma/api exec prisma migrate deploy
 
 pnpm dev
 ```
@@ -56,7 +56,7 @@ pnpm dev
 
 1. Landing → **تعرفه‌ها** → ثبت درخواست  
 2. فعال‌سازی آزمایشی پرداخت → ورود Workspace  
-3. یا Login مستقیم: `demo@delorey.local` / `demo1234`
+3. یا Login مستقیم: `demo@seloma.local` / `demo1234`
 
 ## AI Gateway
 

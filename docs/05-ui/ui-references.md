@@ -10,7 +10,7 @@
 | **Parent** | [UI/UX Index](./README.md) · [Market Research](../01-business/market-research.md) · [Business Plan — Competitive Landscape](../01-business/business-plan.md) |
 | **Related** | [Workspace Screens](./workspace-screens.md) · [UX Foundation](./ux-foundation.md) · [Design System](./design-system.md) · [Copy & Tone](./copy-tone.md) |
 
-**Job:** Map *which* market products to study for *which* DeloRey screen — what to borrow, what to reject. Identity stays DeloRey (AI Sales Employee, commerce grounding, Persian + Telegram/Bale). Do not clone a competitor’s brand or IA wholesale.
+**Job:** Map *which* market products to study for *which* Seloma screen — what to borrow, what to reject. Identity stays Seloma (AI Sales Employee, commerce grounding, Persian + Telegram/Bale). Do not clone a competitor’s brand or IA wholesale.
 
 **Method:** Screenshot → annotate against this table → implement per [Workspace Screens](./workspace-screens.md). Mystery-shop when possible; marketing pages alone are weak evidence.
 
@@ -24,14 +24,14 @@
 | **Inbox as commerce ops** | Gorgias | — | Thread next to store context, not tickets |
 | **Handoff / AI vs human clarity** | Intercom | — | Ownership, takeover, state honesty |
 | **Persian merchant expectation** | Gofta / Yektabot | InstaCRM, Roboclick | FA copy, pricing mental model, connect wizards |
-| **Product identity** | DeloRey docs only | — | Sync health, Employee, guardrails, Knowledge, honest revenue |
+| **Product identity** | Seloma docs only | — | Sync health, Employee, guardrails, Knowledge, honest revenue |
 
 ```
 Crisp / Tidio     → shell, onboarding, widget chrome
 Gorgias           → inbox as commerce ops
 Intercom          → handoff / AI vs human clarity
 Local FA tools    → Persian copy & merchant expectations
-DeloRey docs      → sync banner, AI states, Knowledge, Revenue honesty
+Seloma docs      → sync banner, AI states, Knowledge, Revenue honesty
 ```
 
 ---
@@ -64,7 +64,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Enterprise SSO-first walls | Not MVP bar for Iran SMB |
 | Social-login sprawl as requirement | Optional later |
 
-**DeloRey delta:** After auth → Home triage or Onboarding, not empty “create a bot.”
+**Seloma delta:** After auth → Home triage or Onboarding, not empty “create a bot.”
 
 ---
 
@@ -80,7 +80,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Tidio marketing dashboards | Feature promo cards burying sync failures |
 | BI-style KPI grids | Wrong first job |
 
-**DeloRey delta:** Priority = sync unhealthy → escalations → Employee health → else Dashboard ([IA](./information-architecture.md)). Always show **AIStateChip**.
+**Seloma delta:** Priority = sync unhealthy → escalations → Employee health → else Dashboard ([IA](./information-architecture.md)). Always show **AIStateChip**.
 
 ---
 
@@ -97,7 +97,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Botpress / ManyChat | “Build your first flow” |
 | Empty canvas | “Configure intents” labyrinth |
 
-**DeloRey delta:** Ordered: Store → Sync healthy → Employee → Channel → Test. No go-live celebration while sync/channel fail ([Flows](./flows.md)).
+**Seloma delta:** Ordered: Store → Sync healthy → Employee → Channel → Test. No go-live celebration while sync/channel fail ([Flows](./flows.md)).
 
 ---
 
@@ -113,7 +113,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Generic chatbot “trained” copy | Sync ≠ model training |
 | Silent green “connected” | With empty/stale catalog |
 
-**DeloRey delta:** Lag, failure reason, Retry/Reconnect; stale ≠ healthy. Banner sitewide when unhealthy ([UX Foundation](./ux-foundation.md)).
+**Seloma delta:** Lag, failure reason, Retry/Reconnect; stale ≠ healthy. Banner sitewide when unhealthy ([UX Foundation](./ux-foundation.md)).
 
 ---
 
@@ -129,7 +129,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Botpress / ManyChat | Flow trees, intent graphs |
 | Raw system-prompt IDE | SMB anti-goal |
 
-**DeloRey delta:** Name / tone / language / Skills toggles / guardrails; copy: *enforced in Runtime*. Hire framing ([Copy & Tone](./copy-tone.md)).
+**Seloma delta:** Name / tone / language / Skills toggles / guardrails; copy: *enforced in Runtime*. Hire framing ([Copy & Tone](./copy-tone.md)).
 
 ---
 
@@ -146,7 +146,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | ManyChat | Channel = broadcast list |
 | Theme / page builders | OUT OF MVP |
 
-**DeloRey delta:** Three units only — Website, Telegram, Bale. No Instagram/WhatsApp rows in MVP nav. No per-channel second brain.
+**Seloma delta:** Three units only — Website, Telegram, Bale. No Instagram/WhatsApp rows in MVP nav. No per-channel second brain.
 
 ---
 
@@ -163,7 +163,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Zendesk | Ticket statuses, SLA clocks as center |
 | Helpdesk macros-first | Wrong SoR |
 
-**DeloRey delta:** Context package on escalate (reason, citations, Skill results). Ownership `ai_owned` / `human_owned`. Release to AI audited. Never hide escalations.
+**Seloma delta:** Context package on escalate (reason, citations, Skill results). Ownership `ai_owned` / `human_owned`. Release to AI audited. Never hide escalations.
 
 ---
 
@@ -179,7 +179,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Full CMS / help-center product | Scope creep |
 | “Upload PDF = instantly smart” | Without index status |
 
-**DeloRey delta:** `source_attribution` + index `active|indexing|failed`; gaps from Dashboard link here.
+**Seloma delta:** `source_attribution` + index `active|indexing|failed`; gaps from Dashboard link here.
 
 ---
 
@@ -195,7 +195,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | Intercom/Zendesk heavy analytics | Advanced BI |
 | Fake AI uplift badges | “+X% sales from AI” without proof |
 
-**DeloRey delta:** Resolution proxy, escalation reasons, knowledge gaps, sync health, revenue section with **methodology note** ([PRD-019](../04-prd/basic-analytics.md) / [020](../04-prd/revenue-dashboard.md)).
+**Seloma delta:** Resolution proxy, escalation reasons, knowledge gaps, sync health, revenue section with **methodology note** ([PRD-019](../04-prd/basic-analytics.md) / [020](../04-prd/revenue-dashboard.md)).
 
 ---
 
@@ -209,7 +209,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 |--------|---------|
 | Raw log dump for all roles | RBAC; Transparent AI ≠ leak prompts |
 
-**DeloRey delta:** Turn summary, Skills, guardrail blocks, citation refs; link from Inbox thread.
+**Seloma delta:** Turn summary, Skills, guardrail blocks, citation refs; link from Inbox thread.
 
 ---
 
@@ -225,7 +225,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 | ManyChat | Growth popups / broadcast stickers on page |
 | Theme studio | Brand-basic only |
 
-**DeloRey delta:** Employee name in header; handoff “همکار انسانی”; refuse/offline calm copy; product refs **only** from API ([Widget UX](./widget-ux.md)).
+**Seloma delta:** Employee name in header; handoff “همکار انسانی”; refuse/offline calm copy; product refs **only** from API ([Widget UX](./widget-ux.md)).
 
 ---
 
@@ -233,7 +233,7 @@ Local IG-first tools: **study copy/friction**, do not adopt Instagram-primary na
 
 Mystery-shop **at least two** of: Gofta, Yektabot, InstaCRM, Roboclick.
 
-| Capture | Notes for DeloRey |
+| Capture | Notes for Seloma |
 |---------|-------------------|
 | Signup → first value clicks | Benchmark TTV friction |
 | Persian microcopy | Feed [Copy & Tone](./copy-tone.md) |

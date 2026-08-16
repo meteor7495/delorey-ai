@@ -45,11 +45,17 @@ export function StoreShell({
 
   useEffect(() => {
     if (!widget?.publicKey || !widget.widgetBase) return;
-    if (document.querySelector('script[data-delorey-embed]')) return;
+    if (
+      document.querySelector(
+        'script[data-seloma-embed], script[data-delorey-embed]',
+      )
+    ) {
+      return;
+    }
     const script = document.createElement('script');
     script.src = `${widget.widgetBase}/embed.js`;
     script.async = true;
-    script.dataset.deloreyEmbed = '1';
+    script.dataset.selomaEmbed = '1';
     script.dataset.publicKey = widget.publicKey;
     script.dataset.apiBase = widget.apiBase;
     document.body.appendChild(script);

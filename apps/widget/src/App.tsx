@@ -13,7 +13,7 @@ export function App() {
 
   return (
     <div className="page">
-      <h1>ویجت گفتگو DeloRey</h1>
+      <h1>ویجت گفتگو سِلوما</h1>
       <p className="muted">
         کلید عمومی را از فضای کاری → کانال‌ها کپی کنید. برای تست embed، اسکریپت
         کانال‌ها را در یک HTML محلی بگذارید.

@@ -1,11 +1,11 @@
 # 07 — Webhook Tests
 
-Checklist for validating BoxAPI → DeloRey webhook behavior.
+Checklist for validating BoxAPI → Seloma webhook behavior.
 
 **Rules**
 
 - Record raw payload (redacted) for every case.
-- Pass = expected DeloRey state + no cross-tenant effects.
+- Pass = expected Seloma state + no cross-tenant effects.
 - Mark **BLOCKED** if provider cannot produce the event.
 - Do not invent schemas; capture actual JSON.
 
@@ -50,7 +50,7 @@ Checklist for validating BoxAPI → DeloRey webhook behavior.
 | 2.4 | File / PDF | | |
 | 2.5 | Sticker | | |
 | 2.6 | Shared post / reel | | |
-| 2.7 | Media URL fetchable by DeloRey servers | | |
+| 2.7 | Media URL fetchable by Seloma servers | | |
 | 2.8 | Expired media URL behavior | | |
 
 If all blocked → product decision: text-only IG v1 or NO GO for commerce proofs.
@@ -83,7 +83,7 @@ If all blocked → product decision: text-only IG v1 or NO GO for commerce proof
 |---|------|-------|-------|
 | 5.1 | User unsends DM | | |
 | 5.2 | User deletes comment | | |
-| 5.3 | DeloRey marks message deleted locally | | |
+| 5.3 | Seloma marks message deleted locally | | |
 
 ---
 
@@ -111,9 +111,9 @@ If all blocked → product decision: text-only IG v1 or NO GO for commerce proof
 
 | # | Case | Expected | Pass? |
 |---|------|----------|-------|
-| 8.1 | DeloRey returns 500 | Provider retries (document schedule) | |
-| 8.2 | DeloRey returns 200 slowly (8s) | No duplicate or documented retry | |
-| 8.3 | DeloRey returns 401/403 | Retries stop or alert | |
+| 8.1 | Seloma returns 500 | Provider retries (document schedule) | |
+| 8.2 | Seloma returns 200 slowly (8s) | No duplicate or documented retry | |
+| 8.3 | Seloma returns 401/403 | Retries stop or alert | |
 | 8.4 | Endpoint down 15 min | Backfill or permanent loss documented | |
 
 ---
@@ -123,7 +123,7 @@ If all blocked → product decision: text-only IG v1 or NO GO for commerce proof
 | # | Case | Pass? | Notes |
 |---|------|-------|-------|
 | 9.1 | Provider timeout threshold discovery | | |
-| 9.2 | DeloRey ACK < 1s via queue | | Required architecture |
+| 9.2 | Seloma ACK < 1s via queue | | Required architecture |
 | 9.3 | Poison payload 200 vs 400 strategy | | Prefer 200 + DLQ after auth |
 
 ---

@@ -26,7 +26,7 @@ Immutable-enough audit of admin actions and AI turns: who/what/when, Skill calls
 
 | In | Out |
 |----|-----|
-| Admin audit events; AI turn audit (decision path, Skills, citations refs, cost tokens, escalate reasons); tenant-scoped query UI/API | Full SIEM product; cross-tenant analytics for DeloRey sales; raw prompt dump to all roles |
+| Admin audit events; AI turn audit (decision path, Skills, citations refs, cost tokens, escalate reasons); tenant-scoped query UI/API | Full SIEM product; cross-tenant analytics for Seloma sales; raw prompt dump to all roles |
 
 # 4. Users & Journey
 

@@ -1,7 +1,7 @@
 # 09 — Failure Scenarios
 
 Exhaustive failure catalog for BoxAPI as Instagram transport.  
-Each scenario: detection → customer impact → DeloRey response → residual risk.
+Each scenario: detection → customer impact → Seloma response → residual risk.
 
 Status: **U** = needs lab confirmation.
 
@@ -9,7 +9,7 @@ Status: **U** = needs lab confirmation.
 
 ## A. Identity & auth failures
 
-| ID | Scenario | Documented? | Detection | Impact | DeloRey response |
+| ID | Scenario | Documented? | Detection | Impact | Seloma response |
 |----|----------|-------------|-----------|--------|------------------|
 | A1 | Expired BoxAPI API key | U | 401/403 on send | All pages down (Topology A) | Degrade all IG; alert SEV1 |
 | A2 | Rotated key not updated | U | Same | Same | Runbook dual-key |
@@ -55,7 +55,7 @@ Status: **U** = needs lab confirmation.
 | ID | Scenario | Response |
 |----|----------|----------|
 | D1 | Unsupported inbound media | Reply: “متن بفرستید” / handoff |
-| D2 | Media URL 403 from DeloRey IP | Retry; escalate |
+| D2 | Media URL 403 from Seloma IP | Retry; escalate |
 | D3 | Huge media OOM | Size cap |
 | D4 | Invalid media on outbound | Validation before send |
 | D5 | Malware file | Do not fetch executables; scan policy |
@@ -80,10 +80,10 @@ Status: **U** = needs lab confirmation.
 |----|----------|----------|
 | F1 | Meta outage | Degrade IG; status page |
 | F2 | BoxAPI outage | Same; cannot bypass (no Meta tokens) |
-| F3 | Network partition DeloRey↔BoxAPI | Queue outbound; health check |
+| F3 | Network partition Seloma↔BoxAPI | Queue outbound; health check |
 | F4 | DNS failure boxapi.ir | Same |
 | F5 | TLS interception / cert change | Fail closed |
-| F6 | DeloRey webhook endpoint down | Provider retries U; gap possible |
+| F6 | Seloma webhook endpoint down | Provider retries U; gap possible |
 | F7 | Clock skew breaks signature (if added) | NTP |
 
 ---
@@ -117,7 +117,7 @@ Status: **U** = needs lab confirmation.
 
 | ID | Scenario | Response |
 |----|----------|----------|
-| I1 | Provider wipes data on disconnect | DeloRey SoR intact |
+| I1 | Provider wipes data on disconnect | Seloma SoR intact |
 | I2 | Provider retains data beyond contract | Legal escalation |
 | I3 | Support asks for raw logs with PII | Redaction policy |
 | I4 | Ambiguous custody statement vs webhook text | Written clarification |
@@ -174,4 +174,4 @@ Every ID above must appear in [14-testing-checklist.md](./14-testing-checklist.m
 
 ## N. Architectural implication
 
-Because DeloRey **cannot hold Meta tokens**, **F2 BoxAPI outage is total Instagram channel failure** with no emergency direct-Meta failover inside Iran. That single fact must be accepted in Risk Register before GO for production.
+Because Seloma **cannot hold Meta tokens**, **F2 BoxAPI outage is total Instagram channel failure** with no emergency direct-Meta failover inside Iran. That single fact must be accepted in Risk Register before GO for production.

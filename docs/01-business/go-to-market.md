@@ -10,9 +10,9 @@
 | **Last Updated** | August 10, 2026 |
 | **Related Documents** | [Market Research](./market-research.md) · [Pricing Strategy](./pricing-strategy.md) · [Business Plan](./business-plan.md) · [Product Moat](./product-moat.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
 
-**Purpose of this document:** Define exactly how DeloRey finds its first customers, validates Product-Market Fit (PMF), converts pilots into paying merchants, and only then scales. Every recommendation prioritizes **learning over growth**. Where evidence does not yet exist, claims are marked **Hypothesis**.
+**Purpose of this document:** Define exactly how Seloma finds its first customers, validates Product-Market Fit (PMF), converts pilots into paying merchants, and only then scales. Every recommendation prioritizes **learning over growth**. Where evidence does not yet exist, claims are marked **Hypothesis**.
 
-**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified order ops across Website, Telegram, and Bale. **Add-on:** AI Sales Employee. Deployment: Cloud SaaS. Primary geography: Iran. Target: small and medium online shops. Current stage: **Pre-MVP / early build**. See [Product Positioning](../00-overview/product-positioning.md).
+**Product under study:** Seloma — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified order ops across Website, Telegram, and Bale. **Add-on:** AI Sales Employee. Deployment: Cloud SaaS. Primary geography: Iran. Target: small and medium online shops. Current stage: **Pre-MVP / early build**. See [Product Positioning](../00-overview/product-positioning.md).
 
 **Evidence discipline (same taxonomy as Market Research):**
 
@@ -28,7 +28,7 @@
 
 # Executive Summary
 
-DeloRey AI will not “launch and grow.” It will **discover, pilot, prove, then expand**. At Pre-MVP, the company has a coherent product thesis and favorable macro conditions in Iranian e-commerce, but **problem urgency, willingness to pay, and solution efficacy are not validated** ([Market Research](./market-research.md)). Product-Market Fit is therefore a gate, not a slogan.
+Seloma AI will not “launch and grow.” It will **discover, pilot, prove, then expand**. At Pre-MVP, the company has a coherent product thesis and favorable macro conditions in Iranian e-commerce, but **problem urgency, willingness to pay, and solution efficacy are not validated** ([Market Research](./market-research.md)). Product-Market Fit is therefore a gate, not a slogan.
 
 **GTM philosophy:** Founder-led sales, manual onboarding, tight feedback loops, and ruthless ICP discipline. Paid acquisition, partner scale, and self-serve growth are deferred until pilots convert, retain, and refer.
 
@@ -62,7 +62,7 @@ DeloRey AI will not “launch and grow.” It will **discover, pilot, prove, the
 
 At Pre-MVP, every sales conversation is a research instrument. The founder (or founding team) runs discovery, demo, pilot setup, and close. This is not because sales is glamorous; it is because **only the people who can change the product should hear the objections**.
 
-Outbound volume is capped by founder hours on purpose. If a channel cannot be sold and onboarded by hand, DeloRey is not ready to advertise it.
+Outbound volume is capped by founder hours on purpose. If a channel cannot be sold and onboarded by hand, Seloma is not ready to advertise it.
 
 ## Learning over growth
 
@@ -164,7 +164,7 @@ Saying no is a GTM skill. Every out-of-ICP pilot dilutes learning.
 
 ## Buying maturity
 
-**Hypothesis:** Most ICP merchants are **problem-aware, solution-skeptical**. They feel inbox pain daily. They do not rank “AI Sales Employee” as a strategic purchase until ROI is shown. Public challenge rankings prioritize financing and market conditions over inbox latency — so DeloRey’s wedge may be **real but latent** ([Market Research](./market-research.md)).
+**Hypothesis:** Most ICP merchants are **problem-aware, solution-skeptical**. They feel inbox pain daily. They do not rank “AI Sales Employee” as a strategic purchase until ROI is shown. Public challenge rankings prioritize financing and market conditions over inbox latency — so Seloma’s wedge may be **real but latent** ([Market Research](./market-research.md)).
 
 GTM implication: sell **recovered conversations and hours**, not “AI platform.”
 
@@ -201,7 +201,7 @@ GTM implication: sell **recovered conversations and hours**, not “AI platform.
 
 # Beachhead Market
 
-DeloRey starts narrow on purpose: **Iran × (Website + Telegram + Bale) × Fashion/Cosmetics-first**, then expands.
+Seloma starts narrow on purpose: **Iran × (Website + Telegram + Bale) × Fashion/Cosmetics-first**, then expands.
 
 ## Why Iran first
 
@@ -240,7 +240,7 @@ Breadth (more countries, Instagram, every vertical, paid ads) before depth (one 
 
 ## Current positioning
 
-**DeloRey is the unified shop platform for Iranian online merchants** — native storefront (سایت‌ساز) + one Workspace for catalog and orders across Website, Telegram, and Bale — so the manager is not lost across tools. **AI Sales Employee is an optional add-on** grounded in that same commerce data.
+**Seloma is the unified shop platform for Iranian online merchants** — native storefront (سایت‌ساز) + one Workspace for catalog and orders across Website, Telegram, and Bale — so the manager is not lost across tools. **AI Sales Employee is an optional add-on** grounded in that same commerce data.
 
 **Explicit non-positioning:** Not a CRM. Not a helpdesk. Not a chatbot builder. Not a free-form drag-drop website IDE / theme marketplace.
 
@@ -256,7 +256,7 @@ Category creation is expensive. Early GTM uses language merchants already unders
 
 ## Differentiation
 
-| Dimension | DeloRey thesis | Competitor default |
+| Dimension | Seloma thesis | Competitor default |
 |-----------|----------------|--------------------|
 | Grounding | Live commerce data | FAQ / prompt only |
 | Channels | Web + Telegram + Bale unified | Single-channel or IG-only |
@@ -268,7 +268,7 @@ Doing nothing (human founder inbox) remains the **primary competitor**.
 
 ## Alternative solutions
 
-| Alternative | Gap DeloRey exploits |
+| Alternative | Gap Seloma exploits |
 |-------------|----------------------|
 | Human-only Telegram/Bale replies | Does not scale nights/weekends |
 | Live chat / helpdesk | Ticket-centric; weak commerce + Bale |
@@ -286,7 +286,7 @@ Doing nothing (human founder inbox) remains the **primary competitor**.
 
 ## Unique positioning statement
 
-> For Iranian online shops, DeloRey is the **سایت‌ساز and ops hub** where website + Telegram + Bale sales stay in one catalog and order book — so the manager is not confused. When you need it, add an **AI Sales Employee** on the same data to answer customers without risking brand-damaging wrong answers.
+> For Iranian online shops, Seloma is the **سایت‌ساز and ops hub** where website + Telegram + Bale sales stay in one catalog and order book — so the manager is not confused. When you need it, add an **AI Sales Employee** on the same data to answer customers without risking brand-damaging wrong answers.
 
 ---
 
@@ -331,7 +331,7 @@ flowchart TD
     M --> N[Referral]
 ```
 
-| Stage | Merchant experience | DeloRey action | Exit to next stage |
+| Stage | Merchant experience | Seloma action | Exit to next stage |
 |-------|---------------------|----------------|--------------------|
 | **Awareness** | Hears “AI Sales Employee” from founder, community, or peer | Targeted outreach; no broad ads | Books discovery call |
 | **Interest** | Suspects inbox is costing sales | Send 5-question prep + channel audit ask | Shows up prepared |
@@ -534,7 +534,7 @@ PLG is a **destination**, not the starting motion.
 
 **Rule:** Automate a step only after the same step has been done manually ≥10 times with a stable playbook and ≤1 critical failure mode.
 
-PLG without PMF produces signups that churn silently. DeloRey cannot afford silent churn in a trust-sensitive category.
+PLG without PMF produces signups that churn silently. Seloma cannot afford silent churn in a trust-sensitive category.
 
 ---
 

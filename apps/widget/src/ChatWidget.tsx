@@ -5,8 +5,8 @@ import {
   useRef,
   useState,
 } from 'react';
-import { createApiClient } from '@delorey/api-client';
-import { aiStateLabel } from '@delorey/ui/tokens';
+import { createApiClient } from '@seloma/api-client';
+import { aiStateLabel } from '@seloma/ui/tokens';
 
 type ChatMsg = {
   role: 'shopper' | 'employee' | 'system' | 'operator';
@@ -28,12 +28,18 @@ type Props = {
 };
 
 function storageKey(publicKey: string) {
+  return `seloma.widget.session.${publicKey.trim()}`;
+}
+
+function legacyStorageKey(publicKey: string) {
   return `delorey.widget.session.${publicKey.trim()}`;
 }
 
 function loadSession(publicKey: string): StoredSession | null {
   try {
-    const raw = localStorage.getItem(storageKey(publicKey));
+    const raw =
+      localStorage.getItem(storageKey(publicKey)) ??
+      localStorage.getItem(legacyStorageKey(publicKey));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as StoredSession;
     if (!parsed?.conversationId || !Array.isArray(parsed.messages)) return null;
@@ -46,6 +52,7 @@ function loadSession(publicKey: string): StoredSession | null {
 function saveSession(publicKey: string, session: StoredSession) {
   try {
     localStorage.setItem(storageKey(publicKey), JSON.stringify(session));
+    localStorage.removeItem(legacyStorageKey(publicKey));
   } catch {
     /* quota / private mode */
   }
@@ -54,6 +61,7 @@ function saveSession(publicKey: string, session: StoredSession) {
 function clearSession(publicKey: string) {
   try {
     localStorage.removeItem(storageKey(publicKey));
+    localStorage.removeItem(legacyStorageKey(publicKey));
   } catch {
     /* ignore */
   }

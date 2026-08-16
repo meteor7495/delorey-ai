@@ -2,7 +2,7 @@
 
 import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
-import { knowledgeDocTypeLabel, knowledgeStatusLabel } from '@delorey/ui';
+import { knowledgeDocTypeLabel, knowledgeStatusLabel } from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

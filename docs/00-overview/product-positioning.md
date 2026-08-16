@@ -16,13 +16,13 @@
 
 ## Decision (one sentence)
 
-**DeloRey is a unified online commerce platform for Iranian shops: one native storefront (سایت‌ساز / ویترین) plus multi-channel selling and one Workspace to manage catalog, orders, and conversations — so the shop manager is not lost across tools. The AI Sales Employee is an optional paid add-on for merchants who want automation on top of that same commerce truth.**
+**Seloma is a unified online commerce platform for Iranian shops: one native storefront (سایت‌ساز / ویترین) plus multi-channel selling and one Workspace to manage catalog, orders, and conversations — so the shop manager is not lost across tools. The AI Sales Employee is an optional paid add-on for merchants who want automation on top of that same commerce truth.**
 
 ---
 
 ## Why this change
 
-Previous docs framed DeloRey primarily as an **AI Sales Employee / Commerce OS** and explicitly said we are **not** a website builder. Founder direction (Aug 2026):
+Previous docs framed Seloma primarily as an **AI Sales Employee / Commerce OS** and explicitly said we are **not** a website builder. Founder direction (Aug 2026):
 
 1. **Primary commercial focus:** سایت‌ساز / ویترین بومی — the product a merchant buys first.
 2. **Primary product job:** Unification — sale from website, Telegram, Bale, Instagram (when ready) is trackable and manageable in **one** product.
@@ -35,7 +35,7 @@ Previous docs framed DeloRey primarily as an **AI Sales Employee / Commerce OS**
 
 | Layer | Role | Merchant framing (FA) |
 |-------|------|------------------------|
-| **1. Native Storefront + CMS** | Primary product | سایت‌ساز / فروشگاه آنلاین DeloRey |
+| **1. Native Storefront + CMS** | Primary product | سایت‌ساز / فروشگاه آنلاین Seloma |
 | **2. Unified commerce ops** | Core value | سفارش، موجودی، کانال‌ها — همه در یک Workspace |
 | **3. Channels** | Reach | وب، تلگرام، بله (+ اینستاگرام وقتی آماده) روی همان کاتالوگ و سفارش |
 | **4. AI Sales Employee** | Optional add-on | کارمند فروش هوش مصنوعی — وقتی بخواهند، روی همان داده |

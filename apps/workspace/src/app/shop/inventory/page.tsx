@@ -8,7 +8,7 @@ import type {
   InventorySummary,
   InventoryTransaction,
   StockState,
-} from '@delorey/api-client';
+} from '@seloma/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

@@ -2,7 +2,7 @@
 
 **All BoxAPI unit prices below are Hypotheses.** Public Official API docs do not publish a firm IRR/USD price per page for SaaS scale. Replace with contracted rates before financial commitment.
 
-DeloRey list pricing context: merchants ~$99–499/mo ([Pricing Strategy](../../01-business/pricing-strategy.md)).
+Seloma list pricing context: merchants ~$99–499/mo ([Pricing Strategy](../../01-business/pricing-strategy.md)).
 
 ---
 
@@ -13,10 +13,10 @@ DeloRey list pricing context: merchants ~$99–499/mo ([Pricing Strategy](../../
 | Connected IG pages | BoxAPI | Likely primary meter |
 | API requests / queued sends | BoxAPI | Possibly bundled |
 | Webhook volume | Usually included | Confirm |
-| OpenAI / LLM tokens | DeloRey AI Gateway | Dominates variable cost |
-| Infra (API, queues, DB, egress) | DeloRey | Modest vs LLM at chat volumes |
-| Support / re-OAuth ops | DeloRey | Soft cost, scales with merchants |
-| Compliance / DPA overhead | DeloRey | Fixed + legal |
+| OpenAI / LLM tokens | Seloma AI Gateway | Dominates variable cost |
+| Infra (API, queues, DB, egress) | Seloma | Modest vs LLM at chat volumes |
+| Support / re-OAuth ops | Seloma | Soft cost, scales with merchants |
+| Compliance / DPA overhead | Seloma | Fixed + legal |
 
 ---
 
@@ -60,7 +60,7 @@ Infra hypothesis: **$1.50 / page / month** at scale (queues, storage, egress), f
 | 1,000 | $8,000 | $20,000 | $45,000 |
 | 5,000 | $40,000 | $100,000 | $225,000 |
 
-### 4.2 Estimated OpenAI (DeloRey)
+### 4.2 Estimated OpenAI (Seloma)
 
 | Merchants | LLM / mo @ $11.20/page |
 |-----------|-------------------------|
@@ -70,7 +70,7 @@ Infra hypothesis: **$1.50 / page / month** at scale (queues, storage, egress), f
 | 1,000 | ~$11,200 |
 | 5,000 | ~$56,000 |
 
-### 4.3 Estimated infrastructure (DeloRey IG channel)
+### 4.3 Estimated infrastructure (Seloma IG channel)
 
 | Merchants | Infra / mo |
 |-----------|------------|
@@ -92,7 +92,7 @@ Infra hypothesis: **$1.50 / page / month** at scale (queues, storage, egress), f
 
 ---
 
-## 5. Margin impact vs DeloRey subscription
+## 5. Margin impact vs Seloma subscription
 
 | Merchant plan (hyp.) | Price | IG variable cost mid (~$33) | Room for other COGS |
 |----------------------|-------|-----------------------------|---------------------|

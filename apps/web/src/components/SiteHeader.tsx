@@ -45,10 +45,10 @@ export function SiteHeader() {
           onClick={() => setOpen(false)}
         >
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal-bright to-teal text-white text-sm font-black shadow-lg shadow-teal/30">
-            D
+            S
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-white">
-            DeloRey
+            Seloma
           </span>
         </Link>
 

@@ -45,7 +45,8 @@ function RequestForm() {
         password,
       });
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('delorey_pending_token', res.token);
+        sessionStorage.setItem('seloma_pending_token', res.token);
+        sessionStorage.removeItem('delorey_pending_token');
       }
       router.push(
         `/pay?requestId=${encodeURIComponent(res.requestId)}&plan=${plan}`,

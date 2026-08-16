@@ -39,7 +39,7 @@ Product and System Architecture win. This document only specifies how the Runtim
 
 # 1. Purpose
 
-The **AI Employee Runtime** is the center of gravity of DeloRey AI ([System Architecture](./system-architecture.md) §5).
+The **AI Employee Runtime** is the center of gravity of Seloma AI ([System Architecture](./system-architecture.md) §5).
 
 It executes **one conversation turn** for an **AI Sales Employee**: gather context, decide among Skills, enforce guardrails, produce a grounded reply or Human Handoff — with full auditability and cost awareness.
 
@@ -824,7 +824,7 @@ Downstream docs (do not change this Runtime shape):
 
 # Summary
 
-DeloRey’s AI Runtime is a **single, tenant-aware, cost-aware turn executor** for the AI Sales Employee. It loads Employee + guardrails, prefers deterministic/cheap paths, assembles Context before intelligence, runs MVP Skills under scopes, hard-stops on Guardrails, generates only through the AI Gateway when needed, post-validates groundedness, audits every decision, and escalates to humans when trust requires it.
+Seloma’s AI Runtime is a **single, tenant-aware, cost-aware turn executor** for the AI Sales Employee. It loads Employee + guardrails, prefers deterministic/cheap paths, assembles Context before intelligence, runs MVP Skills under scopes, hard-stops on Guardrails, generates only through the AI Gateway when needed, post-validates groundedness, audits every decision, and escalates to humans when trust requires it.
 
 **Build:** the pipeline and contracts above for Website, Telegram, and Bale.  
 **Do not build:** channel-forked logic, flow builders, unguarded mutations, provider lock-in, or autonomy that skips context and handoff.

@@ -10,15 +10,15 @@
 | **Last Updated** | August 10, 2026 |
 | **Related Documents** | [Market Research](./market-research.md) · [Business Plan](./business-plan.md) · [Lean Canvas](../00-overview/lean-canvas.md) · [Product Moat](./product-moat.md) · [Vision](../00-overview/vision.md) · [Product Positioning](../00-overview/product-positioning.md) · [Roadmap](../00-overview/roadmap.md) · [Product Principles](../02-product/product-principles.md) |
 
-**Purpose of this document:** Define how DeloRey AI creates, captures, and expands value through pricing. Every recommendation is justified. Where exact prices, costs, or willingness-to-pay cannot be known, claims are marked **Hypothesis**.
+**Purpose of this document:** Define how Seloma AI creates, captures, and expands value through pricing. Every recommendation is justified. Where exact prices, costs, or willingness-to-pay cannot be known, claims are marked **Hypothesis**.
 
-**Product under study:** DeloRey — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee (consultative pricing until list prices validated). Deployment: Cloud SaaS. Initial market: Iranian online shops.
+**Product under study:** Seloma — commerce platform (SaaS). **Primary product:** native storefront / سایت‌ساز + unified multi-channel order ops. **Add-on:** AI Sales Employee (consultative pricing until list prices validated). Deployment: Cloud SaaS. Initial market: Iranian online shops.
 
 ---
 
 # Executive Summary
 
-DeloRey should price the **shop platform** first and the **AI Employee** second. Merchants buy a place to sell and manage orders without tool sprawl. AI is an expansion offer for those who want automation on the same catalog and channels.
+Seloma should price the **shop platform** first and the **AI Employee** second. Merchants buy a place to sell and manage orders without tool sprawl. AI is an expansion offer for those who want automation on the same catalog and channels.
 
 **Pricing philosophy (recommended):**
 
@@ -51,7 +51,7 @@ DeloRey should price the **shop platform** first and the **AI Employee** second.
 
 ## Why value, not features
 
-Feature-priced AI products race to the bottom. Competitors can copy “website widget + Telegram bot + FAQ upload” in months. Merchants already tried generic bots and turned many of them off. DeloRey’s differentiation is **commerce-grounded answers + omnichannel continuity + revenue attribution**. Pricing must sell that differentiation.
+Feature-priced AI products race to the bottom. Competitors can copy “website widget + Telegram bot + FAQ upload” in months. Merchants already tried generic bots and turned many of them off. Seloma’s differentiation is **commerce-grounded answers + omnichannel continuity + revenue attribution**. Pricing must sell that differentiation.
 
 **Value-based pricing** means: the list price sits below the merchant’s expected economic benefit (recovered GMV + avoided headcount + founder time) and above our fully loaded cost of delivering resolved conversations at target margin.
 
@@ -184,7 +184,7 @@ Dollar figures below are **Hypothesis** planning anchors from Lean Canvas / Mark
 | **Channels** | 1 (Website **or** Telegram **or** Bale) |
 | **Conversations** | ~50–100 / month hard cap |
 | **Users** | 1 |
-| **AI Employees** | 1 (Sales) with watermark / “Powered by DeloRey” optional |
+| **AI Employees** | 1 (Sales) with watermark / “Powered by Seloma” optional |
 | **Analytics** | Basic counts only |
 | **Knowledge Base** | Store sync + limited manual notes |
 | **Support** | Docs / community only |
@@ -241,13 +241,13 @@ Dollar figures below are **Hypothesis** planning anchors from Lean Canvas / Mark
 | **Pricing** | Quote; annual commit preferred |
 | **Note** | Do not build Enterprise packaging before Professional retention is real |
 
-**Justification for this ladder:** Free educates; Starter monetizes single-channel proof; Professional captures the omnichannel ICP where DeloRey’s wedge is strongest; Business monetizes intensity; Enterprise waits for platform readiness. Mapping to Lean Canvas: Starter ≈ Starter; Professional ≈ Growth; Business ≈ Scale.
+**Justification for this ladder:** Free educates; Starter monetizes single-channel proof; Professional captures the omnichannel ICP where Seloma’s wedge is strongest; Business monetizes intensity; Enterprise waits for platform readiness. Mapping to Lean Canvas: Starter ≈ Starter; Professional ≈ Growth; Business ≈ Scale.
 
 ---
 
 # Expansion Revenue
 
-Healthy SaaS companies grow **within** accounts. DeloRey’s expansion map:
+Healthy SaaS companies grow **within** accounts. Seloma’s expansion map:
 
 | Expansion lever | When | How priced |
 |-----------------|------|------------|
@@ -424,7 +424,7 @@ Run experiments in order of decisiveness. Failures are useful.
 
 Do not win by being the cheapest chatbot. Compare **job-to-be-done and value capture**.
 
-| Competitor class | Examples | How they monetize | DeloRey posture |
+| Competitor class | Examples | How they monetize | Seloma posture |
 |------------------|----------|-------------------|-----------------|
 | **Live chat / inbox** | Intercom, Zendesk | Seats + tiers; messaging add-ons | We are not a helpdesk; avoid seat-led packaging that invites Intercom comparison on their terms |
 | **SMB chatbots** | Tidio | Freemium + conversation tiers | Compete on commerce grounding + attribution, not on cheapest conversation |
@@ -435,7 +435,7 @@ Do not win by being the cheapest chatbot. Compare **job-to-be-done and value cap
 
 **Value comparison lens:**
 
-| Dimension | Typical chatbot / inbox | DeloRey AI (intended) |
+| Dimension | Typical chatbot / inbox | Seloma AI (intended) |
 |-----------|-------------------------|------------------------|
 | Grounding | FAQ / docs | Live catalog, inventory, orders |
 | Channel focus | Web / IG / WA | Website + Telegram + Bale (MVP) |

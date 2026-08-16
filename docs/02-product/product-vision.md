@@ -12,13 +12,13 @@
 
 ---
 
-This document defines **the product**: what DeloRey AI is, who it serves, what problems it owns, and how teams decide what to build. It is not a company strategy memo, not a go-to-market brief, and not marketing copy. Every section should help engineers, designers, and product managers answer: *What are we building, and what must it never become?*
+This document defines **the product**: what Seloma AI is, who it serves, what problems it owns, and how teams decide what to build. It is not a company strategy memo, not a go-to-market brief, and not marketing copy. Every section should help engineers, designers, and product managers answer: *What are we building, and what must it never become?*
 
 ---
 
 # Vision Statement
 
-DeloRey is the **unified commerce platform** for online shops: a native storefront (سایت‌ساز) and one Workspace where catalog, orders, and multi-channel sales stay coherent — so a shop from website, Telegram, Bale, or later Instagram is trackable in one product. Optional **AI Sales Employees** sell and support on those same channels, grounded in live catalog and order data, under merchant guardrails. Long term: one commerce home merchants install; AI is an offer on that foundation — not a separate chatbot beside the shop.
+Seloma is the **unified commerce platform** for online shops: a native storefront (سایت‌ساز) and one Workspace where catalog, orders, and multi-channel sales stay coherent — so a shop from website, Telegram, Bale, or later Instagram is trackable in one product. Optional **AI Sales Employees** sell and support on those same channels, grounded in live catalog and order data, under merchant guardrails. Long term: one commerce home merchants install; AI is an offer on that foundation — not a separate chatbot beside the shop.
 
 **Authoritative packaging:** [Product Positioning](../00-overview/product-positioning.md).
 
@@ -42,9 +42,9 @@ If a proposed capability does not advance this mission, it does not belong in th
 
 # Product Purpose
 
-The purpose of DeloRey is to make **selling and operating an online shop coherent** — one storefront, one order book, one ops surface — and to turn conversations into a reliable commerce function **on top of that**.
+The purpose of Seloma is to make **selling and operating an online shop coherent** — one storefront, one order book, one ops surface — and to turn conversations into a reliable commerce function **on top of that**.
 
-Today shops are fragmented: site in one tool, Telegram/Bale/Instagram elsewhere, orders in spreadsheets. Merchants lose sales to silence and lose time to tool sprawl. DeloRey exists so that:
+Today shops are fragmented: site in one tool, Telegram/Bale/Instagram elsewhere, orders in spreadsheets. Merchants lose sales to silence and lose time to tool sprawl. Seloma exists so that:
 
 - Shoppers can buy and get answers where they already are.
 - Merchants get a **سایت‌ساز / ویترین** plus channels that share catalog and orders.
@@ -74,15 +74,15 @@ Broken down for builders:
 
 ## What we are *not* claiming to solve alone
 
-DeloRey does not replace ads, logistics, inventory planning, or payment acquiring. It owns **storefront + unified order/ops across channels**, and optionally the **conversation → accurate answer / safe action → measurable commerce outcome** loop when AI is enabled.
+Seloma does not replace ads, logistics, inventory planning, or payment acquiring. It owns **storefront + unified order/ops across channels**, and optionally the **conversation → accurate answer / safe action → measurable commerce outcome** loop when AI is enabled.
 
 ---
 
 # Product Definition
 
-## What DeloRey IS
+## What Seloma IS
 
-DeloRey is a **cloud SaaS commerce platform** whose **primary product** is a **native storefront + CMS (سایت‌ساز)** with **unified multi-channel order ops** for small and medium online shops. The **AI Sales Employee** is an **optional add-on** sold into the same offer.
+Seloma is a **cloud SaaS commerce platform** whose **primary product** is a **native storefront + CMS (سایت‌ساز)** with **unified multi-channel order ops** for small and medium online shops. The **AI Sales Employee** is an **optional add-on** sold into the same offer.
 
 Concretely, the product is:
 
@@ -97,13 +97,13 @@ Concretely, the product is:
 | **Context Engine + Knowledge Base** | Assembles live business truth before AI generation |
 | **Revenue / ops intelligence** | Orders by channel, conversation outcomes, assisted conversion when AI is on |
 
-**Primary product framing for teams:** Merchants **run a shop in DeloRey**. They may **optionally hire an AI Sales Employee** on the same data. They do not “build a bot” as the center of the product.
+**Primary product framing for teams:** Merchants **run a shop in Seloma**. They may **optionally hire an AI Sales Employee** on the same data. They do not “build a bot” as the center of the product.
 
 **Category label:** Commerce platform / سایت‌ساز + omnichannel ops (SaaS), with optional AI Employee.  
 **Deployment:** Multi-tenant cloud.  
 **Primary geography for product truth (MVP–Beta):** Iran — Persian language, Website + Telegram + Bale behavior, local commerce realities (e.g. COD, messaging-first journeys). Architecture must not hard-code Iran forever, but MVP quality criteria are Iran-first.
 
-## What DeloRey is NOT
+## What Seloma is NOT
 
 | Not this | Why the product refuses it |
 |----------|----------------------------|
@@ -122,7 +122,7 @@ For vocabulary used across Product, Design, and Engineering, see the [Glossary](
 
 # Product Principles
 
-Product Principles are the constitution of DeloRey AI. This Vision **inherits them by reference**; it does not restate all fifteen Core Principles, UX, AI, Commerce, and Technical Principles in full.
+Product Principles are the constitution of Seloma AI. This Vision **inherits them by reference**; it does not restate all fifteen Core Principles, UX, AI, Commerce, and Technical Principles in full.
 
 **Mandatory reference:** [Product Principles](./product-principles.md)
 
@@ -198,7 +198,7 @@ Store manager, support lead, or founder-in-the-inbox. Monitors Website, Telegram
 
 ## End customer (shopper)
 
-Shoppers interacting with the merchant on Website, Telegram, or Bale. They are not DeloRey’s account holders, but they experience product quality directly. Success for them: accurate answers, no invented promises, smooth path to purchase or status resolution, and human takeover when needed without repeating the whole story.
+Shoppers interacting with the merchant on Website, Telegram, or Bale. They are not Seloma’s account holders, but they experience product quality directly. Success for them: accurate answers, no invented promises, smooth path to purchase or status resolution, and human takeover when needed without repeating the whole story.
 
 ## Who is out of MVP user scope
 
@@ -383,7 +383,7 @@ If a backlog item does not improve grounded replies, safe actions, Website/Teleg
 
 # Summary
 
-DeloRey AI is a **cloud AI Commerce Platform** whose primary product is an **AI Sales Employee** for small and medium online shops — Iran-first on **Website, Telegram, and Bale** — grounded in live commerce data, controlled by merchants, and judged by commerce outcomes.
+Seloma AI is a **cloud AI Commerce Platform** whose primary product is an **AI Sales Employee** for small and medium online shops — Iran-first on **Website, Telegram, and Bale** — grounded in live commerce data, controlled by merchants, and judged by commerce outcomes.
 
 Builders should treat this Vision as the definition of the product, [Product Principles](./product-principles.md) as the decision constitution, the [Roadmap](../00-overview/roadmap.md) as sequencing, and the [Glossary](../00-overview/glossary.md) as shared language.
 

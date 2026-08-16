@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — Workspace + Website Widget frontend for DeloRey AI MVP |
+| **Status** | Active — Workspace + Website Widget frontend for Seloma AI MVP |
 | **Owner** | Founder / Frontend / Design |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [Backend Architecture](./backend-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) |
@@ -33,7 +33,7 @@ Wireframes and Design System in [docs/05-ui](../05-ui/README.md) refine presenta
 
 # 1. Purpose
 
-DeloRey’s frontend exists to make the **AI Sales Employee operable and trustworthy**:
+Seloma’s frontend exists to make the **AI Sales Employee operable and trustworthy**:
 
 1. **Workspace (control plane)** — merchants connect the store, configure the Employee, enable channels, review conversations, take over handoffs, edit Knowledge, and see honest outcomes.  
 2. **Website Chat Widget** — shopper-facing surface that talks to Conversation APIs; formatting and session only.
@@ -449,7 +449,7 @@ Aligned with Backend build order and Journey:
 
 # Summary
 
-DeloRey’s frontend is two clients — **Next.js Workspace** (FSD, React Query, monorepo) and a **CDN Website Widget** — both API-first, both free of commerce business rules. Screens follow the User Journey and UX Principles: clear AI state, visible sync/handoff truth, one job per screen, mobile-usable Workspace, no bot-builder IDE.
+Seloma’s frontend is two clients — **Next.js Workspace** (FSD, React Query, monorepo) and a **CDN Website Widget** — both API-first, both free of commerce business rules. Screens follow the User Journey and UX Principles: clear AI state, visible sync/handoff truth, one job per screen, mobile-usable Workspace, no bot-builder IDE.
 
 ---
 

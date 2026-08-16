@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — quality gates for DeloRey AI MVP |
+| **Status** | Active — quality gates for Seloma AI MVP |
 | **Owner** | Founder / QA / Backend / AI Platform / Frontend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [Product Scope](../02-product/product-scope.md) · [Roadmap](../00-overview/roadmap.md) · [DevOps & Infrastructure](./devops-infrastructure.md) · [Security Architecture](./security-architecture.md) |
@@ -31,7 +31,7 @@ This document
 
 # 1. Purpose
 
-Ensure DeloRey ships as a **grounded AI Commerce Platform**, not a fluent chatbot:
+Ensure Seloma ships as a **grounded AI Commerce Platform**, not a fluent chatbot:
 
 1. **Tenant isolation** verified in acceptance  
 2. **Context Before Intelligence** and sync-health fail-safe  
@@ -345,7 +345,7 @@ Before claiming MVP done, archive:
 
 # Summary
 
-DeloRey testing is a **ship gate system**: mandatory tenant isolation, sync-aware fail-safe, idempotent conversations, guardrailed tools, journey E2E, load without silent drops, and **AI eval that scores grounded commerce truth** — accuracy ≥ 90% and hallucination &lt; 5% on factual questions for MVP. Fluent wrong answers fail the suite even if the UI demos well.
+Seloma testing is a **ship gate system**: mandatory tenant isolation, sync-aware fail-safe, idempotent conversations, guardrailed tools, journey E2E, load without silent drops, and **AI eval that scores grounded commerce truth** — accuracy ≥ 90% and hallucination &lt; 5% on factual questions for MVP. Fluent wrong answers fail the suite even if the UI demos well.
 
 ---
 

@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — security defaults for DeloRey AI MVP |
+| **Status** | Active — security defaults for Seloma AI MVP |
 | **Owner** | Founder / Backend / DevOps / Security |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [API Specification](./api-specification.md) · [Database Design](./database-design.md) · [Backend Architecture](./backend-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) · [AI Gateway Design](./ai-gateway-design.md) |
@@ -371,7 +371,7 @@ Detailed AI eval / load tests belong in Testing Strategy; security tests above a
 
 # Summary
 
-DeloRey security is **tenant-fail-closed, secret-safe, tool-scoped, and audit-visible by default**: TLS, AuthN/Z, isolation across Postgres/Redis/Vector/Object/Queues, signed webhooks, Guardrails over prompt injection, Gateway rate/budget limits, and no unguarded commerce mutations in MVP. Enterprise SSO and fleet RBAC wait; cross-tenant isolation and handoff integrity do not.
+Seloma security is **tenant-fail-closed, secret-safe, tool-scoped, and audit-visible by default**: TLS, AuthN/Z, isolation across Postgres/Redis/Vector/Object/Queues, signed webhooks, Guardrails over prompt injection, Gateway rate/budget limits, and no unguarded commerce mutations in MVP. Enterprise SSO and fleet RBAC wait; cross-tenant isolation and handoff integrity do not.
 
 ---
 

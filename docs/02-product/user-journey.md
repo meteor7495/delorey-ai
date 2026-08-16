@@ -44,7 +44,7 @@ It also encodes product philosophy in sequence form: merchants do not “build a
 The MVP path is deliberately linear and short. Anything that lengthens it without improving accuracy or trust is out of priority ([Product Principles](./product-principles.md) — *Fast Time To Value*; [Product Scope](./product-scope.md)).
 
 ```
-Merchant discovers DeloRey
+Merchant discovers Seloma
         ↓
 Registers
         ↓
@@ -85,7 +85,7 @@ Continuous Improvement
 
 ### Merchant goals
 
-- Understand whether DeloRey is an AI Sales Employee for their shop — not another chatbot builder, CRM, or helpdesk.
+- Understand whether Seloma is an AI Sales Employee for their shop — not another chatbot builder, CRM, or helpdesk.
 - See that answers will use live catalog, inventory, orders, and policies.
 - Believe time-to-value is short and risk is controllable (handoff, guardrails, audit).
 
@@ -102,7 +102,7 @@ Curiosity mixed with skepticism from prior chatbot trauma; cautious optimism whe
 
 ### Product responsibilities
 
-- Position DeloRey as hiring an AI Sales Employee, not configuring a bot ([Product Vision](./product-vision.md)).
+- Position Seloma as hiring an AI Sales Employee, not configuring a bot ([Product Vision](./product-vision.md)).
 - Set honest expectations: MVP channels are Website, Telegram, and Bale only ([Product Scope](./product-scope.md)).
 - For design partners, discovery is often founder-led ([Go-To-Market](../01-business/go-to-market.md)).
 
@@ -136,7 +136,7 @@ Merchant is inside a legible Workspace with next step: connect store. Tenant-sco
 
 ### Why this stage exists
 
-Without a connected storefront, DeloRey is a generic chatbot. Commerce Core is critical path ([Product Principles](./product-principles.md) — *Context Before Intelligence*).
+Without a connected storefront, Seloma is a generic chatbot. Commerce Core is critical path ([Product Principles](./product-principles.md) — *Context Before Intelligence*).
 
 ### Shopify
 
@@ -225,7 +225,7 @@ MVP requires all three adapters to be production-capable; a given merchant may g
 
 ### Website Chat
 
-**Connection flow:** Merchant embeds the widget on Shopify / WooCommerce (or equivalent), confirms brand-basic styling, verifies session creation, and sees handoff states. Cart/page context when available is passed into Conversation context — DeloRey does not become a theme designer or checkout owner.
+**Connection flow:** Merchant embeds the widget on Shopify / WooCommerce (or equivalent), confirms brand-basic styling, verifies session creation, and sees handoff states. Cart/page context when available is passed into Conversation context — Seloma does not become a theme designer or checkout owner.
 
 **Validation:** Test message round-trip; widget loads on mobile; handoff state renders when escalated.
 

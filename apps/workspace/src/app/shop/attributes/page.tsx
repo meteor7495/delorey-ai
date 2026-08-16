@@ -3,7 +3,7 @@
 import { toastSuccess, toastFromError } from '@/lib/notify';
 import { FormEvent, useEffect, useState } from 'react';
 import { SlidersHorizontal, Trash2, Plus } from 'lucide-react';
-import type { Attribute } from '@delorey/api-client';
+import type { Attribute } from '@seloma/api-client';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

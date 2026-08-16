@@ -16,7 +16,7 @@ import {
   escalationLabel,
   skillLabel,
   syncHealthLabel,
-} from '@delorey/ui';
+} from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';

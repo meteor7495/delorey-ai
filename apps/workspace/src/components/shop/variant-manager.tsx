@@ -3,7 +3,7 @@
 import { toastSuccess, toastWarning, toastFromError } from '@/lib/notify';
 import { useCallback, useEffect, useState } from 'react';
 import { Wand2 } from 'lucide-react';
-import type { Attribute, ProductVariant } from '@delorey/api-client';
+import type { Attribute, ProductVariant } from '@seloma/api-client';
 import { api } from '@/shared/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

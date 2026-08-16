@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | **Version** | 0.1 |
-| **Status** | Active — per-turn context assembly for DeloRey AI |
+| **Status** | Active — per-turn context assembly for Seloma AI |
 | **Owner** | Founder / AI Platform / Backend |
 | **Last Updated** | July 25, 2026 |
 | **Parent Documents** | [System Architecture](./system-architecture.md) · [AI Runtime Architecture](./ai-runtime-architecture.md) · [Backend Architecture](./backend-architecture.md) · [Domain-Driven Design](./domain-driven-design.md) · [Database Design](./database-design.md) |
@@ -462,7 +462,7 @@ Hallucination / groundedness evals sit in Testing Strategy; Context must expose 
 
 # Summary
 
-The Context Engine is DeloRey’s **Context Before Intelligence** machinery: a tenant-scoped, deadline-bounded assembler that produces a typed **`ContextBundle`** — commerce, Knowledge, history, Memory, constraints, sync flags, citations — without inventing facts or calling LLM providers for truth. Runtime fails safe on gaps; Gateway only generates after context exists when intelligence is required.
+The Context Engine is Seloma’s **Context Before Intelligence** machinery: a tenant-scoped, deadline-bounded assembler that produces a typed **`ContextBundle`** — commerce, Knowledge, history, Memory, constraints, sync flags, citations — without inventing facts or calling LLM providers for truth. Runtime fails safe on gaps; Gateway only generates after context exists when intelligence is required.
 
 ---
 

@@ -18,7 +18,7 @@
 
 | Prefer | Avoid |
 |--------|-------|
-| سایت‌ساز / فروشگاه DeloRey / ویترین بومی | فقط «چت‌بات» به‌عنوان کل محصول |
+| سایت‌ساز / فروشگاه Seloma / ویترین بومی | فقط «چت‌بات» به‌عنوان کل محصول |
 | سفارش‌ها و کانال‌ها در یک Workspace | چند ابزار جدا بدون منبع حقیقت |
 | کارمند فروش هوش مصنوعی *(آفر اختیاری)* | ربات چت / چت‌بات‌ساز |
 | همگام‌سازی / کاتالوگ واقعی | آموزش مدل / پرامپت جادویی |
@@ -171,7 +171,7 @@ Nav: «ممیزی» نه Audit. Tab: «نوبت‌های کارمند» نه «�
 | Verify order | Ask only what Runtime/Skill requires — e.g. «لطفاً شماره سفارش را وارد کنید.» |
 | AI state chip | Use canonical FA from §4 — never raw `inactive` / `active` |
 
-Widget chrome (dev harness): title «ویجت گفتگو DeloRey»; CTA «شروع گفتگو» / «ارسال». Merchant setup copy refers to «فضای کاری → کانال‌ها» and «کلید عمومی» — not Public key / Workspace.
+Widget chrome (dev harness): title «ویجت گفتگو Seloma»; CTA «شروع گفتگو» / «ارسال». Merchant setup copy refers to «فضای کاری → کانال‌ها» and «کلید عمومی» — not Public key / Workspace.
 
 **Employee replies** (generated): tone/language from Employee settings — still must not invent catalog facts (Runtime). Widget must not “improve” answers with local copy that adds prices.
 
