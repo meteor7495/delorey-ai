@@ -19,6 +19,7 @@ import { CustomersService } from './customers.service';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { ChannelCheckoutService } from './channel-checkout.service';
+import { UploadsController } from './uploads.controller';
 
 @Module({
   imports: [PlatformModule, AuditModule],
@@ -31,6 +32,7 @@ import { ChannelCheckoutService } from './channel-checkout.service';
     ArticlesController,
     StorefrontController,
     PaymentsController,
+    UploadsController,
   ],
   providers: [
     ShopService,

@@ -18,12 +18,52 @@ export class PaymentsService {
     );
   }
 
+  private storefrontBase() {
+    return this.config.get<string>('STOREFRONT_BASE_URL') ?? 'http://localhost:3020';
+  }
+
   private merchantId(storeMerchant?: string | null) {
     return (
       storeMerchant?.trim() ||
       this.config.get<string>('ZARINPAL_MERCHANT_ID')?.trim() ||
       ''
     );
+  }
+
+  private sandbox() {
+    const flag = this.config.get<string>('ZARINPAL_SANDBOX')?.trim();
+    return flag === '1' || flag === 'true';
+  }
+
+  private zarinpalUrls() {
+    if (this.sandbox()) {
+      return {
+        request: 'https://sandbox.zarinpal.com/pg/v4/payment/request.json',
+        verify: 'https://sandbox.zarinpal.com/pg/v4/payment/verify.json',
+        start: 'https://sandbox.zarinpal.com/pg/StartPay',
+      };
+    }
+    return {
+      request: 'https://api.zarinpal.com/pg/v4/payment/request.json',
+      verify: 'https://api.zarinpal.com/pg/v4/payment/verify.json',
+      start: 'https://www.zarinpal.com/pg/StartPay',
+    };
+  }
+
+  async trackUrl(order: {
+    tenantId: string;
+    orderNumber: string;
+    customerPhone: string;
+  }, pay: 'ok' | 'fail') {
+    const settings = await this.prisma.storefrontSettings.findUnique({
+      where: { tenantId: order.tenantId },
+    });
+    const q = new URLSearchParams({
+      orderNumber: order.orderNumber,
+      phone: order.customerPhone,
+      pay,
+    });
+    return `${this.storefrontBase()}/s/${settings?.storeSlug ?? 'shop'}/track?${q.toString()}`;
   }
 
   async startPayment(input: {
@@ -49,7 +89,8 @@ export class PaymentsService {
       };
     }
 
-    const res = await fetch('https://api.zarinpal.com/pg/v4/payment/request.json', {
+    const urls = this.zarinpalUrls();
+    const res = await fetch(urls.request, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
@@ -74,16 +115,27 @@ export class PaymentsService {
     });
     return {
       authority,
-      payUrl: `https://www.zarinpal.com/pg/StartPay/${authority}`,
+      payUrl: `${urls.start}/${authority}`,
       mocked: false,
     };
   }
 
-  async confirmMock(orderId: string) {
+  async confirmMock(orderId: string, result: 'ok' | 'fail' = 'ok') {
     const order = await this.prisma.storefrontOrder.findUnique({
       where: { id: orderId },
     });
     if (!order) throw new NotFoundException('سفارش پیدا نشد');
+    if (result === 'fail') {
+      if (
+        order.status === 'confirmed' ||
+        order.status === 'shipped' ||
+        order.status === 'delivered'
+      ) {
+        return { ok: true, already: true, orderId: order.id, status: order.status };
+      }
+      await this.failOrder(order.id, order.status);
+      return { ok: false, orderId: order.id, status: 'cancelled' as const };
+    }
     if (order.status !== 'pending_payment') {
       return { ok: true, already: true, orderId: order.id, status: order.status };
     }
@@ -91,7 +143,7 @@ export class PaymentsService {
       where: { id: order.id },
       data: { status: 'confirmed', paymentRef: 'mock' },
     });
-    return { ok: true, orderId: order.id, status: 'confirmed' };
+    return { ok: true, orderId: order.id, status: 'confirmed' as const };
   }
 
   async confirmZarinpal(authority: string, status: string) {
@@ -100,30 +152,18 @@ export class PaymentsService {
     });
     if (!order) throw new NotFoundException('سفارش پیدا نشد');
     if (status !== 'OK') {
-      if (order.status === 'confirmed') {
-        return { ok: true, already: true, orderId: order.id, status: order.status };
-      }
-      if (order.status !== 'cancelled') {
-        await this.prisma.storefrontOrder.update({
-          where: { id: order.id },
-          data: { status: 'cancelled' },
-        });
-        await this.inventory.restockOrder(
-          order.tenantId,
-          order.id,
-          order.orderNumber,
-        );
-      }
-      return { ok: false, orderId: order.id, status: 'cancelled' };
+      await this.failOrder(order.id, order.status);
+      return { ok: false, orderId: order.id, status: 'cancelled' as const };
     }
     if (order.status === 'confirmed') {
-      return { ok: true, already: true, orderId: order.id, status: 'confirmed' };
+      return { ok: true, already: true, orderId: order.id, status: 'confirmed' as const };
     }
     const settings = await this.prisma.storefrontSettings.findUnique({
       where: { tenantId: order.tenantId },
     });
     const merchant = this.merchantId(settings?.zarinpalMerchantId);
-    const res = await fetch('https://api.zarinpal.com/pg/v4/payment/verify.json', {
+    const urls = this.zarinpalUrls();
+    const res = await fetch(urls.verify, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
@@ -136,7 +176,8 @@ export class PaymentsService {
       data?: { code?: number; ref_id?: number };
     };
     if (json.data?.code !== 100 && json.data?.code !== 101) {
-      throw new BadRequestException('تأیید پرداخت ناموفق بود');
+      await this.failOrder(order.id, order.status);
+      return { ok: false, orderId: order.id, status: 'cancelled' as const };
     }
     await this.prisma.storefrontOrder.update({
       where: { id: order.id },
@@ -145,6 +186,23 @@ export class PaymentsService {
         paymentRef: String(json.data.ref_id ?? authority),
       },
     });
-    return { ok: true, orderId: order.id, status: 'confirmed' };
+    return { ok: true, orderId: order.id, status: 'confirmed' as const };
+  }
+
+  private async failOrder(orderId: string, currentStatus: string) {
+    if (currentStatus === 'confirmed' || currentStatus === 'shipped' || currentStatus === 'delivered') {
+      return;
+    }
+    if (currentStatus !== 'cancelled') {
+      const order = await this.prisma.storefrontOrder.update({
+        where: { id: orderId },
+        data: { status: 'cancelled' },
+      });
+      await this.inventory.restockOrder(
+        order.tenantId,
+        order.id,
+        order.orderNumber,
+      );
+    }
   }
 }

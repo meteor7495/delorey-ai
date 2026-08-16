@@ -154,6 +154,9 @@ function RegalHeader({
           <Link href={`${base}/products`} className="hover:text-zh-primary">
             همه محصولات
           </Link>
+          <Link href={`${base}/articles`} className="hover:text-zh-primary">
+            مجله
+          </Link>
         </nav>
         <div className="flex items-center gap-3 ms-auto">
           <div className="hidden md:block w-56">
@@ -192,6 +195,9 @@ function CustommeHeader({
               {c.name}
             </Link>
           ))}
+          <Link href={`${base}/articles`} className="shrink-0 hover:text-zh-primary">
+            مجله
+          </Link>
         </div>
       </div>
     </header>
@@ -263,6 +269,7 @@ function NoirHeader({
         <Logo settings={settings} base={base} />
         <div className="flex items-center gap-4 text-[13px]">
           <Link href={`${base}/products`}>فروشگاه</Link>
+          <Link href={`${base}/articles`}>مجله</Link>
           <CartLink base={base} pathname={pathname} />
         </div>
       </div>
@@ -294,6 +301,7 @@ function ExclusiveHeader({
           <nav className="hidden lg:flex gap-6 text-[15px]">
             <Link href={base}>خانه</Link>
             <Link href={`${base}/products`}>فروشگاه</Link>
+            <Link href={`${base}/articles`}>مجله</Link>
             <Link href={`${base}/track`}>تماس</Link>
           </nav>
           <SearchField q={q} setQ={setQ} onSearch={onSearch} rounded="rounded-md" />
@@ -350,6 +358,9 @@ function NavRow({
         <nav className={`flex items-center gap-6 text-[15px] ${dark ? 'text-zh-800' : 'text-zh-900'}`}>
           <Link href={`${base}/products`} className="shrink-0 hover:text-zh-primary">
             محصولات
+          </Link>
+          <Link href={`${base}/articles`} className="shrink-0 hover:text-zh-primary">
+            مجله
           </Link>
           <Link href={`${base}/track`} className="shrink-0 hover:text-zh-primary">
             پیگیری سفارش
@@ -408,6 +419,9 @@ export function ThemeFooter({
             <div className="space-y-3 text-right">
               <p className="text-zh-900 font-semibold">خدمات</p>
               <ul className="space-y-3 text-zh-600">
+                <li>
+                  <Link href={`${base}/articles`}>مجله فروشگاه</Link>
+                </li>
                 <li>
                   <Link href={`${base}/track`}>پیگیری سفارش</Link>
                 </li>

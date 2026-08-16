@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 function isLocalDevOrigin(origin: string): boolean {
@@ -10,7 +13,9 @@ function isLocalDevOrigin(origin: string): boolean {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
   const origins = (process.env.CORS_ORIGINS ?? 'http://localhost:3010,http://localhost:5173')
     .split(',')
     .map((s) => s.trim())
@@ -44,6 +49,12 @@ async function bootstrap() {
     },
     credentials: true,
   });
+  const staticDir = join(__dirname, '..', 'static');
+  mkdirSync(join(staticDir, 'uploads'), { recursive: true });
+  if (existsSync(staticDir)) {
+    app.useStaticAssets(staticDir, { prefix: '/static/' });
+  }
+
   app.setGlobalPrefix('v1');
   app.useGlobalPipes(
     new ValidationPipe({

@@ -133,6 +133,10 @@ export default function ShopSettingsPage() {
                   placeholder="خالی = پرداخت آزمایشی mock"
                   dir="ltr"
                 />
+                <p className="text-xs text-[var(--text-3)]">
+                  بدون کد پذیرنده، مشتری به صفحه پرداخت آزمایشی می‌رود و بعد به پیگیری سفارش برمی‌گردد.
+                  با Merchant ID واقعی، زرین‌پال باز می‌شود (برای تست از ZARINPAL_SANDBOX=1 استفاده کنید).
+                </p>
               </div>
               <div className="pt-2">
                 <p className="text-sm font-semibold text-[var(--text-1)]">

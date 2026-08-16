@@ -9,6 +9,7 @@ import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FormDialog } from '@/components/shared/form-dialog';
+import { ImageField } from '@/components/shop/image-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -247,14 +248,11 @@ export default function ShopArticlesPage() {
                 placeholder="متن کامل مقاله…"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>تصویر شاخص</Label>
-              <Input
-                value={featuredImageUrl}
-                onChange={(e) => setFeaturedImageUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+            <ImageField
+              label="تصویر شاخص"
+              value={featuredImageUrl}
+              onChange={setFeaturedImageUrl}
+            />
             <div className="space-y-1.5">
               <Label>برچسب‌ها (با ، جدا کنید)</Label>
               <Input value={tags} onChange={(e) => setTags(e.target.value)} />

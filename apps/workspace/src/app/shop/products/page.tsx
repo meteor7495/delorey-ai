@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FormDialog } from '@/components/shared/form-dialog';
 import { VariantManager } from '@/components/shop/variant-manager';
+import { ImageField } from '@/components/shop/image-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -379,14 +380,11 @@ export default function ShopProductsPage() {
               <Label>برچسب‌ها (با ، جدا کنید)</Label>
               <Input value={tags} onChange={(e) => setTags(e.target.value)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>آدرس تصویر</Label>
-              <Input
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://..."
-              />
-            </div>
+            <ImageField
+              label="تصویر محصول"
+              value={imageUrl}
+              onChange={setImageUrl}
+            />
             <div className="space-y-1.5">
               <Label>عنوان سئو</Label>
               <Input

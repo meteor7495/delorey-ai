@@ -26,6 +26,10 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
+# Uploaded merchant photos (sample images in static/samples are committed)
+apps/api/static/uploads/*
+!apps/api/static/uploads/.gitkeep
+
 # Misc
 .vercel
 *.local

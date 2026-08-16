@@ -941,9 +941,34 @@ export class ShopService {
     });
     if (!existing) throw new NotFoundException('سفارش پیدا نشد');
     const previous = existing.status;
+    if (previous === status) {
+      const row = await this.prisma.storefrontOrder.findFirst({
+        where: { id, tenantId },
+        include: { items: true },
+      });
+      return this.mapOrder(row!);
+    }
+    const allowedFrom: Record<string, string[]> = {
+      pending: ['confirmed', 'cancelled'],
+      pending_payment: ['confirmed', 'cancelled'],
+      confirmed: ['shipped', 'cancelled'],
+      shipped: ['delivered'],
+      delivered: [],
+      cancelled: [],
+    };
+    if (!(allowedFrom[previous] ?? []).includes(status)) {
+      throw new BadRequestException('این تغییر وضعیت مجاز نیست');
+    }
     const row = await this.prisma.storefrontOrder.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        ...(previous === 'pending_payment' &&
+        status === 'confirmed' &&
+        !existing.paymentRef
+          ? { paymentRef: 'manual' }
+          : {}),
+      },
       include: { items: true },
     });
     if (previous !== 'cancelled' && status === 'cancelled') {
@@ -965,7 +990,7 @@ export class ShopService {
   async publicHome(storeSlug: string) {
     const settings = await this.resolveTenantBySlug(storeSlug);
     const tenantId = settings.tenantId;
-    const [banners, categories, featured] = await Promise.all([
+    const [banners, categories, featured, articles] = await Promise.all([
       this.prisma.storefrontBanner.findMany({
         where: { tenantId, active: true },
         orderBy: { sortOrder: 'asc' },
@@ -983,7 +1008,12 @@ export class ShopService {
           source: { in: ['native', 'mock'] },
         },
         orderBy: { updatedAt: 'desc' },
-        take: 12,
+        take: 24,
+      }),
+      this.prisma.article.findMany({
+        where: { tenantId, status: 'published' },
+        orderBy: { publishedAt: 'desc' },
+        take: 8,
       }),
     ]);
     const channel = await this.store.websiteChannel(tenantId);
@@ -1003,6 +1033,14 @@ export class ShopService {
         imageUrl: c.imageUrl,
       })),
       featured: featured.map(mapProduct),
+      articles: articles.map((a) => ({
+        id: a.id,
+        slug: a.slug,
+        title: a.title,
+        excerpt: a.excerpt,
+        featuredImageUrl: a.featuredImageUrl,
+        publishedAt: a.publishedAt?.toISOString() ?? null,
+      })),
       widget: channel
         ? {
             publicKey: channel.publicKey,
@@ -1014,6 +1052,45 @@ export class ShopService {
             ).replace(/\/$/, ''),
           }
         : null,
+    };
+  }
+
+  async publicArticles(storeSlug: string) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    const rows = await this.prisma.article.findMany({
+      where: { tenantId: settings.tenantId, status: 'published' },
+      orderBy: { publishedAt: 'desc' },
+      take: 24,
+    });
+    return rows.map((a) => ({
+      id: a.id,
+      slug: a.slug,
+      title: a.title,
+      excerpt: a.excerpt,
+      featuredImageUrl: a.featuredImageUrl,
+      publishedAt: a.publishedAt?.toISOString() ?? null,
+    }));
+  }
+
+  async publicArticle(storeSlug: string, articleSlug: string) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    const row = await this.prisma.article.findFirst({
+      where: {
+        tenantId: settings.tenantId,
+        slug: articleSlug,
+        status: 'published',
+      },
+    });
+    if (!row) throw new NotFoundException('مقاله پیدا نشد');
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      excerpt: row.excerpt,
+      content: row.content,
+      featuredImageUrl: row.featuredImageUrl,
+      tags: row.tags,
+      publishedAt: row.publishedAt?.toISOString() ?? null,
     };
   }
 
@@ -1874,6 +1951,7 @@ export class ShopService {
     status: string;
     channel?: string;
     paymentMethod: string;
+    paymentRef?: string | null;
     subtotalAmount?: Prisma.Decimal;
     discountCode?: string | null;
     discountAmount?: Prisma.Decimal;
@@ -1902,6 +1980,7 @@ export class ShopService {
       status: row.status,
       channel: row.channel ?? 'website',
       paymentMethod: row.paymentMethod,
+      paymentRef: row.paymentRef ?? null,
       subtotalAmount: Number(row.subtotalAmount ?? row.totalAmount),
       discountCode: row.discountCode ?? null,
       discountAmount: Number(row.discountAmount ?? 0),

@@ -31,6 +31,14 @@ type HomeData = {
     imageUrl?: string | null;
   }>;
   featured: ProductCardData[];
+  articles?: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    excerpt: string | null;
+    featuredImageUrl: string | null;
+    publishedAt: string | null;
+  }>;
   widget: {
     publicKey: string;
     apiBase: string;
@@ -74,6 +82,8 @@ export default function StoreHomePage({
             banners: (raw.banners as HomeData['banners']) ?? [],
             categories: (raw.categories as HomeData['categories']) ?? [],
             featured: (raw.featured as ProductCardData[]) ?? [],
+            articles:
+              (raw.articles as HomeData['articles']) ?? [],
             widget: (raw.widget as HomeData['widget']) ?? null,
           }),
         )
@@ -133,6 +143,7 @@ export default function StoreHomePage({
         banners={data.banners}
         categories={data.categories}
         featured={data.featured}
+        articles={data.articles}
         slides={slides}
         slide={slide}
         setSlide={setSlide}

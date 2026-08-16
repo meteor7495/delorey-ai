@@ -809,6 +809,23 @@ export function createApiClient(opts: ApiClientOptions) {
       }>(opts, '/shop/overview'),
     shopSettings: () =>
       request<Record<string, unknown>>(opts, '/shop/settings'),
+    uploadImage: async (file: File) => {
+      const headers = new Headers();
+      const token = opts.getToken?.();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      const body = new FormData();
+      body.append('file', file);
+      const res = await fetch(`${opts.baseUrl}/v1/uploads`, {
+        method: 'POST',
+        headers,
+        body,
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${text}`);
+      }
+      return res.json() as Promise<{ url: string; filename: string }>;
+    },
     listShopThemes: () =>
       request<
         Array<{
@@ -1112,6 +1129,31 @@ export function createApiClient(opts: ApiClientOptions) {
         opts,
         `/storefront/${encodeURIComponent(storeSlug)}/home`,
       ),
+    storefrontArticles: (storeSlug: string) =>
+      request<
+        Array<{
+          id: string;
+          slug: string;
+          title: string;
+          excerpt: string | null;
+          featuredImageUrl: string | null;
+          publishedAt: string | null;
+        }>
+      >(opts, `/storefront/${encodeURIComponent(storeSlug)}/articles`),
+    storefrontArticle: (storeSlug: string, articleSlug: string) =>
+      request<{
+        id: string;
+        slug: string;
+        title: string;
+        excerpt: string | null;
+        content: string;
+        featuredImageUrl: string | null;
+        publishedAt: string | null;
+        tags: string[];
+      }>(
+        opts,
+        `/storefront/${encodeURIComponent(storeSlug)}/articles/${encodeURIComponent(articleSlug)}`,
+      ),
     storefrontProducts: (
       storeSlug: string,
       query: Record<string, string> = {},
@@ -1184,6 +1226,7 @@ export function createApiClient(opts: ApiClientOptions) {
         paymentHint?: string | null;
         payUrl?: string | null;
         status?: string;
+        paymentRef?: string | null;
       }>(opts, `/storefront/${encodeURIComponent(storeSlug)}/checkout`, {
         method: 'POST',
         body: JSON.stringify(body),

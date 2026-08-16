@@ -13,12 +13,22 @@ type Banner = {
 };
 type Category = { id: string; name: string; slug: string; imageUrl?: string | null };
 
+export type HomeArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  featuredImageUrl: string | null;
+  publishedAt: string | null;
+};
+
 export type HomeViewProps = {
   storeSlug: string;
   settings: StoreSettings;
   banners: Banner[];
   categories: Category[];
   featured: ProductCardData[];
+  articles?: HomeArticle[];
   slides: Banner[];
   slide: number;
   setSlide: (n: number | ((p: number) => number)) => void;
@@ -44,12 +54,24 @@ function SectionHeader({
 
 export function HomeByTheme(props: HomeViewProps) {
   const theme = props.settings.themeId ?? 'zi-home';
-  if (theme === 'regal') return <RegalHome {...props} />;
-  if (theme === 'customme') return <CustommeHome {...props} />;
-  if (theme === 'icenter') return <IcenterHome {...props} />;
-  if (theme === 'noir') return <NoirHome {...props} />;
-  if (theme === 'exclusive') return <ExclusiveHome {...props} />;
-  return <ClassicHome {...props} />;
+  return (
+    <>
+      {theme === 'regal' ? (
+        <RegalHome {...props} />
+      ) : theme === 'customme' ? (
+        <CustommeHome {...props} />
+      ) : theme === 'icenter' ? (
+        <IcenterHome {...props} />
+      ) : theme === 'noir' ? (
+        <NoirHome {...props} />
+      ) : theme === 'exclusive' ? (
+        <ExclusiveHome {...props} />
+      ) : (
+        <ClassicHome {...props} />
+      )}
+      <ArticlesStrip storeSlug={props.storeSlug} articles={props.articles ?? []} />
+    </>
+  );
 }
 
 function ClassicHome({
@@ -423,9 +445,58 @@ function CategoryGrid({
           <Link
             key={c.id}
             href={`/s/${storeSlug}/products?category=${c.slug}`}
-            className="rounded-dk-xl bg-zh-100 p-6 text-center hover:bg-zh-200 text-zh-ink"
+            className="rounded-dk-xl overflow-hidden bg-zh-100 text-center hover:bg-zh-200 text-zh-ink"
           >
-            {c.name}
+            {c.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={c.imageUrl} alt="" className="h-28 w-full object-cover" />
+            ) : (
+              <div className="h-28 bg-zh-200" />
+            )}
+            <p className="p-4">{c.name}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ArticlesStrip({
+  storeSlug,
+  articles,
+}: {
+  storeSlug: string;
+  articles: HomeArticle[];
+}) {
+  if (articles.length === 0) return null;
+  return (
+    <section className="dk-container mt-12 lg:mt-16 mb-16">
+      <SectionHeader title="مجله فروشگاه" href={`/s/${storeSlug}/articles`} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        {articles.slice(0, 4).map((a) => (
+          <Link
+            key={a.id}
+            href={`/s/${storeSlug}/articles/${a.slug}`}
+            className="rounded-dk-xl overflow-hidden border border-zh-100 bg-zh-surface hover:shadow-dk-card"
+          >
+            {a.featuredImageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={a.featuredImageUrl}
+                alt=""
+                className="h-40 w-full object-cover"
+              />
+            ) : (
+              <div className="h-40 bg-zh-100" />
+            )}
+            <div className="p-4 space-y-2 text-right">
+              <h3 className="text-[16px] text-zh-ink leading-7">{a.title}</h3>
+              {a.excerpt ? (
+                <p className="text-[13px] text-zh-600 leading-6 line-clamp-2">
+                  {a.excerpt}
+                </p>
+              ) : null}
+            </div>
           </Link>
         ))}
       </div>

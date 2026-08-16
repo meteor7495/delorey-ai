@@ -8,6 +8,7 @@ import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FormDialog } from '@/components/shared/form-dialog';
+import { ImageField } from '@/components/shop/image-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -113,10 +114,7 @@ export default function ShopCategoriesPage() {
               <Label>اسلاگ</Label>
               <Input value={slug} onChange={(e) => setSlug(e.target.value)} />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>تصویر</Label>
-              <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-            </div>
+            <ImageField label="تصویر" value={imageUrl} onChange={setImageUrl} />
             <div className="flex gap-2 sm:col-span-2">
               <Button type="submit">{editingId ? 'ذخیره' : 'ایجاد'}</Button>
               <Button type="button" variant="outline" onClick={closeDialog}>

@@ -130,7 +130,7 @@ input {
   gap: 8px;
   height: 40px;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: var(--zh-radius, 8px);
   background: var(--zh-primary);
   color: #fff;
   font-size: 14px;
@@ -138,6 +138,25 @@ input {
   border: none;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+[data-store-theme='noir'] .zh-btn-primary,
+[data-store-theme='icenter'] .zh-btn-primary {
+  color: #0e1520;
+}
+
+[data-store-theme='customme'] .zh-btn-primary {
+  border-radius: 999px;
+}
+
+[data-store-theme='regal'] .zh-card,
+[data-store-theme='noir'] .zh-card {
+  border-radius: 0;
+}
+
+[data-store-theme='noir'] .zh-card {
+  border-color: var(--zh-200);
+  background: var(--zh-surface);
 }
 .zh-btn-primary:hover {
   background: var(--zh-primary-hover, #7d3c98);

@@ -8,6 +8,7 @@ import {
   ThemeFooter,
   ThemeHeader,
 } from '@/themes/ThemeChrome';
+import { StoreThemeProvider } from '@/themes/theme-context';
 import { applyThemeTokens } from '@/themes/tokens';
 import type { StoreSettings } from '@/themes/types';
 
@@ -65,21 +66,23 @@ export function StoreShell({
   }
 
   return (
-    <div className="min-h-[100dvh] flex flex-col bg-zh-bg text-zh-800">
-      <ThemeHeader
-        settings={settings}
-        base={base}
-        pathname={pathname}
-        categories={categories}
-        q={q}
-        setQ={setQ}
-        catOpen={catOpen}
-        setCatOpen={setCatOpen}
-        onSearch={onSearch}
-      />
-      <main className="flex-1 pb-16 lg:pb-0">{children}</main>
-      <MobileTabBar base={base} pathname={pathname} />
-      <ThemeFooter settings={settings} base={base} categories={categories} />
-    </div>
+    <StoreThemeProvider themeId={settings.themeId}>
+      <div className="min-h-[100dvh] flex flex-col bg-zh-bg text-zh-800">
+        <ThemeHeader
+          settings={settings}
+          base={base}
+          pathname={pathname}
+          categories={categories}
+          q={q}
+          setQ={setQ}
+          catOpen={catOpen}
+          setCatOpen={setCatOpen}
+          onSearch={onSearch}
+        />
+        <main className="flex-1 pb-16 lg:pb-0">{children}</main>
+        <MobileTabBar base={base} pathname={pathname} />
+        <ThemeFooter settings={settings} base={base} categories={categories} />
+      </div>
+    </StoreThemeProvider>
   );
 }

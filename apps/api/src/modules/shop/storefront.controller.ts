@@ -92,6 +92,19 @@ export class StorefrontController {
     return this.shop.publicHome(storeSlug);
   }
 
+  @Get(':storeSlug/articles')
+  articles(@Param('storeSlug') storeSlug: string) {
+    return this.shop.publicArticles(storeSlug);
+  }
+
+  @Get(':storeSlug/articles/:articleSlug')
+  article(
+    @Param('storeSlug') storeSlug: string,
+    @Param('articleSlug') articleSlug: string,
+  ) {
+    return this.shop.publicArticle(storeSlug, articleSlug);
+  }
+
   @Get(':storeSlug/categories')
   categories(@Param('storeSlug') storeSlug: string) {
     return this.shop.publicCategories(storeSlug);

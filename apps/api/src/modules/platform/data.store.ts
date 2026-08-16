@@ -24,6 +24,7 @@ import type {
   User,
 } from './types';
 import { DEFAULT_GUARDRAILS, normalizeGuardrails } from './types';
+import { seedNativeShop } from './demo-catalog';
 import type { SyncHealth } from './types';
 type EmployeeSkills = Employee['skills'];
 
@@ -119,61 +120,7 @@ export class DataStore implements OnModuleInit {
       },
     });
 
-    const catalog = [
-      {
-        sku: 'SHIRT-001',
-        slug: 'linen-blue-shirt',
-        title: 'پیراهن لینن آبی',
-        price: 890000,
-        currency: 'IRR',
-        inStock: true,
-        description: 'سایزهای M و L موجود',
-        source: 'native',
-        status: 'published',
-        images: [] as string[],
-      },
-      {
-        sku: 'BAG-014',
-        slug: 'black-leather-bag',
-        title: 'کیف چرمی مشکی',
-        price: 2450000,
-        currency: 'IRR',
-        inStock: true,
-        description: null as string | null,
-        source: 'native',
-        status: 'published',
-        images: [] as string[],
-      },
-      {
-        sku: 'SHOE-220',
-        slug: 'white-sport-shoes',
-        title: 'کفش اسپرت سفید',
-        price: 1750000,
-        currency: 'IRR',
-        inStock: false,
-        description: 'فعلاً ناموجود',
-        source: 'native',
-        status: 'published',
-        images: [] as string[],
-      },
-    ];
-
-    for (const item of catalog) {
-      await this.prisma.product.upsert({
-        where: { tenantId_sku: { tenantId, sku: item.sku } },
-        create: { tenantId, ...item },
-        update: {
-          title: item.title,
-          slug: item.slug,
-          price: item.price,
-          currency: item.currency,
-          inStock: item.inStock,
-          description: item.description,
-          source: item.source,
-          status: item.status,
-        },
-      });
-    }
+    await seedNativeShop(this.prisma, tenantId);
 
     await this.ensureStorefrontSettings(tenantId);
 
@@ -2039,7 +1986,7 @@ export class DataStore implements OnModuleInit {
       .replace(/[^a-z0-9\u0600-\u06ff]+/gi, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 40);
-    let storeSlug = base.replace(/[^\w-]/g, '') || `shop-${tenantId.slice(0, 8)}`;
+    let storeSlug = base.replace(/[^\w-]/g, '').replace(/^-+|-+$/g, '') || `shop-${tenantId.slice(0, 8)}`;
     const taken = await this.prisma.storefrontSettings.findUnique({
       where: { storeSlug },
     });
