@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import '@seloma/ui/colors.css';
 import './globals.css';
 
 export const metadata = {

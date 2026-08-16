@@ -37,11 +37,11 @@ export default function LoginPage() {
 
   return (
     <div
-      className="flex min-h-screen items-center justify-center p-4"
+      className="dark flex min-h-screen items-center justify-center p-4"
       style={{
-        background: '#080B12',
+        background: 'var(--bg)',
         backgroundImage:
-          'radial-gradient(900px 600px at 40% -10%, rgba(15,110,110,0.22) 0%, transparent 60%)',
+          'radial-gradient(900px 600px at 40% -10%, rgba(108, 77, 255, 0.22) 0%, transparent 60%)',
       }}
     >
       <div className="w-full max-w-[400px] space-y-8 fade-up">
@@ -49,9 +49,9 @@ export default function LoginPage() {
           <div
             className="flex h-12 w-12 items-center justify-center rounded-[14px]"
             style={{
-              background: 'linear-gradient(145deg, #2A8A8A, #0f6e6e)',
+              background: 'var(--gradient-brand)',
               boxShadow:
-                '0 8px 24px rgba(15,110,110,0.45), inset 0 1px 0 rgba(255,255,255,0.25)',
+                'var(--sh-primary), inset 0 1px 0 rgba(255,255,255,0.25)',
             }}
           >
             <Sparkles size={22} color="#fff" />
@@ -60,7 +60,7 @@ export default function LoginPage() {
             <h1 className="text-[24px] font-extrabold tracking-tight text-white">
               سِلوما
             </h1>
-            <p className="mt-1 text-[13px] text-[rgba(148,163,184,0.7)]">
+            <p className="mt-1 text-[13px] text-[var(--text-4)]">
               کارمند فروش هوش مصنوعی برای فروشگاه شما
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function LoginPage() {
         <div
           className="p-7 rounded-[var(--r-lg)] backdrop-blur-xl"
           style={{
-            background: 'rgba(15,20,30,0.8)',
+            background: 'color-mix(in srgb, var(--surface) 88%, transparent)',
             border: '1px solid rgba(255,255,255,0.08)',
             WebkitBackdropFilter: 'blur(20px)',
             boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
@@ -79,7 +79,7 @@ export default function LoginPage() {
             <h2 className="text-[18px] font-bold text-white">
               {mode === 'login' ? 'خوش آمدید' : 'ساخت حساب'}
             </h2>
-            <p className="mt-1 text-[13px] text-[#64748B]">
+            <p className="mt-1 text-[13px] text-[var(--text-3)]">
               {mode === 'login'
                 ? 'برای ادامه وارد فضای کاری شوید'
                 : 'فضای کاری جدید بسازید'}
@@ -90,7 +90,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <Label
                 htmlFor="email"
-                className="text-[13px] font-semibold text-[#94A3B8]"
+                className="text-[13px] font-semibold text-[var(--text-3)]"
               >
                 ایمیل
               </Label>
@@ -109,7 +109,7 @@ export default function LoginPage() {
             <div className="flex flex-col gap-1.5">
               <Label
                 htmlFor="password"
-                className="text-[13px] font-semibold text-[#94A3B8]"
+                className="text-[13px] font-semibold text-[var(--text-3)]"
               >
                 رمز عبور
               </Label>
@@ -130,7 +130,7 @@ export default function LoginPage() {
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute end-1 top-1/2 -translate-y-1/2 text-[#475569] hover:bg-transparent"
+                  className="absolute end-1 top-1/2 -translate-y-1/2 text-[var(--text-4)] hover:bg-transparent"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -142,7 +142,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1.5">
                 <Label
                   htmlFor="workspace"
-                  className="text-[13px] font-semibold text-[#94A3B8]"
+                  className="text-[13px] font-semibold text-[var(--text-3)]"
                 >
                   نام فضای کاری
                 </Label>
@@ -159,7 +159,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full h-[42px] rounded-[var(--r-sm)] text-sm font-bold mt-1 shadow-[0_4px_14px_rgba(15,110,110,0.4)]"
+              className="w-full h-[42px] rounded-[var(--r-sm)] text-sm font-bold mt-1"
               disabled={loading}
             >
               {loading ? (
@@ -172,7 +172,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-5 text-center text-[13px] text-[#64748B]">
+          <p className="mt-5 text-center text-[13px] text-[var(--text-3)]">
             {mode === 'login' ? 'حساب ندارید؟' : 'حساب دارید؟'}{' '}
             <button
               type="button"
@@ -184,7 +184,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="text-center text-[12px] text-[#334155]">
+        <p className="text-center text-[12px] text-[var(--text-4)]">
           دمو: demo@seloma.local / demo1234
         </p>
       </div>

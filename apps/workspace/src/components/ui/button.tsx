@@ -9,17 +9,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-gradient-to-br from-[var(--brand-500)] to-[var(--brand-600)] text-white border-none shadow-[0_2px_8px_rgba(15,110,110,0.3)] hover:opacity-90 active:scale-[0.98]',
+          'bg-[var(--color-primary)] text-white border-none shadow-[var(--sh-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)] active:scale-[0.98]',
         outline:
-          'bg-[var(--surface-3)] text-[var(--text-2)] border border-[var(--border-color)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-1)]',
+          'bg-[var(--surface)] text-[var(--text-2)] border border-[var(--border-color)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-1)]',
         ghost:
           'bg-transparent text-[var(--text-3)] border-none hover:bg-[var(--surface-3)] hover:text-[var(--text-2)]',
         warning:
           'bg-[var(--warning-bg)] text-[var(--warning)] border-none hover:opacity-90',
         destructive:
-          'bg-[var(--danger)] text-white border-none hover:opacity-90',
+          'bg-[var(--danger-icon)] text-white border-none hover:opacity-90',
+        success:
+          'bg-[var(--success-icon)] text-white border-none hover:opacity-90',
         link:
-          'bg-transparent text-[var(--brand-500)] border-none p-0 h-auto underline-offset-4 hover:underline',
+          'bg-transparent text-[var(--color-primary-text)] border-none p-0 h-auto underline-offset-4 hover:underline',
       },
       size: {
         xs:       'h-7 px-3 text-xs rounded-[7px]',

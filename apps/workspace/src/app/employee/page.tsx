@@ -86,7 +86,7 @@ export default function EmployeePage() {
           description="این تنظیمات در Runtime اعمال می‌شوند — تزئینی نیستند."
         />
 
-        <Card>
+        <Card className="seloma-ai">
           <CardHeader>
             <CardTitle>پروفایل و مهارت‌ها</CardTitle>
           </CardHeader>

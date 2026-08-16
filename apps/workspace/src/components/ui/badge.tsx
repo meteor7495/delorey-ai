@@ -7,13 +7,15 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:   'bg-[var(--brand-50)] text-[var(--brand-600)] rounded-full',
+        default:   'bg-[var(--brand-50)] text-[var(--color-primary-text)] rounded-full',
         secondary: 'bg-[var(--surface-3)] text-[var(--text-3)] rounded-full',
         destructive:'bg-[var(--danger-bg)] text-[var(--danger)] rounded-full',
         outline:   'border border-[var(--border-color)] text-[var(--text-3)] bg-transparent rounded-full',
         success:   'bg-[var(--success-bg)] text-[var(--success)] rounded-full',
         warning:   'bg-[var(--warning-bg)] text-[var(--warning)] rounded-full',
         info:      'bg-[var(--info-bg)] text-[var(--info)] rounded-full',
+        ai:        'bg-[var(--brand-50)] text-[var(--color-primary-text)] border border-[var(--color-border-ai)] rounded-full',
+        neutral:   'bg-[var(--neutral-status-bg)] text-[var(--neutral-status)] rounded-full',
       },
     },
     defaultVariants: { variant: 'default' },

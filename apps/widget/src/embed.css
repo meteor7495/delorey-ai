@@ -1,5 +1,16 @@
 .drw-root {
   all: initial;
+  --drw-primary: #6c4dff;
+  --drw-primary-hover: #5840d9;
+  --drw-secondary: #3b6cb5;
+  --drw-bg: #1c1824;
+  --drw-surface: #252030;
+  --drw-border: #3d3748;
+  --drw-text: #f4f1fa;
+  --drw-muted: #9b95a8;
+  --drw-danger: #f87171;
+  --drw-danger-bg: #3b1d1d;
+  --drw-glow: rgba(108, 77, 255, 0.28);
   font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
   position: fixed;
   z-index: 2147483000;
@@ -9,7 +20,7 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
-  color: #e8eef5;
+  color: var(--drw-text);
   box-sizing: border-box;
 }
 
@@ -22,25 +33,26 @@
 .drw-launcher {
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2a8a8a, #0f6e6e);
+  background: var(--drw-primary);
   color: #fff;
   font: inherit;
   font-weight: 700;
   font-size: 15px;
   padding: 14px 22px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(15, 110, 110, 0.35);
+  box-shadow: 0 8px 24px var(--drw-glow);
 }
 
 .drw-launcher:hover {
-  opacity: 0.94;
+  background: var(--drw-primary-hover);
+  opacity: 0.96;
 }
 
 .drw-panel {
   width: min(380px, calc(100vw - 32px));
   height: min(560px, calc(100vh - 100px));
-  background: #121a2a;
-  border: 1px solid #243147;
+  background: var(--drw-bg);
+  border: 1px solid var(--drw-border);
   border-radius: 16px;
   overflow: hidden;
   display: flex;
@@ -50,11 +62,16 @@
 
 .drw-header {
   padding: 12px 14px;
-  border-bottom: 1px solid #243147;
+  border-bottom: 1px solid var(--drw-border);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 8px;
+  background: linear-gradient(
+    135deg,
+    rgba(108, 77, 255, 0.12),
+    rgba(59, 108, 181, 0.08)
+  );
 }
 
 .drw-header strong {
@@ -65,7 +82,7 @@
 .drw-icon-btn {
   border: none;
   background: transparent;
-  color: #9fb0c3;
+  color: var(--drw-muted);
   font-size: 22px;
   line-height: 1;
   cursor: pointer;
@@ -92,29 +109,29 @@
 
 .drw-shopper {
   align-self: flex-start;
-  background: #1e3a5f;
+  background: rgba(59, 108, 181, 0.28);
 }
 
 .drw-employee,
 .drw-system,
 .drw-operator {
   align-self: flex-end;
-  background: #0f6e6e;
+  background: var(--drw-primary);
 }
 
 .drw-system {
-  background: #243147;
+  background: var(--drw-surface);
   font-size: 13px;
 }
 
 .drw-operator {
-  background: #1a4d6e;
+  background: var(--drw-secondary);
 }
 
 .drw-handoff {
   margin: 0;
   padding: 10px 14px;
-  background: #3b1d1d;
+  background: var(--drw-danger-bg);
   border-bottom: 1px solid #5c2b2b;
   color: #f3b0a8;
   font-size: 13px;
@@ -125,15 +142,15 @@
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid #243147;
+  border-top: 1px solid var(--drw-border);
 }
 
 .drw-composer input {
   flex: 1;
   border-radius: 10px;
-  border: 1px solid #243147;
-  background: #0b1220;
-  color: #e8eef5;
+  border: 1px solid var(--drw-border);
+  background: #14111a;
+  color: var(--drw-text);
   padding: 10px 12px;
   font: inherit;
   font-size: 14px;
@@ -141,18 +158,23 @@
 
 .drw-composer input:focus {
   outline: none;
-  border-color: #2a8a8a;
+  border-color: var(--drw-primary);
+  box-shadow: 0 0 0 3px var(--drw-glow);
 }
 
 .drw-composer button {
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, #2a8a8a, #0f6e6e);
+  background: var(--drw-primary);
   color: #fff;
   padding: 10px 14px;
   cursor: pointer;
   font: inherit;
   font-weight: 600;
+}
+
+.drw-composer button:hover {
+  background: var(--drw-primary-hover);
 }
 
 .drw-composer button:disabled,
@@ -169,14 +191,14 @@
 
 .drw-error,
 .drw-error-banner {
-  color: #f97066;
+  color: var(--drw-danger);
   font-size: 13px;
   line-height: 1.4;
 }
 
 .drw-error-banner {
-  background: #121a2a;
-  border: 1px solid #243147;
+  background: var(--drw-bg);
+  border: 1px solid var(--drw-border);
   border-radius: 12px;
   padding: 10px 12px;
   max-width: 280px;

@@ -43,7 +43,7 @@ export function Topbar({ title, tenantName }: TopbarProps) {
         <div className="hidden sm:flex items-center gap-2 ms-1">
           <div
             className="w-8 h-8 rounded-full grid place-items-center text-white text-xs font-bold"
-            style={{ background: 'linear-gradient(145deg, #2A8A8A, #0f6e6e)' }}
+            style={{ background: 'var(--gradient-brand)' }}
           >
             {initials}
           </div>

@@ -13,7 +13,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       className={`plan-card ${plan.featured ? 'plan-card--featured lg:-mt-2 lg:mb-2' : ''}`}
     >
       {plan.featured ? (
-        <span className="mb-4 inline-flex w-fit rounded-lg bg-teal-bright px-2.5 py-1 text-[11px] font-black text-ink">
+        <span className="mb-4 inline-flex w-fit rounded-lg bg-primary px-2.5 py-1 text-[11px] font-black text-white">
           {plan.category === 'site'
             ? 'پیشنهادی برای اکثر فروشگاه‌ها'
             : 'آفر اختیاری'}
@@ -43,8 +43,8 @@ function PlanCard({ plan }: { plan: Plan }) {
             <span
               className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md text-[11px] font-black ${
                 plan.featured
-                  ? 'bg-teal-bright/20 text-teal-bright'
-                  : 'bg-teal/10 text-teal'
+                  ? 'bg-white/15 text-white'
+                  : 'bg-primary-soft text-primary-text'
               }`}
             >
               ✓
@@ -117,7 +117,7 @@ export default function LandingPage() {
           className="absolute inset-0"
           style={{
             background:
-              'radial-gradient(1000px 620px at 85% 0%, rgba(31,168,160,0.42), transparent 55%), radial-gradient(720px 520px at 0% 100%, rgba(15,110,110,0.28), transparent 50%), linear-gradient(168deg, #050d12 0%, #0a1f24 46%, #0d5558 125%)',
+              'radial-gradient(1000px 620px at 85% 0%, rgba(108,77,255,0.38), transparent 55%), radial-gradient(720px 520px at 0% 100%, rgba(59,108,181,0.22), transparent 50%), linear-gradient(168deg, #16111f 0%, #1a1625 46%, #2f4a73 125%)',
           }}
         />
         <div
@@ -132,7 +132,7 @@ export default function LandingPage() {
           aria-hidden
         />
         <div
-          className="absolute -start-28 top-16 h-[22rem] w-[22rem] rounded-full bg-teal-bright/20 blur-3xl animate-drift"
+          className="absolute -start-28 top-16 h-[22rem] w-[22rem] rounded-full bg-primary/20 blur-3xl animate-drift"
           aria-hidden
         />
 
@@ -178,7 +178,7 @@ export default function LandingPage() {
             style={{ animationDelay: '280ms' }}
             aria-hidden
           >
-            <div className="absolute -inset-6 rounded-[2rem] bg-teal-bright/10 blur-2xl" />
+            <div className="absolute -inset-6 rounded-[2rem] bg-primary/10 blur-2xl" />
             <div className="relative overflow-hidden rounded-[1.75rem] border border-white/14 bg-[#0b171c]/78 shadow-[0_30px_80px_rgba(0,0,0,0.35)] backdrop-blur-md">
               <div className="flex items-center justify-between border-b border-white/10 px-4 py-3.5">
                 <div className="flex items-center gap-2.5 text-sm text-white/70">
@@ -200,12 +200,12 @@ export default function LandingPage() {
                 <div className="max-w-[88%] rounded-2xl rounded-se-md bg-white/10 px-3.5 py-2.5 text-sm leading-7 text-white/88">
                   سایز M از این کت موجوده؟ ارسال شیراز چقدر طول می‌کشه؟
                 </div>
-                <div className="ms-auto max-w-[90%] rounded-2xl rounded-ss-md bg-gradient-to-l from-teal to-teal-bright/90 px-3.5 py-2.5 text-sm leading-7 text-white shadow-lg shadow-teal/20">
+                <div className="ms-auto max-w-[90%] rounded-2xl rounded-ss-md bg-gradient-to-l from-primary to-secondary px-3.5 py-2.5 text-sm leading-7 text-white shadow-lg shadow-primary/20">
                   بله، سایز M موجود است. ارسال به شیراز معمولاً ۲ تا ۳ روز کاری
                   است. می‌خواهید لینک سفارش را بفرستم؟
                 </div>
                 <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-xs text-white/45">
-                  <span className="h-1.5 w-1.5 rounded-full bg-teal-bright/80" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary/80" />
                   grounded روی موجودی و سیاست ارسال فروشگاه
                 </div>
               </div>
@@ -236,7 +236,7 @@ export default function LandingPage() {
                 className="animate-fadeUp"
                 style={{ animationDelay: `${i * 70}ms` }}
               >
-                <p className="text-xs font-black tracking-wide text-teal mb-2">
+                <p className="text-xs font-black tracking-wide text-primary-text mb-2">
                   ۰{i + 1}
                 </p>
                 <h3 className="text-lg font-extrabold mb-2">{item.title}</h3>
@@ -252,7 +252,7 @@ export default function LandingPage() {
         className="section-anchor py-20 sm:py-28"
         style={{
           background:
-            'linear-gradient(180deg, #e7eef1 0%, #f2f6f7 42%, #f2f6f7 100%)',
+            'linear-gradient(180deg, #f0eef5 0%, #f7f6fa 42%, #f7f6fa 100%)',
         }}
       >
         <div className="container grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
@@ -305,7 +305,7 @@ export default function LandingPage() {
           <div id="pricing-site" className="section-anchor mb-16">
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black tracking-wide text-teal mb-2">
+                <p className="text-xs font-black tracking-wide text-primary-text mb-2">
                   ۰۱ — سایت‌ساز
                 </p>
                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
@@ -315,7 +315,7 @@ export default function LandingPage() {
                   هزینهٔ شفاف و سالیانه برای راه‌اندازی و نگهداری فروشگاه آنلاین.
                 </p>
               </div>
-              <span className="rounded-xl bg-teal/10 px-3 py-1.5 text-xs font-bold text-teal">
+              <span className="rounded-xl bg-primary-soft px-3 py-1.5 text-xs font-bold text-primary-text">
                 پرداخت سالیانه
               </span>
             </div>
@@ -332,7 +332,7 @@ export default function LandingPage() {
           >
             <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-black tracking-wide text-teal mb-2">
+                <p className="text-xs font-black tracking-wide text-primary-text mb-2">
                   ۰۲ — کارمند فروش AI
                 </p>
                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
@@ -362,7 +362,7 @@ export default function LandingPage() {
             className="relative overflow-hidden rounded-[1.75rem] px-6 py-14 sm:px-12 text-white"
             style={{
               background:
-                'radial-gradient(600px 280px at 100% 0%, rgba(31,168,160,0.35), transparent 55%), linear-gradient(125deg, #0f6e6e, #071018 64%)',
+                'radial-gradient(600px 280px at 100% 0%, rgba(108,77,255,0.32), transparent 55%), linear-gradient(125deg, #6c4dff, #1a1625 64%)',
             }}
           >
             <div className="relative max-w-xl">
@@ -398,16 +398,16 @@ export default function LandingPage() {
             <p className="mt-1">سایت‌ساز و فروش یکپارچه برای فروشگاه‌های ایران</p>
           </div>
           <nav className="flex flex-wrap gap-x-5 gap-y-2 font-bold">
-            <a href="/#about" className="hover:text-teal transition-colors">
+            <a href="/#about" className="hover:text-primary-text transition-colors">
               کی هستیم
             </a>
-            <a href="/#features" className="hover:text-teal transition-colors">
+            <a href="/#features" className="hover:text-primary-text transition-colors">
               امکانات
             </a>
-            <a href="/#pricing" className="hover:text-teal transition-colors">
+            <a href="/#pricing" className="hover:text-primary-text transition-colors">
               تعرفه‌ها
             </a>
-            <Link href="/request" className="hover:text-teal transition-colors">
+            <Link href="/request" className="hover:text-primary-text transition-colors">
               ثبت درخواست
             </Link>
           </nav>

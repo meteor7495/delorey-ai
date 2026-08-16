@@ -270,12 +270,12 @@ export default function InboxClient() {
                         className={cn(
                           'max-w-[85%] rounded-[10px] px-2.5 py-2 text-sm whitespace-pre-wrap',
                           m.role === 'shopper'
-                            ? 'self-start bg-[#e8eef5] text-[var(--text-1)] dark:bg-[rgba(59,130,246,0.15)]'
+                            ? 'self-start bg-[var(--secondary-50)] text-[var(--text-1)]'
                             : m.role === 'operator'
-                              ? 'self-end bg-[#d8f3dc] dark:bg-[rgba(16,185,129,0.2)]'
+                              ? 'self-end bg-[var(--success-bg)] text-[var(--text-1)]'
                               : m.role === 'system'
                                 ? 'self-end bg-[var(--warning-bg)]'
-                                : 'self-end bg-[var(--brand-50)]',
+                                : 'self-end bg-[var(--brand-50)] seloma-ai',
                         )}
                       >
                         <div className="mb-0.5 text-[11px] text-[var(--text-3)]">

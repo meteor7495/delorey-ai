@@ -8,14 +8,23 @@ module.exports = {
         sans: ['Vazirmatn', 'Tahoma', 'sans-serif'],
       },
       colors: {
-        ink: '#071018',
-        mist: '#9DB4C0',
-        teal: {
-          DEFAULT: '#0F6E6E',
-          bright: '#1FA8A0',
-          soft: '#D7F0EE',
+        ink: 'var(--color-text-primary)',
+        mist: 'var(--color-text-tertiary)',
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
+          soft: 'var(--color-primary-soft)',
+          text: 'var(--color-primary-text)',
         },
-        sand: '#E8F0F2',
+        secondary: {
+          DEFAULT: 'var(--color-secondary)',
+          soft: 'var(--color-secondary-soft)',
+        },
+        accent: {
+          DEFAULT: 'var(--color-accent)',
+          soft: 'var(--color-accent-soft)',
+        },
+        sand: 'var(--color-bg)',
       },
       keyframes: {
         fadeUp: {

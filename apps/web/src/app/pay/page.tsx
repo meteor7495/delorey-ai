@@ -69,10 +69,10 @@ function PayInner() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#f4f8f9]">
+    <main className="min-h-[100dvh] bg-[var(--color-bg)]">
       <div
         className="border-b border-ink/8 text-white"
-        style={{ background: 'linear-gradient(160deg, #071018, #0f6e6e 140%)' }}
+        style={{ background: 'linear-gradient(160deg, #1a1625, #6c4dff 160%)' }}
       >
         <div className="container py-10">
           <h1 className="text-3xl font-black">

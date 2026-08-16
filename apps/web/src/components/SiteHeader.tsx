@@ -34,7 +34,7 @@ export function SiteHeader() {
     <header
       className={`fixed inset-x-0 top-0 z-40 transition-[background,box-shadow,backdrop-filter] duration-300 ${
         scrolled || open
-          ? 'bg-[#071018]/92 backdrop-blur-xl shadow-[0_10px_30px_rgba(7,16,24,0.22)]'
+          ? 'bg-[var(--color-text-primary)]/92 backdrop-blur-xl shadow-[0_10px_30px_rgba(26,22,37,0.22)]'
           : 'bg-transparent'
       }`}
     >
@@ -44,7 +44,7 @@ export function SiteHeader() {
           className="flex items-center gap-2.5 no-underline"
           onClick={() => setOpen(false)}
         >
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal-bright to-teal text-white text-sm font-black shadow-lg shadow-teal/30">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-secondary text-white text-sm font-black shadow-lg shadow-primary/30">
             S
           </span>
           <span className="font-display text-lg font-bold tracking-tight text-white">

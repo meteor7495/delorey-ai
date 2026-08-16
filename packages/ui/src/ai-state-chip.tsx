@@ -5,6 +5,7 @@ import { tokens } from './tokens';
 
 export function AiStateChip({ state }: { state: string }) {
   const color = aiColors[state as AiState] ?? tokens.color.muted;
+  const isActive = state === 'active';
   return (
     <span
       style={{
@@ -13,9 +14,13 @@ export function AiStateChip({ state }: { state: string }) {
         gap: 6,
         padding: '4px 10px',
         borderRadius: 999,
-        border: '1px solid rgba(255,255,255,0.12)',
-        background: 'rgba(255,255,255,0.06)',
-        color: '#E2E8F0',
+        border: isActive
+          ? '1px solid rgba(139, 116, 255, 0.35)'
+          : '1px solid rgba(255,255,255,0.12)',
+        background: isActive
+          ? 'rgba(108, 77, 255, 0.16)'
+          : 'rgba(255,255,255,0.06)',
+        color: '#E8E4F0',
         fontSize: 12,
         fontWeight: 600,
       }}

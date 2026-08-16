@@ -3,182 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  /* ============================================================
-     Seloma — Design System Tokens
-     Yadavar shell + commerce-ops teal brand
-     ============================================================ */
+  /* Color tokens live in @seloma/ui/colors.css (imported from layout). */
 
-  :root {
-    /* brand — deep teal */
-    --brand-50: #E6F4F4;
-    --brand-300: #5BA8A8;
-    --brand-400: #2A8A8A;
-    --brand-500: #0f6e6e;
-    --brand-600: #0a5555;
-    --brand-glow: rgba(15, 110, 110, 0.16);
-
-    /* semantic */
-    --success: #10B981;
-    --success-bg: #ECFDF5;
-    --warning: #F59E0B;
-    --warning-bg: #FFFBEB;
-    --danger: #EF4444;
-    --danger-bg: #FEF2F2;
-    --info: #175cd3;
-    --info-bg: #EFF6FF;
-
-    /* surfaces */
-    --bg: #F4F7F8;
-    --surface: #FFFFFF;
-    --surface-2: #F8FAFB;
-    --surface-3: #EFF4F5;
-    --surface-hover: #F0F5F6;
-
-    /* borders */
-    --border-color: #DCE5E8;
-    --border-strong: #C5D2D6;
-    --border-soft: #E8EFF1;
-
-    /* text */
-    --text-1: #14212b;
-    --text-2: #334155;
-    --text-3: #5b6b76;
-    --text-4: #94A3B8;
-
-    /* sidebar */
-    --sidebar-bg: #0B1220;
-    --sidebar-grad: linear-gradient(180deg, #0E1729 0%, #0A101D 100%);
-    --sidebar-text: #94A3B8;
-    --sidebar-text-active: #FFFFFF;
-    --sidebar-active-bg: rgba(15, 110, 110, 0.22);
-    --sidebar-item-active: rgba(15, 110, 110, 0.22);
-    --sidebar-border: rgba(255, 255, 255, 0.07);
-
-    /* radii */
-    --r-xs: 7px;
-    --r-sm: 9px;
-    --r-md: 12px;
-    --r-lg: 16px;
-    --r-xl: 22px;
-    --r-full: 999px;
-
-    /* shadows */
-    --sh-xs: 0 1px 2px rgba(15, 23, 42, 0.05);
-    --sh-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-    --sh-md: 0 4px 14px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
-    --sh-lg: 0 12px 32px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04);
-    --sh-xl: 0 24px 60px rgba(15, 23, 42, 0.16);
-    --ring: 0 0 0 4px var(--brand-glow);
-
-    /* shadcn/ui compatible tokens (HSL) — primary = teal */
-    --background: 190 20% 97%;
-    --foreground: 200 30% 12%;
-    --card: 0 0% 100%;
-    --card-foreground: 200 30% 12%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 200 30% 12%;
-    --primary: 180 76% 25%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 190 18% 94%;
-    --secondary-foreground: 200 30% 12%;
-    --muted: 190 18% 94%;
-    --muted-foreground: 200 12% 42%;
-    --accent: 190 18% 94%;
-    --accent-foreground: 200 30% 12%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 190 16% 88%;
-    --input: 190 16% 88%;
-    --ring: 180 76% 25%;
-    --radius: 1rem;
-
-    --chart-1: 180 76% 25%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 199 89% 48%;
-    --chart-5: 0 84% 60%;
-
-    --sidebar-background: 210 40% 8%;
-    --sidebar-foreground: 215 20% 65%;
-    --sidebar-primary: 180 76% 35%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 30% 12%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 210 30% 12%;
-    --sidebar-ring: 180 76% 35%;
-
-    --font-vazirmatn: 'Vazirmatn';
-  }
-
-  .dark {
-    --brand-500: #2A9A9A;
-    --brand-600: #0f6e6e;
-    --brand-400: #5BB3B3;
-    --brand-50: rgba(15, 110, 110, 0.14);
-    --brand-glow: rgba(42, 154, 154, 0.25);
-
-    --success-bg: rgba(16, 185, 129, 0.14);
-    --warning-bg: rgba(245, 158, 11, 0.14);
-    --danger-bg: rgba(239, 68, 68, 0.14);
-    --info-bg: rgba(23, 92, 211, 0.16);
-
-    --bg: #080B12;
-    --surface: #0F141E;
-    --surface-2: #0C111A;
-    --surface-3: #161C28;
-    --surface-hover: #151B27;
-
-    --border-color: #1E2633;
-    --border-strong: #2A3340;
-    --border-soft: #161D28;
-
-    --text-1: #F1F5F9;
-    --text-2: #CBD5E1;
-    --text-3: #8A97A8;
-    --text-4: #5B6878;
-
-    --sidebar-bg: #070A11;
-    --sidebar-active-bg: rgba(42, 154, 154, 0.22);
-    --sidebar-border: rgba(255, 255, 255, 0.06);
-
-    --sh-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --sh-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-    --sh-md: 0 4px 14px rgba(0, 0, 0, 0.45);
-    --sh-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
-    --sh-xl: 0 24px 60px rgba(0, 0, 0, 0.6);
-
-    --background: 222 36% 6%;
-    --foreground: 214 32% 95%;
-    --card: 220 33% 10%;
-    --card-foreground: 214 32% 95%;
-    --popover: 220 33% 10%;
-    --popover-foreground: 214 32% 95%;
-    --primary: 180 55% 40%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 218 27% 16%;
-    --secondary-foreground: 214 32% 95%;
-    --muted: 218 27% 16%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 218 27% 16%;
-    --accent-foreground: 214 32% 95%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 218 27% 16%;
-    --input: 218 27% 16%;
-    --ring: 180 55% 40%;
-
-    --sidebar-background: 222 36% 4%;
-    --sidebar-foreground: 215 16% 55%;
-    --sidebar-primary: 180 55% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 40% 11%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 220 40% 11%;
-    --sidebar-ring: 180 55% 45%;
-  }
-}
-
-@layer base {
   * {
     @apply border-border;
     box-sizing: border-box;
@@ -199,8 +25,8 @@
     line-height: 1.55;
     background-image: radial-gradient(
       1200px 600px at 100% -10%,
-      #E8F4F4 0%,
-      rgba(244, 247, 248, 0) 60%
+      rgba(108, 77, 255, 0.07) 0%,
+      rgba(247, 246, 250, 0) 60%
     );
     background-attachment: fixed;
   }
@@ -208,8 +34,8 @@
   .dark body {
     background-image: radial-gradient(
       1100px 600px at 100% -10%,
-      rgba(15, 110, 110, 0.12) 0%,
-      rgba(8, 11, 18, 0) 55%
+      rgba(108, 77, 255, 0.14) 0%,
+      rgba(20, 17, 26, 0) 55%
     );
   }
 
@@ -261,9 +87,36 @@
   button {
     cursor: pointer;
   }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-primary);
+  }
+
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 1px;
+    border-color: var(--color-primary);
+  }
 }
 
 @layer utilities {
+  .seloma-ai {
+    background: var(--gradient-ai);
+    border-color: var(--color-border-ai);
+    box-shadow: var(--sh-ai);
+  }
+
+  .seloma-row-selected {
+    background: var(--color-primary-soft);
+  }
+
+  table tbody tr[data-selected='true'],
+  table tbody tr[aria-selected='true'] {
+    background: var(--color-primary-soft);
+  }
+
   .tnum {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';

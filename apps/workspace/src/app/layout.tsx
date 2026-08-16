@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Providers } from '@/components/providers';
 import { Toaster } from '@/components/ui/toaster';
+import '@seloma/ui/colors.css';
 import './globals.css';
 
 export const metadata = {

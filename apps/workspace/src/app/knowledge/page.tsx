@@ -126,7 +126,7 @@ export default function KnowledgePage() {
         />
 
         {index && (
-          <Card className="border-[var(--brand-400)]/20 bg-[var(--brand-50)]">
+          <Card className="seloma-ai border-[var(--color-border-ai)]">
             <CardContent className="space-y-1 p-4">
               <p className="text-sm font-semibold text-[var(--text-1)]">
                 وضعیت ایندکس: {index.note}

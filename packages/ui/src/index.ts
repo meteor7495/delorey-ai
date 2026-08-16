@@ -1,3 +1,4 @@
+export { seloma, chartPalette, type SelomaColorTokens } from './colors';
 export {
   tokens,
   aiLabels,

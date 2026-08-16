@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seloma — Brand Identity</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Vazirmatn:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --purple: #4C3A78;
+      --purple-deep: #352850;
+      --blue: #2F4A73;
+      --teal: #2A7A74;
+      --ink: #1A1625;
+      --muted: #6B6578;
+      --paper: #F7F5F2;
+      --card: #FFFFFF;
+      --line: #E7E2DA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: Outfit, "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 32px; }
+    header.hero {
+      padding: 72px 0 56px;
+      border-bottom: 1px solid var(--line);
+    }
+    .kicker {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--purple);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    h1 { font-size: 56px; font-weight: 500; letter-spacing: -0.03em; line-height: 1.05; }
+    h1 span { color: var(--purple); }
+    .lede { max-width: 640px; margin-top: 20px; font-size: 18px; color: var(--muted); }
+    .hero-lockup {
+      margin-top: 48px;
+      display: flex;
+      align-items: center;
+      gap: 64px;
+      flex-wrap: wrap;
+    }
+    .hero-lockup img { height: 72px; width: auto; }
+    nav.toc {
+      display: flex; gap: 28px; flex-wrap: wrap;
+      padding: 20px 0;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    nav.toc a { color: var(--muted); text-decoration: none; }
+    nav.toc a:hover { color: var(--purple); }
+    section { padding: 72px 0; border-bottom: 1px solid var(--line); }
+    h2 { font-size: 28px; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 12px; }
+    h3 { font-size: 15px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--purple); margin-bottom: 16px; }
+    p.intro { max-width: 640px; color: var(--muted); margin-bottom: 36px; }
+    .grid { display: grid; gap: 16px; }
+    .g4 { grid-template-columns: repeat(4, 1fr); }
+    .g3 { grid-template-columns: repeat(3, 1fr); }
+    .g2 { grid-template-columns: repeat(2, 1fr); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .card.dark { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .card.purple { background: var(--purple); color: #fff; border-color: var(--purple); }
+    .card .label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 16px;
+    }
+    .card.dark .label, .card.purple .label { color: rgba(255,255,255,.55); }
+    .swatch { height: 88px; border-radius: 12px 12px 0 0; }
+    .swatch-meta { padding: 14px 4px 0; font-size: 13px; }
+    .swatch-meta strong { display: block; font-weight: 500; }
+    .swatch-meta span { color: var(--muted); font-size: 12px; }
+    .mark {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 140px;
+    }
+    .mark img, .mark svg { width: 80px; height: 80px; }
+    .lockup { display: flex; align-items: center; justify-content: center; min-height: 120px; }
+    .lockup img { height: 52px; width: auto; max-width: 100%; }
+    .dir {
+      margin-top: 48px;
+    }
+    .dir-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 24px; margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .dir-head p { color: var(--muted); max-width: 560px; font-size: 14px; }
+    .badge {
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      background: var(--purple); color: #fff; padding: 6px 10px; border-radius: 999px;
+      font-weight: 600;
+    }
+    .sizes { display: flex; align-items: flex-end; gap: 28px; flex-wrap: wrap; }
+    .sizes figure { text-align: center; }
+    .sizes figcaption { font-size: 11px; color: var(--muted); margin-top: 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .do-dont li { font-size: 14px; color: var(--muted); margin: 0 0 8px 18px; }
+    footer {
+      padding: 40px 0 64px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .wordmark-row {
+      display: flex; align-items: center; gap: 20px;
+      min-height: 88px;
+    }
+    .wordmark-row .wm {
+      font-weight: 500; font-size: 42px; letter-spacing: 0.02em;
+    }
+    .wm-fa { font-family: Vazirmatn, Tahoma, sans-serif; font-size: 40px; font-weight: 500; }
+    .lu {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+      min-height: 120px;
+    }
+    .lu img { width: 52px; height: 52px; }
+    .lu .wm { font-size: 28px; font-weight: 500; letter-spacing: 0.03em; color: var(--ink); line-height: 1; }
+    .lu .wm-fa { font-size: 26px; letter-spacing: 0; }
+    .lu.lg img { width: 64px; height: 64px; }
+    .lu.lg .wm { font-size: 36px; }
+    .lu.lg .wm-fa { font-size: 34px; }
+    .card.dark .lu .wm, .card.purple .lu .wm { color: #fff; }
+    @media (max-width: 860px) {
+      h1 { font-size: 36px; }
+      .g4, .g3, .g2, .do-dont { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 560px) {
+      .g4, .g3, .g2, .do-dont { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="kicker">Brand identity · 2026</div>
+      <h1>Seloma <span>سِلوما</span></h1>
+      <p class="lede">A modern AI Commerce platform. The identity is built to feel like intelligent technology that makes business easier — not like another chatbot.</p>
+      <div class="hero-lockup">
+        <div class="lu lg" style="justify-content:flex-start">
+          <img src="svg/d3-icon-color.svg" alt="" />
+          <span class="wm">Seloma</span>
+        </div>
+        <div class="lu lg" style="justify-content:flex-start">
+          <img src="svg/d3-icon-color.svg" alt="" />
+          <span class="wm wm-fa">سِلوما</span>
+        </div>
+      </div>
+    </header>
+
+    <nav class="toc">
+      <a href="#position">Positioning</a>
+      <a href="#color">Color</a>
+      <a href="#d1">01 Geometric</a>
+      <a href="#d2">02 Negative space</a>
+      <a href="#d3">03 Flow</a>
+      <a href="#d4">04 Connection</a>
+      <a href="#recommend">Recommended</a>
+      <a href="#type">Wordmark</a>
+      <a href="#use">Usage</a>
+    </nav>
+
+    <section id="position">
+      <h2>Positioning</h2>
+      <p class="intro">Emotional promise: “This AI is going to make my work easier.” Archetype mix: Magician 60% · Sage 25% · Creator 15%. Visual balance: 70% established SaaS, 30% innovative technology.</p>
+      <div class="grid g3">
+        <div class="card">
+          <h3>Intelligent</h3>
+          <p class="intro" style="margin:0">Geometry over illustration. Circular construction, precise terminals, no decoration.</p>
+        </div>
+        <div class="card">
+          <h3>Helpful</h3>
+          <p class="intro" style="margin:0">The mark reads as transformation: input → intelligence → action. Complexity becoming simple.</p>
+        </div>
+        <div class="card">
+          <h3>Premium</h3>
+          <p class="intro" style="margin:0">Restrained purple, deep blue, almost no teal. Works in one solid color. Quiet enough for enterprise sales.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="color">
+      <h2>Color</h2>
+      <p class="intro">Deep intelligent purple carries innovation and the Magician. Blue is trust, used as a supporting partner. Teal is a rare accent only.</p>
+      <div class="grid g4">
+        <div class="card" style="padding:0; overflow:hidden">
+          <div class="swatch" style="background:#4C3A78"></div>
+          <div class="swatch-meta" style="padding:14px 16px 18px">
+            <strong>Seloma Purple</strong>
+            <span>#4C3A78 · Primary</span>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden">
+          <div class="swatch" style="background:#2F4A73"></div>
+          <div class="swatch-meta" style="padding:14px 16px 18px">
+            <strong>Intelligence Blue</strong>
+            <span>#2F4A73 · Secondary</span>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden">
+          <div class="swatch" style="background:#2A7A74"></div>
+          <div class="swatch-meta" style="padding:14px 16px 18px">
+            <strong>Signal Teal</strong>
+            <span>#2A7A74 · Accent, rare</span>
+          </div>
+        </div>
+        <div class="card" style="padding:0; overflow:hidden">
+          <div class="swatch" style="background:#1A1625"></div>
+          <div class="swatch-meta" style="padding:14px 16px 18px">
+            <strong>Ink</strong>
+            <span>#1A1625 · Wordmark / mono</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="d1" class="dir">
+      <div class="dir-head">
+        <div>
+          <h2>01 — Minimal geometric S</h2>
+          <p>A single continuous stroke built from two circular bowls. The most reduced, most scalable letterform. Best when quiet authority matters.</p>
+        </div>
+      </div>
+      <div class="grid g4">
+        <div class="card"><div class="mark"><img src="svg/d1-symbol-color.svg" alt=""></div><div class="label">Symbol · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d1-icon-color.svg" alt=""></div><div class="label">App icon · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d1-symbol-mono.svg" alt=""></div><div class="label">Symbol · mono</div></div>
+        <div class="card dark"><div class="mark"><img src="svg/d1-icon-mono.svg" alt=""></div><div class="label">Icon · mono / dark</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d1-icon-color.svg" alt=""><span class="wm">Seloma</span></div><div class="label">Symbol + Seloma · color</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d1-icon-color.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Symbol + سِلوما · color</div></div>
+        <div class="card"><div class="lu"><img src="svg/d1-icon-mono.svg" alt=""><span class="wm">Seloma</span></div><div class="label">English · mono</div></div>
+        <div class="card"><div class="lu"><img src="svg/d1-icon-mono.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Persian · mono</div></div>
+      </div>
+    </section>
+
+    <section id="d2" class="dir">
+      <div class="dir-head">
+        <div>
+          <h2>02 — Intelligent negative space</h2>
+          <p>The same bowls, interrupted at the center. The gap is the intelligence — a pause where complexity is transformed before action.</p>
+        </div>
+      </div>
+      <div class="grid g4">
+        <div class="card"><div class="mark"><img src="svg/d2-symbol-color.svg" alt=""></div><div class="label">Symbol · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d2-icon-color.svg" alt=""></div><div class="label">App icon · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d2-symbol-mono.svg" alt=""></div><div class="label">Symbol · mono</div></div>
+        <div class="card dark"><div class="mark"><img src="svg/d2-icon-mono.svg" alt=""></div><div class="label">Icon · mono / dark</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d2-icon-color.svg" alt=""><span class="wm">Seloma</span></div><div class="label">Symbol + Seloma · color</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d2-icon-color.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Symbol + سِلوما · color</div></div>
+        <div class="card"><div class="lu"><img src="svg/d2-icon-mono.svg" alt=""><span class="wm">Seloma</span></div><div class="label">English · mono</div></div>
+        <div class="card"><div class="lu"><img src="svg/d2-icon-mono.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Persian · mono</div></div>
+      </div>
+    </section>
+
+    <section id="d3" class="dir">
+      <div class="dir-head">
+        <div>
+          <h2>03 — Flow / transformation</h2>
+          <p>A double-stroke ribbon: a channel of information moving through the S. Input at the top, resolved action at the bottom. Distinctive at large size, still an S at 16px as a solid-stroke favicon.</p>
+        </div>
+        <span class="badge">Recommended</span>
+      </div>
+      <div class="grid g4">
+        <div class="card"><div class="mark"><img src="svg/d3-symbol-color.svg" alt=""></div><div class="label">Symbol · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d3-icon-color.svg" alt=""></div><div class="label">App icon · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d3-symbol-duotone.svg" alt=""></div><div class="label">Symbol · purple / blue</div></div>
+        <div class="card"><div class="mark"><img src="svg/d3-icon-gradient.svg" alt=""></div><div class="label">Icon · subtle gradient</div></div>
+        <div class="card"><div class="mark"><img src="svg/d3-symbol-mono.svg" alt=""></div><div class="label">Symbol · mono</div></div>
+        <div class="card dark"><div class="mark"><img src="svg/d3-icon-mono.svg" alt=""></div><div class="label">Icon · mono / dark</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d3-icon-color.svg" alt=""><span class="wm">Seloma</span></div><div class="label">Primary lockup · [S] Seloma</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d3-icon-color.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Persian lockup · [S] سِلوما</div></div>
+        <div class="card"><div class="lu"><img src="svg/d3-icon-mono.svg" alt=""><span class="wm">Seloma</span></div><div class="label">English · mono</div></div>
+        <div class="card"><div class="lu"><img src="svg/d3-icon-mono.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Persian · mono</div></div>
+      </div>
+    </section>
+
+    <section id="d4" class="dir">
+      <div class="dir-head">
+        <div>
+          <h2>04 — Connection / intelligence</h2>
+          <p>Two arcs and a central connector. Literal structure of Input → Intelligence → Action. Teal is used once, only on the connector, and disappears in monochrome.</p>
+        </div>
+      </div>
+      <div class="grid g4">
+        <div class="card"><div class="mark"><img src="svg/d4-symbol-color.svg" alt=""></div><div class="label">Symbol · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d4-icon-color.svg" alt=""></div><div class="label">App icon · color</div></div>
+        <div class="card"><div class="mark"><img src="svg/d4-symbol-mono.svg" alt=""></div><div class="label">Symbol · mono</div></div>
+        <div class="card dark"><div class="mark"><img src="svg/d4-icon-mono.svg" alt=""></div><div class="label">Icon · mono / dark</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d4-icon-color.svg" alt=""><span class="wm">Seloma</span></div><div class="label">Symbol + Seloma · color</div></div>
+        <div class="card" style="grid-column: span 2"><div class="lu"><img src="svg/d4-icon-color.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Symbol + سِلوما · color</div></div>
+        <div class="card"><div class="lu"><img src="svg/d4-icon-mono.svg" alt=""><span class="wm">Seloma</span></div><div class="label">English · mono</div></div>
+        <div class="card"><div class="lu"><img src="svg/d4-icon-mono.svg" alt=""><span class="wm wm-fa">سِلوما</span></div><div class="label">Persian · mono</div></div>
+      </div>
+    </section>
+
+    <section id="recommend">
+      <h2>Recommended system</h2>
+      <p class="intro">Ship Direction 03 as the core identity. One geometry, three expressions: flow mark for brand moments, rounded-square icon for product surfaces, single-stroke cut for 16×16 favicons.</p>
+      <div class="grid g2">
+        <div class="card">
+          <div class="lu lg" style="min-height:160px"><img src="svg/d3-icon-color.svg" alt=""><span class="wm">Seloma</span></div>
+          <div class="label">Product lockup — website header · dashboard · invoices</div>
+        </div>
+        <div class="card">
+          <div class="lu lg" style="min-height:160px"><img src="svg/d3-icon-color.svg" alt=""><span class="wm wm-fa">سِلوما</span></div>
+          <div class="label">Persian lockup — local product, support, sales</div>
+        </div>
+        <div class="card">
+          <div class="lu lg" style="min-height:160px"><img src="svg/d3-symbol-color.svg" alt=""><span class="wm">Seloma</span></div>
+          <div class="label">Brand mark lockup — presentations · wordmark-led layouts</div>
+        </div>
+        <div class="card dark">
+          <div class="lu lg" style="min-height:160px"><img src="svg/d3-icon-mono.svg" alt=""><span class="wm">Seloma</span></div>
+          <div class="label">Dark UI / photography · white wordmark</div>
+        </div>
+      </div>
+      <div class="sizes" style="margin-top:36px">
+        <figure>
+          <img src="svg/icon.svg" width="96" height="96" alt="96">
+          <figcaption>96 px · app</figcaption>
+        </figure>
+        <figure>
+          <img src="svg/icon.svg" width="64" height="64" alt="64">
+          <figcaption>64 px · avatar</figcaption>
+        </figure>
+        <figure>
+          <img src="svg/icon.svg" width="32" height="32" alt="32">
+          <figcaption>32 px · social</figcaption>
+        </figure>
+        <figure>
+          <img src="svg/favicon.svg" width="16" height="16" alt="16">
+          <figcaption>16 px · favicon</figcaption>
+        </figure>
+        <figure>
+          <img src="svg/d3-symbol-color.svg" width="96" height="96" alt="mark">
+          <figcaption>Standalone mark</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="type">
+      <h2>Wordmark</h2>
+      <p class="intro">Outfit Medium for Latin — geometric, calm, slightly distinctive, not playful. Vazirmatn Medium for Persian — the closest modern match in stroke, rhythm, and seriousness. Tracking on Seloma is slightly open so S–e–l–o–m–a has air without looking spaced-out.</p>
+      <div class="grid g2">
+        <div class="card">
+          <div class="wordmark-row"><span class="wm">Seloma</span></div>
+          <div class="label">Outfit · 500 · +0.02em · Ink #1A1625</div>
+        </div>
+        <div class="card">
+          <div class="wordmark-row"><span class="wm wm-fa">سِلوما</span></div>
+          <div class="label">Vazirmatn · 500 · kasra retained</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="use">
+      <h2>Usage</h2>
+      <p class="intro">Clear space around the lockup equals the width of the letter o. Minimum digital lockup height: 24px. Minimum icon: 16px (use favicon.svg, not the flow cut). Never redraw the S as a typeface character.</p>
+      <div class="do-dont">
+        <div class="card">
+          <h3>Do</h3>
+          <ul>
+            <li>Use the purple icon + ink wordmark on light UI</li>
+            <li>Use the mono icon + white wordmark on photography or dark UI</li>
+            <li>Keep the Persian lockup LTR: symbol on the left, سِلوما on the right</li>
+            <li>Use a single solid color whenever print, embroidery, or legal docs require it</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Don’t</h3>
+          <ul>
+            <li>No robots, sparks, circuits, chat bubbles, carts, or gradients beyond the optional icon</li>
+            <li>Do not neon-up the purple or add a second accent besides teal</li>
+            <li>Do not outline, bevel, or drop-shadow the mark</li>
+            <li>Do not replace the symbol with a font S</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Production files live in <code>brand/seloma/svg/</code>. Geometry is two circular bowls with open terminals — one construction, four expressions. Seloma should feel like a serious technology company that happens to use AI, not an AI company that happens to sell software.
+    </footer>
+  </div>
+</body>
+</html>

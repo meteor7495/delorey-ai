@@ -1,15 +1,23 @@
+import { seloma } from './colors';
+
+export { seloma, chartPalette } from './colors';
+
 export const tokens = {
   color: {
-    bg: '#F4F7F8',
-    surface: '#ffffff',
-    text: '#14212b',
-    muted: '#5b6b76',
-    accent: '#0f6e6e',
-    success: '#10B981',
-    warning: '#F59E0B',
-    danger: '#EF4444',
-    info: '#175cd3',
-    border: '#DCE5E8',
+    bg: seloma.neutral[50],
+    surface: seloma.neutral[0],
+    text: seloma.neutral[900],
+    muted: seloma.neutral[600],
+    accent: seloma.primary[500],
+    primary: seloma.primary[500],
+    secondary: seloma.secondary[500],
+    brandAccent: seloma.accent[500],
+    success: seloma.semantic.success.fg,
+    warning: seloma.semantic.warning.fg,
+    danger: seloma.semantic.error.fg,
+    info: seloma.semantic.info.fg,
+    border: seloma.neutral[200],
+    chart: seloma.chart,
   },
   font: {
     sans: '"Vazirmatn", "Segoe UI", Tahoma, sans-serif',
@@ -40,7 +48,7 @@ export const aiLabels: Record<AiState, string> = {
 export const aiColors: Record<AiState, string> = {
   inactive: tokens.color.muted,
   active: tokens.color.success,
-  paused: '#b54708',
+  paused: seloma.semantic.warning.fg,
   syncing: tokens.color.info,
   degraded: tokens.color.danger,
   awaiting_human: tokens.color.danger,

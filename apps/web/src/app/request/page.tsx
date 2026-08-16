@@ -58,11 +58,11 @@ function RequestForm() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#f4f8f9]">
+    <main className="min-h-[100dvh] bg-[var(--color-bg)]">
       <div
         className="border-b border-ink/8 bg-ink text-white"
         style={{
-          background: 'linear-gradient(160deg, #071018, #0f6e6e 140%)',
+          background: 'linear-gradient(160deg, #1a1625, #6c4dff 160%)',
         }}
       >
         <div className="container py-10">

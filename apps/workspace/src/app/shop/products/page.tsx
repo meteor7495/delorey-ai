@@ -566,7 +566,7 @@ export default function ShopProductsPage() {
         ) : (
           <div className="space-y-2">
             {products.map((p) => (
-              <Card key={p.id}>
+              <Card key={p.id} className={selectedIds.includes(p.id) ? 'seloma-row-selected' : undefined}>
                 <CardContent className="p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-start gap-3">

@@ -3,14 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --teal: #0f6e6e;
-  --teal-bright: #1fa8a0;
-  --teal-soft: #d7f0ee;
-  --ink: #071018;
-  --mist: #9db4c0;
-  --sand: #e8f0f2;
-  --page: #f2f6f7;
-  --surface: #ffffff;
+  --ink: var(--color-text-primary);
+  --mist: var(--color-text-tertiary);
+  --sand: var(--color-bg);
+  --page: var(--color-bg);
+  --surface: var(--color-bg-surface);
   --ease: cubic-bezier(0.22, 0.7, 0.28, 1);
 }
 
@@ -42,7 +39,7 @@ body {
 }
 
 ::selection {
-  background: rgba(31, 168, 160, 0.22);
+  background: var(--brand-glow);
   color: var(--ink);
 }
 
@@ -85,29 +82,30 @@ body {
 }
 
 .btn:focus-visible {
-  outline: 2px solid rgba(31, 168, 160, 0.55);
+  outline: 2px solid var(--brand-400);
   outline-offset: 3px;
 }
 
 .btn-primary {
   color: #fff;
-  background: linear-gradient(145deg, #23b5ad 0%, #0f6e6e 100%);
-  box-shadow: 0 14px 30px rgba(15, 110, 110, 0.28);
+  background: var(--color-primary);
+  box-shadow: var(--sh-primary);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 18px 36px rgba(15, 110, 110, 0.34);
+  background: var(--color-primary-hover);
+  box-shadow: 0 18px 36px rgba(108, 77, 255, 0.28);
 }
 
 .btn-ghost {
-  color: #071018;
+  color: var(--ink);
   background: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(7, 16, 24, 0.1);
+  border: 1px solid rgba(26, 22, 37, 0.1);
 }
 
 .btn-ghost:hover {
   background: #fff;
-  border-color: rgba(7, 16, 24, 0.16);
+  border-color: rgba(26, 22, 37, 0.16);
 }
 
 .btn-outline-light {
@@ -122,18 +120,18 @@ body {
 }
 
 .btn-soft {
-  color: var(--teal);
-  background: rgba(15, 110, 110, 0.08);
-  border: 1px solid rgba(15, 110, 110, 0.12);
+  color: var(--color-primary-text);
+  background: var(--color-primary-soft);
+  border: 1px solid rgba(108, 77, 255, 0.14);
 }
 
 .btn-soft:hover {
-  background: rgba(15, 110, 110, 0.12);
+  background: var(--brand-100);
 }
 
 .input {
   width: 100%;
-  border: 1px solid rgba(7, 16, 24, 0.12);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 0.8rem 0.95rem;
   font: inherit;
@@ -141,8 +139,8 @@ body {
 }
 
 .input:focus {
-  outline: 2px solid rgba(31, 168, 160, 0.35);
-  border-color: #1fa8a0;
+  outline: 2px solid var(--brand-glow);
+  border-color: var(--color-primary);
 }
 
 .eyebrow {
@@ -152,7 +150,7 @@ body {
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.04em;
-  color: var(--teal);
+  color: var(--color-primary-text);
 }
 
 .eyebrow::before {
@@ -160,7 +158,7 @@ body {
   width: 1.5rem;
   height: 2px;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--teal-bright), var(--teal));
+  background: var(--gradient-hero);
 }
 
 .plan-card {
@@ -169,7 +167,7 @@ body {
   height: 100%;
   border-radius: 1.5rem;
   padding: 1.6rem 1.5rem;
-  border: 1px solid rgba(7, 16, 24, 0.08);
+  border: 1px solid var(--color-border);
   background: var(--surface);
   transition:
     transform 0.25s var(--ease),
@@ -179,25 +177,25 @@ body {
 
 .plan-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(15, 110, 110, 0.22);
-  box-shadow: 0 18px 40px rgba(7, 16, 24, 0.06);
+  border-color: rgba(108, 77, 255, 0.22);
+  box-shadow: 0 18px 40px rgba(26, 22, 37, 0.06);
 }
 
 .plan-card--featured {
-  background: linear-gradient(165deg, #0b1a22 0%, #071018 55%, #0a2f32 100%);
+  background: linear-gradient(165deg, #1a1625 0%, #16111f 55%, #2f4a73 140%);
   color: #fff;
   border-color: transparent;
-  box-shadow: 0 24px 50px rgba(7, 16, 24, 0.28);
+  box-shadow: 0 24px 50px rgba(26, 22, 37, 0.28);
 }
 
 .plan-card--featured:hover {
   border-color: transparent;
-  box-shadow: 0 28px 56px rgba(7, 16, 24, 0.34);
+  box-shadow: 0 28px 56px rgba(26, 22, 37, 0.34);
 }
 
 .feature-row {
   padding-block: 1.35rem;
-  border-bottom: 1px solid rgba(7, 16, 24, 0.08);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .feature-row:last-child {
@@ -208,19 +206,24 @@ body {
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 999px;
-  background: var(--teal-bright);
-  box-shadow: 0 0 0 0 rgba(31, 168, 160, 0.55);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 0 rgba(108, 77, 255, 0.45);
   animation: pulseDot 2.4s ease-out infinite;
 }
 
 @keyframes pulseDot {
   0% {
-    box-shadow: 0 0 0 0 rgba(31, 168, 160, 0.55);
+    box-shadow: 0 0 0 0 rgba(108, 77, 255, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(31, 168, 160, 0);
+    box-shadow: 0 0 0 8px rgba(108, 77, 255, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(31, 168, 160, 0);
+    box-shadow: 0 0 0 0 rgba(108, 77, 255, 0);
   }
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--color-primary);
 }

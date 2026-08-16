@@ -77,8 +77,8 @@ function NavLink({ item, pathname }: { item: NavLeaf; pathname: string }) {
       className={cn(
         'relative flex items-center gap-[11px] w-full px-3 py-[9px] rounded-[9px] text-[13.5px] font-semibold transition-all duration-150 no-underline',
         active
-          ? 'bg-[rgba(15,110,110,0.28)] text-white'
-          : 'bg-transparent text-[#94A3B8] hover:bg-[rgba(255,255,255,0.05)] hover:text-white',
+          ? 'bg-[var(--sidebar-active-bg)] text-white'
+          : 'bg-transparent text-[var(--sidebar-text)] hover:bg-[rgba(255,255,255,0.05)] hover:text-white',
       )}
     >
       <Icon size={18} strokeWidth={active ? 2.2 : 1.9} />
@@ -109,13 +109,13 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
   return (
     <aside
       className="hidden lg:flex w-[264px] shrink-0 flex-col sticky top-0 h-screen z-50 border-e border-[rgba(255,255,255,0.07)]"
-      style={{ background: 'linear-gradient(180deg, #0E1729 0%, #0A101D 100%)' }}
+      style={{ background: 'var(--sidebar-grad)' }}
     >
       <div className="px-[18px] pt-[18px] pb-3.5">
         <div className="flex items-center gap-2.5">
           <div
-            className="w-[34px] h-[34px] rounded-[10px] grid place-items-center shrink-0 shadow-[0_4px_12px_rgba(15,110,110,0.45),inset_0_1px_0_rgba(255,255,255,0.25)]"
-            style={{ background: 'linear-gradient(145deg, #2A8A8A, #0f6e6e)' }}
+            className="w-[34px] h-[34px] rounded-[10px] grid place-items-center shrink-0 shadow-[var(--sh-primary),inset_0_1px_0_rgba(255,255,255,0.25)]"
+            style={{ background: 'var(--gradient-brand)' }}
           >
             <Sparkles size={18} color="#fff" />
           </div>
@@ -133,7 +133,7 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
       <div className="px-3.5 pb-3.5">
         <div className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[11px] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.04)]">
           <div className="w-8 h-8 rounded-lg bg-[rgba(255,255,255,0.07)] grid place-items-center shrink-0">
-            <Store size={16} color="#5BA8A8" />
+            <Store size={16} color="var(--brand-400)" />
           </div>
           <div className="text-start flex-1 min-w-0">
             <div className="text-[13px] font-bold text-white whitespace-nowrap overflow-hidden text-ellipsis">
@@ -185,7 +185,7 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
         <Button
           variant="ghost"
           onClick={handleLogout}
-          className="flex items-center gap-[11px] w-full px-3 py-[9px] h-auto rounded-[9px] text-[#64748B] text-[13.5px] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#94A3B8] justify-start"
+          className="flex items-center gap-[11px] w-full px-3 py-[9px] h-auto rounded-[9px] text-[var(--sidebar-text)] text-[13.5px] hover:bg-[rgba(255,255,255,0.05)] hover:text-white justify-start"
         >
           <LogOut size={18} strokeWidth={1.9} />
           <span className="flex-1 text-start">خروج</span>
