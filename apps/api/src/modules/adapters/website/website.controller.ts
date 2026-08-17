@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Headers,
   Param,
   Post,
@@ -30,6 +31,16 @@ export class WebsiteAdapterController {
     @Headers('origin') origin?: string,
   ) {
     return this.website.createSession(dto.publicKey, origin);
+  }
+
+  @Get('sessions/:id/messages')
+  listMessages(
+    @Param('id') conversationId: string,
+    @Headers('x-public-key') publicKey?: string,
+    @Headers('origin') origin?: string,
+  ) {
+    if (!publicKey) throw new BadRequestException('x-public-key required');
+    return this.website.listMessages(publicKey, conversationId, origin);
   }
 
   @Post('sessions/:id/messages')

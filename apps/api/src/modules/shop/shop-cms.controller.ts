@@ -20,6 +20,7 @@ import {
   IsOptional,
   IsString,
   Min,
+  MinLength,
 } from 'class-validator';
 import { AuditService } from '../audit/audit.service';
 import {
@@ -29,6 +30,7 @@ import {
 } from '../platform/auth.guard';
 import { CommerceRuleFilter } from './commerce-rule.filter';
 import { ShopService } from './shop.service';
+import { CustomersService } from './customers.service';
 
 class ProductDto {
   @IsOptional()
@@ -267,12 +269,19 @@ class OrderStatusDto {
   status!: string;
 }
 
+class RejectOrderDto {
+  @IsString()
+  @MinLength(3)
+  reason!: string;
+}
+
 @Controller('shop')
 @UseGuards(SessionAuthGuard)
 @UseFilters(CommerceRuleFilter)
 export class ShopCmsController {
   constructor(
     private readonly shop: ShopService,
+    private readonly customers: CustomersService,
     private readonly audit: AuditService,
   ) {}
 
@@ -501,9 +510,27 @@ export class ShopCmsController {
     return row;
   }
 
+  @Get('customers')
+  listCustomers(
+    @CurrentAuth() auth: AuthContext,
+    @Query('q') q?: string,
+  ) {
+    return this.customers.list(auth.tenantId, q);
+  }
+
+  @Get('customers/:id')
+  getCustomer(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    return this.customers.get(auth.tenantId, id);
+  }
+
   @Get('orders')
   orders(@CurrentAuth() auth: AuthContext) {
     return this.shop.listStorefrontOrders(auth.tenantId);
+  }
+
+  @Get('orders/:id')
+  getOrder(@CurrentAuth() auth: AuthContext, @Param('id') id: string) {
+    return this.shop.getStorefrontOrder(auth.tenantId, id);
   }
 
   @Patch('orders/:id')
@@ -516,12 +543,53 @@ export class ShopCmsController {
       auth.tenantId,
       id,
       dto.status,
+      auth.userId,
     );
     await this.audit.recordAdmin(
       auth,
       'shop.order.status',
       `تغییر وضعیت سفارش ${row.orderNumber} به ${row.status}`,
       { id, status: row.status },
+    );
+    return row;
+  }
+
+  @Post('orders/:id/approve')
+  async approveOrder(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id') id: string,
+  ) {
+    const row = await this.shop.approveStorefrontOrder(
+      auth.tenantId,
+      id,
+      auth.userId,
+    );
+    await this.audit.recordAdmin(
+      auth,
+      'shop.order.approve',
+      `تأیید سفارش ${row.orderNumber}`,
+      { id, status: row.status },
+    );
+    return row;
+  }
+
+  @Post('orders/:id/reject')
+  async rejectOrder(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id') id: string,
+    @Body() dto: RejectOrderDto,
+  ) {
+    const row = await this.shop.rejectStorefrontOrder(
+      auth.tenantId,
+      id,
+      dto.reason,
+      auth.userId,
+    );
+    await this.audit.recordAdmin(
+      auth,
+      'shop.order.reject',
+      `رد سفارش ${row.orderNumber}`,
+      { id, status: row.status, reason: dto.reason },
     );
     return row;
   }

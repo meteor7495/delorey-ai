@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../platform/prisma.service';
 import { isValidMobile, normalizePhone } from './phone';
 
@@ -128,6 +128,78 @@ export class CustomersService {
     });
 
     return this.map(customer);
+  }
+
+  async list(tenantId: string, q?: string) {
+    const needle = q?.trim();
+    const rows = await this.prisma.customer.findMany({
+      where: {
+        tenantId,
+        ...(needle
+          ? {
+              OR: [
+                { name: { contains: needle, mode: 'insensitive' } },
+                { phoneNormalized: { contains: needle } },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        identities: true,
+        addresses: { orderBy: { updatedAt: 'desc' } },
+        _count: { select: { orders: true } },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+    return rows.map((row) => ({
+      ...this.map(row),
+      identities: row.identities.map((i) => ({
+        channel: i.channel,
+        externalId: i.externalId,
+      })),
+      orderCount: row._count.orders,
+    }));
+  }
+
+  async get(tenantId: string, id: string) {
+    const row = await this.prisma.customer.findFirst({
+      where: { id, tenantId },
+      include: {
+        identities: true,
+        addresses: { orderBy: { updatedAt: 'desc' } },
+        orders: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          include: { items: true },
+        },
+      },
+    });
+    if (!row) throw new NotFoundException('مشتری پیدا نشد');
+    return {
+      ...this.map(row),
+      identities: row.identities.map((i) => ({
+        id: i.id,
+        channel: i.channel,
+        externalId: i.externalId,
+        createdAt: i.createdAt.toISOString(),
+      })),
+      orders: row.orders.map((o) => ({
+        id: o.id,
+        orderNumber: o.orderNumber,
+        status: o.status,
+        channel: o.channel,
+        paymentStatus: o.paymentStatus,
+        totalAmount: Number(o.totalAmount),
+        currency: o.currency,
+        createdAt: o.createdAt.toISOString(),
+        items: o.items.map((i) => ({
+          title: i.title,
+          quantity: i.quantity,
+          lineTotal: Number(i.lineTotal),
+        })),
+      })),
+    };
   }
 
   async register(input: {

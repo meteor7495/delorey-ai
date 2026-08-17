@@ -26,6 +26,7 @@ import {
   Boxes,
   Percent,
   FileText,
+  Users,
 } from 'lucide-react';
 import { AiStateChip } from '@seloma/ui';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ const shopNav: NavLeaf[] = [
   { href: '/shop/categories', icon: Tags, label: 'دسته‌ها' },
   { href: '/shop/articles', icon: FileText, label: 'مقالات' },
   { href: '/shop/orders', icon: ClipboardList, label: 'سفارش‌ها' },
+  { href: '/shop/customers', icon: Users, label: 'مشتری‌ها' },
   { href: '/channels', icon: Radio, label: 'کانال‌ها' },
   { href: '/shop/appearance', icon: Palette, label: 'ظاهر و بنر' },
   { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },

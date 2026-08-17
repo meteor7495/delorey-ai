@@ -35,12 +35,19 @@ model Tenant {
   orders               Order[]
   carts                Cart[]
   storefrontOrders     StorefrontOrder[]
+  orderStatusHistory   OrderStatusHistory[]
   storefrontSettings   StorefrontSettings?
   storefrontBanners    StorefrontBanner[]
   customers            Customer[]
   customerIdentities   CustomerIdentity[]
   customerAddresses    CustomerAddress[]
-  checkoutSessions     ChannelCheckoutSession[]
+  checkoutSessions       ChannelCheckoutSession[]
+  hostedCheckoutSessions HostedCheckoutSession[]
+  payments               Payment[]
+  paymentTransactions    PaymentTransaction[]
+  webhookEvents          WebhookEvent[]
+  analyticsEvents        AnalyticsEvent[]
+  notificationOutbox     NotificationOutbox[]
   aiPolicy             TenantAiPolicy?
   aiCallEvents         AiCallEvent[]
   accessRequests       AccessRequest[]
@@ -234,29 +241,39 @@ model Product {
 }
 
 model Cart {
-  id        String   @id @default(uuid())
-  tenantId  String   @map("tenant_id")
-  sessionId String   @map("session_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  sessionId  String   @map("session_id")
+  customerId String?  @map("customer_id")
+  /// website | telegram | bale | instagram
+  channel    String   @default("website")
+  /// active | converted | abandoned
+  status     String   @default("active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
-  tenant Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  items  CartItem[]
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    CartItem[]
 
   @@unique([tenantId, sessionId])
   @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([customerId])
   @@map("carts")
 }
 
 model CartItem {
-  id        String   @id @default(uuid())
-  cartId    String   @map("cart_id")
-  productId String   @map("product_id")
+  id                String   @id @default(uuid())
+  cartId            String   @map("cart_id")
+  productId         String   @map("product_id")
   /// Null → simple product line; set for variant-aware lines
-  variantId String?  @map("variant_id")
-  quantity  Int      @default(1)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  variantId         String?  @map("variant_id")
+  quantity          Int      @default(1)
+  unitPriceSnapshot Decimal? @map("unit_price_snapshot") @db.Decimal(18, 2)
+  lineTotalSnapshot Decimal? @map("line_total_snapshot") @db.Decimal(18, 2)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -273,12 +290,16 @@ model StorefrontOrder {
   id               String   @id @default(uuid())
   tenantId         String   @map("tenant_id")
   orderNumber      String   @map("order_number")
+  /// pending | pending_payment | pending_approval | approved | processing | shipped | delivered | cancelled | rejected | payment_failed
   status           String   @default("pending")
+  /// unpaid | pending | paid | failed | refunded — independent of fulfillment
+  paymentStatus    String   @default("unpaid") @map("payment_status")
   /// website | telegram | bale | instagram
   channel          String   @default("website")
   paymentMethod    String   @default("cod") @map("payment_method")
   paymentAuthority String?  @map("payment_authority")
   paymentRef       String?  @map("payment_ref")
+  rejectionReason  String?  @map("rejection_reason")
   subtotalAmount   Decimal  @default(0) @map("subtotal_amount") @db.Decimal(18, 2)
   discountCode     String?  @map("discount_code")
   discountAmount   Decimal  @default(0) @map("discount_amount") @db.Decimal(18, 2)
@@ -295,14 +316,37 @@ model StorefrontOrder {
   tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   customer Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
   items    StorefrontOrderItem[]
+  history  OrderStatusHistory[]
+  payments Payment[]
 
   @@unique([tenantId, orderNumber])
   @@index([tenantId, status])
+  @@index([tenantId, paymentStatus])
   @@index([tenantId, channel])
   @@index([tenantId, customerPhone])
   @@index([customerId])
   @@index([paymentAuthority])
   @@map("storefront_orders")
+}
+
+/// Append-only fulfillment/payment audit for StorefrontOrder
+model OrderStatusHistory {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  orderId       String   @map("order_id")
+  fromStatus    String   @map("from_status")
+  toStatus      String   @map("to_status")
+  paymentStatus String?  @map("payment_status")
+  reason        String?
+  actorUserId   String?  @map("actor_user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order  StorefrontOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, orderId, createdAt])
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
 }
 
 model Customer {
@@ -317,6 +361,8 @@ model Customer {
   identities CustomerIdentity[]
   addresses  CustomerAddress[]
   orders     StorefrontOrder[]
+  carts      Cart[]
+  conversations Conversation[]
 
   @@unique([tenantId, phoneNormalized])
   @@index([tenantId])
@@ -369,6 +415,136 @@ model ChannelCheckoutSession {
 
   @@index([tenantId])
   @@map("channel_checkout_sessions")
+}
+
+/// Signed, expiring website checkout opened from any channel
+model HostedCheckoutSession {
+  id         String    @id @default(uuid())
+  tenantId   String    @map("tenant_id")
+  cartId     String    @map("cart_id")
+  customerId String?   @map("customer_id")
+  channel    String    @default("website")
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  /// pending | consumed | expired
+  status     String    @default("pending")
+  consumedAt DateTime? @map("consumed_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@index([cartId])
+  @@map("checkout_sessions")
+}
+
+/// Provider-agnostic payment aggregate (one logical payment per gateway request)
+model Payment {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  orderId    String   @map("order_id")
+  /// zarinpal | mock
+  provider   String
+  /// pending | paid | failed | refunded
+  status     String   @default("pending")
+  amount     Decimal  @db.Decimal(18, 2)
+  currency   String   @default("IRR")
+  /// Gateway request id (Zarinpal authority). Unique per provider.
+  authority  String?
+  /// Gateway verify reference (ref_id)
+  reference  String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  tenant       Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  order        StorefrontOrder       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  transactions PaymentTransaction[]
+
+  @@unique([provider, authority])
+  @@index([tenantId, orderId])
+  @@index([tenantId, status])
+  @@index([orderId])
+  @@map("payments")
+}
+
+/// Request / verify / callback / refund attempts
+model PaymentTransaction {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  paymentId        String   @map("payment_id")
+  /// request | verify | callback | refund
+  kind             String
+  /// pending | success | failed
+  status           String
+  provider         String
+  paymentReference String?  @map("payment_reference")
+  payload          Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, paymentId, createdAt])
+  @@index([paymentId, createdAt])
+  @@map("payment_transactions")
+}
+
+/// Idempotent inbound webhook (unique per tenant + provider + external id)
+model WebhookEvent {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  /// telegram | bale | instagram
+  provider         String
+  externalEventId  String   @map("external_event_id")
+  /// received | processed | failed
+  status           String   @default("received")
+  payload          Json?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, provider, externalEventId])
+  @@index([tenantId, provider, createdAt])
+  @@map("webhook_events")
+}
+
+model AnalyticsEvent {
+  id             String   @id @default(uuid())
+  tenantId       String   @map("tenant_id")
+  name           String
+  channel        String?
+  customerId     String?  @map("customer_id")
+  conversationId String?  @map("conversation_id")
+  orderId        String?  @map("order_id")
+  payload        Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, name, createdAt])
+  @@index([tenantId, channel, createdAt])
+  @@map("analytics_events")
+}
+
+model NotificationOutbox {
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  channel        String
+  conversationId String?   @map("conversation_id")
+  orderId        String?   @map("order_id")
+  kind           String
+  body           String
+  /// pending | sent | failed
+  status         String    @default("pending")
+  attempts       Int       @default(0)
+  lastError      String?   @map("last_error")
+  sentAt         DateTime? @map("sent_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status, createdAt])
+  @@map("notification_outbox")
 }
 
 model StorefrontOrderItem {
@@ -465,6 +641,10 @@ model Conversation {
   channel           String
   ownership         String    @default("ai_owned")
   externalThreadId  String?   @map("external_thread_id")
+  customerId        String?   @map("customer_id")
+  /// browsing | collecting_cart | checking_out | awaiting_payment
+  shoppingState     String    @default("browsing") @map("shopping_state")
+  context           Json      @default("{}")
   escalationReason  String?   @map("escalation_reason")
   escalatedAt       DateTime? @map("escalated_at")
   handoffPacket     Json?     @map("handoff_packet")
@@ -472,12 +652,15 @@ model Conversation {
   updatedAt         DateTime  @updatedAt @map("updated_at")
 
   tenant   Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   messages Message[]
   audits   AuditTurn[]
 
   @@unique([tenantId, channel, externalThreadId])
   @@index([tenantId])
   @@index([tenantId, ownership])
+  @@index([tenantId, customerId])
+  @@index([tenantId, shoppingState])
   @@map("conversations")
 }
 

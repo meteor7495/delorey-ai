@@ -9,7 +9,7 @@ async function request<T>(
   init?: RequestInit & { publicKey?: string },
 ): Promise<T> {
   const headers = new Headers(init?.headers);
-  headers.set('Content-Type', 'application/json');
+  if (init?.body) headers.set('Content-Type', 'application/json');
   const token = opts.getToken?.();
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (init?.publicKey) headers.set('x-public-key', init.publicKey);
@@ -424,6 +424,19 @@ export function createApiClient(opts: ApiClientOptions) {
         body: JSON.stringify({ text }),
         publicKey,
       }),
+    listChatMessages: (publicKey: string, conversationId: string) =>
+      request<{
+        messages: Array<{
+          id: string;
+          role: string;
+          content: string;
+          createdAt: string;
+        }>;
+        aiState: string;
+        ownership: string;
+      }>(opts, `/public/chat/sessions/${conversationId}/messages`, {
+        publicKey,
+      }),
     listInbox: (ownership?: 'ai_owned' | 'human_owned') =>
       request<
         Array<{
@@ -459,6 +472,28 @@ export function createApiClient(opts: ApiClientOptions) {
           content: string;
           createdAt: string;
         }>;
+        context?: {
+          shoppingState: string;
+          customer: {
+            id: string;
+            name: string;
+            phone: string;
+            address: string | null;
+          } | null;
+          cart: {
+            itemCount: number;
+            items: Array<{ title: string; quantity: number }>;
+          } | null;
+          orders: Array<{
+            id: string;
+            orderNumber: string;
+            status: string;
+            paymentStatus: string;
+            totalAmount: number;
+            currency: string;
+            createdAt: string;
+          }>;
+        };
       }>(opts, `/inbox/conversations/${id}`),
     inboxTakeover: (id: string) =>
       request(opts, `/inbox/conversations/${id}/takeover`, {
@@ -708,6 +743,11 @@ export function createApiClient(opts: ApiClientOptions) {
         };
         methodology: Record<string, string>;
       }>(opts, `/analytics/revenue?days=${days}`),
+    analyticsChannels: (days = 7) =>
+      request<{
+        orders: Array<{ channel: string; orderCount: number; revenue: number }>;
+        events: Array<{ channel: string | null; name: string; count: number }>;
+      }>(opts, `/analytics/channels?days=${days}`),
     listAuditTurns: (query: {
       days?: number;
       decision?: string;
@@ -1115,12 +1155,28 @@ export function createApiClient(opts: ApiClientOptions) {
       }),
     deleteShopBanner: (id: string) =>
       request(opts, `/shop/banners/${id}`, { method: 'DELETE' }),
+    listShopCustomers: (q?: string) =>
+      request<Array<Record<string, unknown>>>(
+        opts,
+        `/shop/customers${q ? `?q=${encodeURIComponent(q)}` : ''}`,
+      ),
+    getShopCustomer: (id: string) =>
+      request<Record<string, unknown>>(opts, `/shop/customers/${id}`),
     listShopOrders: () =>
       request<Array<Record<string, unknown>>>(opts, '/shop/orders'),
+    getShopOrder: (id: string) =>
+      request<Record<string, unknown>>(opts, `/shop/orders/${id}`),
     updateShopOrderStatus: (id: string, status: string) =>
       request(opts, `/shop/orders/${id}`, {
         method: 'PATCH',
         body: JSON.stringify({ status }),
+      }),
+    approveShopOrder: (id: string) =>
+      request(opts, `/shop/orders/${id}/approve`, { method: 'POST' }),
+    rejectShopOrder: (id: string, reason: string) =>
+      request(opts, `/shop/orders/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
       }),
 
     // ── Public storefront ────────────────────────────────────────────
@@ -1219,6 +1275,7 @@ export function createApiClient(opts: ApiClientOptions) {
         customerNote?: string;
         discountCode?: string;
         paymentMethod?: 'cod' | 'online';
+        checkoutToken?: string;
       },
     ) =>
       request<{
@@ -1231,6 +1288,14 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+    hydrateCheckoutSession: (token: string) =>
+      request<{
+        storeSlug: string;
+        sessionId: string;
+        channel: string;
+        expiresAt: string;
+        cart: { total: number };
+      }>(opts, `/checkout/sessions?token=${encodeURIComponent(token)}`),
     storefrontLookupCustomer: (storeSlug: string, phone: string) =>
       request<{
         id: string;

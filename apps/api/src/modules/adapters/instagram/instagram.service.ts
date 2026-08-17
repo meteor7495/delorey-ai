@@ -7,18 +7,35 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuid } from 'uuid';
+import { createHash } from 'crypto';
 import { DataStore } from '../../platform/data.store';
 import { RuntimeService } from '../../runtime/runtime.service';
 import { BoxApiClient } from './boxapi.client';
+import { WebhookEventsService } from '../webhook-events.service';
+import { ChannelMenuService } from '../../shop/channel-menu.service';
+import {
+  CHANNEL_CAPABILITIES,
+  isOrdersMenuText,
+  isStartCommand,
+  isStoreMenuText,
+} from '../channel-adapter';
 
 @Injectable()
 export class InstagramAdapterService {
+  readonly channel = 'instagram' as const;
+
   constructor(
     private readonly store: DataStore,
     @Inject(forwardRef(() => RuntimeService))
     private readonly runtime: RuntimeService,
     private readonly config: ConfigService,
+    private readonly webhooks: WebhookEventsService,
+    private readonly menu: ChannelMenuService,
   ) {}
+
+  capabilities() {
+    return CHANNEL_CAPABILITIES.instagram;
+  }
 
   private live() {
     return (this.config.get<string>('BOXAPI_LIVE') ?? '0') === '1';
@@ -89,12 +106,22 @@ export class InstagramAdapterService {
     }
     const parsed = this.parseInbound(body);
     if (!parsed) return { ignored: true };
-    return this.ingest(
+    const eventId = this.eventId(body, parsed.threadId);
+    const claimed = await this.webhooks.claim({
+      tenantId: channel.tenantId,
+      provider: 'instagram',
+      externalEventId: eventId,
+      payload: body,
+    });
+    if (claimed === 'duplicate') return { duplicate: true };
+    const result = await this.ingest(
       channel.tenantId,
       parsed.threadId,
       parsed.text,
-      `ig:${JSON.stringify(body).slice(0, 80)}`,
+      `ig:${eventId}`,
     );
+    await this.webhooks.markProcessed(channel.tenantId, 'instagram', eventId);
+    return result;
   }
 
   async simulate(tenantId: string, text: string, threadId = 'ig-user-1') {
@@ -173,6 +200,31 @@ export class InstagramAdapterService {
       content: text,
       idempotencyKey,
     });
+
+    const menuReply = await this.tryMenu(tenantId, conversation, text);
+    if (menuReply) {
+      let reply = menuReply;
+      if (isStartCommand(text) && CHANNEL_CAPABILITIES.instagram.supportsCheckoutLink) {
+        reply = `${menuReply}\n\nخرید در اینستاگرام از طریق لینک تسویه وب‌سایت انجام می‌شود.`;
+      }
+      await this.store.addMessage({
+        tenantId,
+        conversationId: conversation.id,
+        role: 'employee',
+        content: reply,
+      });
+      await this.client().sendText({
+        accountId: tenantId,
+        recipientId: threadId,
+        message: reply,
+      });
+      return {
+        conversationId: conversation.id,
+        decision: 'channel_menu',
+        reply,
+      };
+    }
+
     const turn = await this.runtime.executeTurn(
       tenantId,
       conversation.id,
@@ -200,5 +252,31 @@ export class InstagramAdapterService {
       decision: turn.decision,
       reply: turn.reply,
     };
+  }
+
+  private eventId(body: Record<string, unknown>, threadId: string): string {
+    const nested = (body.message as Record<string, unknown> | undefined) ?? body;
+    const mid = nested.mid ?? nested.message_id ?? body.id ?? body.event_id;
+    if (typeof mid === 'string' && mid.trim()) return mid.trim();
+    if (typeof mid === 'number') return String(mid);
+    return createHash('sha256')
+      .update(`${threadId}:${JSON.stringify(body)}`)
+      .digest('hex')
+      .slice(0, 40);
+  }
+
+  private async tryMenu(
+    tenantId: string,
+    conversation: { id: string; shoppingState: string },
+    text: string,
+  ): Promise<string | null> {
+    const start = isStartCommand(text);
+    const browsing = conversation.shoppingState === 'browsing';
+    if (!start && !(browsing && (isStoreMenuText(text) || isOrdersMenuText(text)))) {
+      return null;
+    }
+    if (start) return this.menu.startMenu('instagram').text;
+    if (isStoreMenuText(text)) return this.menu.storePreview(tenantId, 'instagram');
+    return this.menu.myOrders(tenantId, conversation.id);
   }
 }

@@ -20,6 +20,16 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { ChannelCheckoutService } from './channel-checkout.service';
 import { UploadsController } from './uploads.controller';
+import { OrderWorkflowService } from './order-workflow.service';
+import { CartService } from './cart.service';
+import { CheckoutSessionService } from './checkout-session.service';
+import { CheckoutController } from './checkout.controller';
+import { ChannelMenuService } from './channel-menu.service';
+import { CommerceEventsService } from './commerce-events.service';
+import { NotificationService } from './notification.service';
+import { PaymentLockService } from './payments/payment-lock.service';
+import { MockPaymentProvider } from './payments/mock.payment-provider';
+import { ZarinpalPaymentProvider } from './payments/zarinpal.payment-provider';
 
 @Module({
   imports: [PlatformModule, AuditModule],
@@ -33,6 +43,7 @@ import { UploadsController } from './uploads.controller';
     StorefrontController,
     PaymentsController,
     UploadsController,
+    CheckoutController,
   ],
   providers: [
     ShopService,
@@ -45,6 +56,15 @@ import { UploadsController } from './uploads.controller';
     CustomersService,
     PaymentsService,
     ChannelCheckoutService,
+    OrderWorkflowService,
+    CartService,
+    CheckoutSessionService,
+    ChannelMenuService,
+    CommerceEventsService,
+    NotificationService,
+    PaymentLockService,
+    MockPaymentProvider,
+    ZarinpalPaymentProvider,
   ],
   exports: [
     ShopService,
@@ -57,6 +77,12 @@ import { UploadsController } from './uploads.controller';
     CustomersService,
     PaymentsService,
     ChannelCheckoutService,
+    OrderWorkflowService,
+    CartService,
+    CheckoutSessionService,
+    ChannelMenuService,
+    CommerceEventsService,
+    NotificationService,
   ],
 })
 export class ShopModule {}

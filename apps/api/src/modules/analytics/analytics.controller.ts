@@ -28,4 +28,10 @@ export class AnalyticsController {
     const n = days ? Number(days) : 7;
     return this.analytics.revenue(auth.tenantId, Number.isFinite(n) ? n : 7);
   }
+
+  @Get('channels')
+  channels(@CurrentAuth() auth: AuthContext, @Query('days') days?: string) {
+    const n = days ? Number(days) : 7;
+    return this.analytics.channels(auth.tenantId, Number.isFinite(n) ? n : 7);
+  }
 }

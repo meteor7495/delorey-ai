@@ -10,6 +10,9 @@ import { PrismaService } from '../platform/prisma.service';
 import {
   availableStock,
   calculateDiscount,
+  canonicalizeOrderStatus,
+  initialOrderStatus,
+  initialPaymentStatus,
   resolveEffectivePrice,
   toSlug,
 } from './domain';
@@ -18,6 +21,10 @@ import { InventoryService } from './inventory.service';
 import { VariantsService } from './variants.service';
 import { CustomersService, type SalesChannel } from './customers.service';
 import { PaymentsService } from './payments.service';
+import { OrderWorkflowService } from './order-workflow.service';
+import { CartService } from './cart.service';
+import { CheckoutSessionService } from './checkout-session.service';
+import { CommerceEventsService } from './commerce-events.service';
 import { isValidMobile, normalizePhone } from './phone';
 import {
   getStorefrontTheme,
@@ -144,6 +151,10 @@ export class ShopService {
     private readonly discounts: DiscountsService,
     private readonly customers: CustomersService,
     private readonly payments: PaymentsService,
+    private readonly workflow: OrderWorkflowService,
+    private readonly carts: CartService,
+    private readonly checkoutSessions: CheckoutSessionService,
+    private readonly events: CommerceEventsService,
   ) {}
 
   private storefrontBase() {
@@ -171,7 +182,10 @@ export class ShopService {
       this.prisma.category.count({ where: { tenantId } }),
       this.prisma.storefrontOrder.count({ where: { tenantId } }),
       this.prisma.storefrontOrder.count({
-        where: { tenantId, status: 'pending' },
+        where: {
+          tenantId,
+          status: { in: ['pending', 'pending_approval'] },
+        },
       }),
       this.prisma.productVariant.count({ where: { tenantId } }),
       this.prisma.attribute.count({ where: { tenantId } }),
@@ -920,61 +934,71 @@ export class ShopService {
     return rows.map((r) => this.mapOrder(r));
   }
 
+  async getStorefrontOrder(tenantId: string, id: string) {
+    return this.mapOrder(await this.workflow.get(tenantId, id));
+  }
+
   async updateStorefrontOrderStatus(
     tenantId: string,
     id: string,
     status: string,
+    actorUserId?: string | null,
   ) {
-    const allowed = [
-      'pending',
-      'pending_payment',
-      'confirmed',
-      'shipped',
-      'delivered',
-      'cancelled',
-    ];
-    if (!allowed.includes(status)) {
-      throw new BadRequestException('وضعیت نامعتبر');
-    }
+    const to = canonicalizeOrderStatus(status === 'confirmed' ? 'approved' : status);
     const existing = await this.prisma.storefrontOrder.findFirst({
       where: { id, tenantId },
     });
     if (!existing) throw new NotFoundException('سفارش پیدا نشد');
-    const previous = existing.status;
-    if (previous === status) {
-      const row = await this.prisma.storefrontOrder.findFirst({
-        where: { id, tenantId },
-        include: { items: true },
-      });
-      return this.mapOrder(row!);
+
+    if (
+      canonicalizeOrderStatus(existing.status) === 'pending_payment' &&
+      to === 'pending_approval'
+    ) {
+      return this.mapOrder(
+        await this.workflow.markPaid(
+          tenantId,
+          id,
+          existing.paymentRef ?? 'manual',
+          actorUserId,
+        ),
+      );
     }
-    const allowedFrom: Record<string, string[]> = {
-      pending: ['confirmed', 'cancelled'],
-      pending_payment: ['confirmed', 'cancelled'],
-      confirmed: ['shipped', 'cancelled'],
-      shipped: ['delivered'],
-      delivered: [],
-      cancelled: [],
-    };
-    if (!(allowedFrom[previous] ?? []).includes(status)) {
-      throw new BadRequestException('این تغییر وضعیت مجاز نیست');
+    if (
+      canonicalizeOrderStatus(existing.status) === 'payment_failed' &&
+      to === 'pending_approval'
+    ) {
+      return this.mapOrder(
+        await this.workflow.markPaid(
+          tenantId,
+          id,
+          existing.paymentRef ?? 'manual',
+          actorUserId,
+        ),
+      );
     }
-    const row = await this.prisma.storefrontOrder.update({
-      where: { id },
-      data: {
-        status,
-        ...(previous === 'pending_payment' &&
-        status === 'confirmed' &&
-        !existing.paymentRef
-          ? { paymentRef: 'manual' }
-          : {}),
-      },
-      include: { items: true },
-    });
-    if (previous !== 'cancelled' && status === 'cancelled') {
-      await this.inventory.restockOrder(tenantId, id, existing.orderNumber);
-    }
-    return this.mapOrder(row);
+
+    return this.mapOrder(
+      await this.workflow.transition({
+        tenantId,
+        orderId: id,
+        to,
+        actorUserId,
+        reason: `status:${to}`,
+      }),
+    );
+  }
+
+  async approveStorefrontOrder(tenantId: string, id: string, actorUserId?: string | null) {
+    return this.mapOrder(await this.workflow.approve(tenantId, id, actorUserId));
+  }
+
+  async rejectStorefrontOrder(
+    tenantId: string,
+    id: string,
+    reason: string,
+    actorUserId?: string | null,
+  ) {
+    return this.mapOrder(await this.workflow.reject(tenantId, id, reason, actorUserId));
   }
 
   // ─── Public storefront ─────────────────────────────────────────────
@@ -1177,69 +1201,7 @@ export class ShopService {
   }
 
   async getOrCreateCart(tenantId: string, sessionId: string) {
-    let cart = await this.prisma.cart.findUnique({
-      where: { tenantId_sessionId: { tenantId, sessionId } },
-      include: {
-        items: {
-          include: {
-            product: true,
-            variant: {
-              include: {
-                attributeValues: {
-                  include: {
-                    attribute: {
-                      select: { id: true, name: true, sortOrder: true },
-                    },
-                    attributeValue: {
-                      select: {
-                        id: true,
-                        value: true,
-                        label: true,
-                        colorHex: true,
-                      },
-                    },
-                  },
-                },
-                inventoryLevel: true,
-              },
-            },
-          },
-        },
-      },
-    });
-    if (!cart) {
-      cart = await this.prisma.cart.create({
-        data: { tenantId, sessionId },
-        include: {
-          items: {
-            include: {
-              product: true,
-              variant: {
-                include: {
-                  attributeValues: {
-                    include: {
-                      attribute: {
-                        select: { id: true, name: true, sortOrder: true },
-                      },
-                      attributeValue: {
-                        select: {
-                          id: true,
-                          value: true,
-                          label: true,
-                          colorHex: true,
-                        },
-                      },
-                    },
-                  },
-                  inventoryLevel: true,
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-    return this.mapCart(cart);
+    return this.carts.getOrCreate(tenantId, sessionId);
   }
 
   async setCartItem(
@@ -1252,104 +1214,21 @@ export class ShopService {
     },
   ) {
     const settings = await this.resolveTenantBySlug(storeSlug);
-    const tenantId = settings.tenantId;
-    const sessionId = input.sessionId;
-    const productId = input.productId;
-    const variantId = input.variantId?.trim() || null;
-    const quantity = input.quantity;
-
-    if (!sessionId) throw new BadRequestException('sessionId الزامی است');
-    const product = await this.prisma.product.findFirst({
-      where: {
-        id: productId,
-        tenantId,
-        status: 'published',
-        source: { in: ['native', 'mock'] },
-      },
-    });
-    if (!product) throw new NotFoundException('محصول پیدا نشد');
-
-    if (product.hasVariants && !variantId) {
-      throw new BadRequestException('انتخاب تنوع محصول الزامی است');
-    }
-
-    if (variantId) {
-      const variant = await this.prisma.productVariant.findFirst({
-        where: {
-          id: variantId,
-          tenantId,
-          productId,
-          active: true,
-        },
-        include: { inventoryLevel: true },
-      });
-      if (!variant) throw new NotFoundException('تنوع محصول پیدا نشد');
-      const available = variant.inventoryLevel
-        ? availableStock(variant.inventoryLevel)
-        : 0;
-      if (quantity > 0 && available < quantity) {
-        throw new BadRequestException('موجودی این تنوع کافی نیست');
-      }
-    } else if (quantity > 0) {
-      const level = await this.prisma.inventoryLevel.findFirst({
-        where: { tenantId, productId, variantId: null },
-      });
-      if (level) {
-        const available = availableStock(level);
-        if (available > 0 && available < quantity) {
-          throw new BadRequestException('موجودی این محصول کافی نیست');
-        }
-        if (available <= 0 && !product.inStock) {
-          throw new BadRequestException('محصول ناموجود است');
-        }
-      } else if (!product.inStock) {
-        throw new BadRequestException('محصول ناموجود است');
-      }
-    }
-
-    let cart = await this.prisma.cart.findUnique({
-      where: { tenantId_sessionId: { tenantId, sessionId } },
-    });
-    if (!cart) {
-      cart = await this.prisma.cart.create({
-        data: { tenantId, sessionId },
-      });
-    }
-
-    const existing = await this.prisma.cartItem.findFirst({
-      where: {
-        cartId: cart.id,
-        productId,
-        ...(variantId ? { variantId } : { variantId: null }),
-      },
-    });
-
-    if (quantity <= 0) {
-      if (existing) {
-        await this.prisma.cartItem.delete({ where: { id: existing.id } });
-      }
-    } else if (existing) {
-      await this.prisma.cartItem.update({
-        where: { id: existing.id },
-        data: { quantity },
-      });
-    } else {
-      await this.prisma.cartItem.create({
-        data: {
-          cartId: cart.id,
-          productId,
-          variantId,
-          quantity,
-        },
-      });
-    }
-
-    return this.getOrCreateCart(tenantId, sessionId);
+    return this.carts.setItem(settings.tenantId, input);
   }
 
   async getCart(storeSlug: string, sessionId: string) {
     const settings = await this.resolveTenantBySlug(storeSlug);
-    return this.getOrCreateCart(settings.tenantId, sessionId);
+    return this.carts.getOrCreate(settings.tenantId, sessionId);
+  }
+
+  async createCheckoutSession(storeSlug: string, sessionId: string) {
+    const settings = await this.resolveTenantBySlug(storeSlug);
+    return this.checkoutSessions.create({
+      tenantId: settings.tenantId,
+      sessionId,
+      storeSlug: settings.storeSlug,
+    });
   }
 
   async publicValidateDiscount(
@@ -1371,10 +1250,11 @@ export class ShopService {
       customerNote?: string;
       discountCode?: string;
       paymentMethod?: 'cod' | 'online';
+      checkoutToken?: string;
     },
   ) {
     const settings = await this.resolveTenantBySlug(storeSlug);
-    return this.placeOrder({
+    const order = await this.placeOrder({
       tenantId: settings.tenantId,
       sessionId: body.sessionId,
       channel: 'website',
@@ -1389,6 +1269,8 @@ export class ShopService {
       codEnabled: settings.codEnabled,
       onlinePaymentEnabled: settings.onlinePaymentEnabled,
     });
+    await this.checkoutSessions.consume(body.checkoutToken);
+    return order;
   }
 
   async placeOrder(input: {
@@ -1440,11 +1322,15 @@ export class ShopService {
     }
 
     const pricedLines = cart.items.map((item) => {
-      const unitPrice = resolveEffectivePrice({
+      const livePrice = resolveEffectivePrice({
         productPrice: Number(item.product.price),
         variantPrice:
           item.variant?.price != null ? Number(item.variant.price) : null,
       });
+      const unitPrice =
+        item.unitPriceSnapshot != null
+          ? Number(item.unitPriceSnapshot)
+          : livePrice;
       const title = item.variant
         ? `${item.product.title} (${item.variant.sku})`
         : item.product.title;
@@ -1454,7 +1340,10 @@ export class ShopService {
         unitPrice,
         title,
         sku,
-        lineTotal: unitPrice * item.quantity,
+        lineTotal:
+          item.lineTotalSnapshot != null
+            ? Number(item.lineTotalSnapshot)
+            : unitPrice * item.quantity,
         categoryId: item.product.categoryId,
       };
     });
@@ -1531,8 +1420,8 @@ export class ShopService {
 
     const total = Math.max(subtotal - discountAmount, 0);
     const orderNumber = `SF-${Date.now().toString(36).toUpperCase()}`;
-    const status =
-      paymentMethod === 'online' ? 'pending_payment' : 'pending';
+    const status = initialOrderStatus(paymentMethod);
+    const paymentStatus = initialPaymentStatus(paymentMethod);
 
     const order = await this.prisma.$transaction(async (tx) => {
       const created = await tx.storefrontOrder.create({
@@ -1540,6 +1429,7 @@ export class ShopService {
           tenantId: input.tenantId,
           orderNumber,
           status,
+          paymentStatus,
           channel: input.channel,
           paymentMethod,
           subtotalAmount: new Prisma.Decimal(subtotal),
@@ -1598,7 +1488,13 @@ export class ShopService {
         { orderId: created.id, orderNumber },
       );
 
-      await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
+      await this.carts.markConverted(tx, cart.id, customer.id);
+      await this.workflow.recordCreated(tx, {
+        tenantId: input.tenantId,
+        orderId: created.id,
+        status,
+        paymentStatus,
+      });
       return { created, productIds };
     });
 
@@ -1621,6 +1517,14 @@ export class ShopService {
         ? 'پرداخت آزمایشی — لینک mock برای محیط توسعه'
         : 'برای تکمیل خرید لینک درگاه را باز کنید';
     }
+
+    await this.events.track({
+      tenantId: input.tenantId,
+      name: 'order_created',
+      channel: input.channel,
+      customerId: customer.id,
+      orderId: order.created.id,
+    });
 
     return {
       ...this.mapOrder(order.created),
@@ -1856,102 +1760,15 @@ export class ShopService {
     };
   }
 
-  private mapCart(cart: {
-    id: string;
-    sessionId: string;
-    items: Array<{
-      id: string;
-      quantity: number;
-      variantId?: string | null;
-      product: {
-        id: string;
-        sku: string;
-        slug: string;
-        title: string;
-        price: Prisma.Decimal;
-        currency: string;
-        inStock: boolean;
-        images: string[];
-        hasVariants?: boolean;
-      };
-      variant?: {
-        id: string;
-        sku: string;
-        price: Prisma.Decimal | null;
-        imageUrl: string | null;
-        attributeValues: Array<{
-          attribute: { id: string; name: string; sortOrder: number };
-          attributeValue: {
-            id: string;
-            value: string;
-            label: string | null;
-            colorHex: string | null;
-          };
-        }>;
-        inventoryLevel: { onHand: number; reserved: number } | null;
-      } | null;
-    }>;
-  }) {
-    const items = cart.items.map((i) => {
-      const unitPrice = resolveEffectivePrice({
-        productPrice: Number(i.product.price),
-        variantPrice: i.variant?.price != null ? Number(i.variant.price) : null,
-      });
-      const options = (i.variant?.attributeValues ?? [])
-        .slice()
-        .sort((a, b) => a.attribute.sortOrder - b.attribute.sortOrder)
-        .map((v) => ({
-          attributeName: v.attribute.name,
-          label: v.attributeValue.label || v.attributeValue.value,
-        }));
-      const available = i.variant?.inventoryLevel
-        ? availableStock(i.variant.inventoryLevel)
-        : null;
-      return {
-        id: i.id,
-        quantity: i.quantity,
-        variantId: i.variantId ?? null,
-        product: {
-          id: i.product.id,
-          sku: i.product.sku,
-          slug: i.product.slug,
-          title: i.product.title,
-          price: Number(i.product.price),
-          currency: i.product.currency,
-          inStock: i.product.inStock,
-          images: i.product.images,
-          hasVariants: i.product.hasVariants ?? false,
-        },
-        variant: i.variant
-          ? {
-              id: i.variant.id,
-              sku: i.variant.sku,
-              imageUrl: i.variant.imageUrl,
-              options,
-              available,
-              effectivePrice: unitPrice,
-            }
-          : null,
-        unitPrice,
-        lineTotal: unitPrice * i.quantity,
-      };
-    });
-    return {
-      id: cart.id,
-      sessionId: cart.sessionId,
-      items,
-      total: items.reduce((s, i) => s + i.lineTotal, 0),
-      currency: items[0]?.product.currency ?? 'IRR',
-    };
-  }
-
   private mapOrder(row: {
     id: string;
     orderNumber: string;
     status: string;
+    paymentStatus?: string;
     channel?: string;
     paymentMethod: string;
     paymentRef?: string | null;
+    rejectionReason?: string | null;
     subtotalAmount?: Prisma.Decimal;
     discountCode?: string | null;
     discountAmount?: Prisma.Decimal;
@@ -1973,14 +1790,33 @@ export class ShopService {
       productId: string | null;
       variantId?: string | null;
     }>;
+    history?: Array<{
+      id: string;
+      fromStatus: string;
+      toStatus: string;
+      paymentStatus: string | null;
+      reason: string | null;
+      actorUserId: string | null;
+      createdAt: Date;
+    }>;
   }) {
     return {
       id: row.id,
       orderNumber: row.orderNumber,
-      status: row.status,
+      status: (() => {
+        try {
+          return canonicalizeOrderStatus(
+            row.status === 'confirmed' ? 'approved' : row.status,
+          );
+        } catch {
+          return row.status;
+        }
+      })(),
+      paymentStatus: row.paymentStatus ?? 'unpaid',
       channel: row.channel ?? 'website',
       paymentMethod: row.paymentMethod,
       paymentRef: row.paymentRef ?? null,
+      rejectionReason: row.rejectionReason ?? null,
       subtotalAmount: Number(row.subtotalAmount ?? row.totalAmount),
       discountCode: row.discountCode ?? null,
       discountAmount: Number(row.discountAmount ?? 0),
@@ -2001,6 +1837,15 @@ export class ShopService {
         unitPrice: Number(i.unitPrice),
         quantity: i.quantity,
         lineTotal: Number(i.lineTotal),
+      })),
+      history: (row.history ?? []).map((h) => ({
+        id: h.id,
+        fromStatus: h.fromStatus,
+        toStatus: h.toStatus,
+        paymentStatus: h.paymentStatus,
+        reason: h.reason,
+        actorUserId: h.actorUserId,
+        createdAt: h.createdAt.toISOString(),
       })),
     };
   }

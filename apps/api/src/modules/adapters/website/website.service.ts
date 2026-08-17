@@ -6,6 +6,7 @@ import {
 import { DataStore } from '../../platform/data.store';
 import { ConversationService } from '../../conversation/conversation.service';
 import { RuntimeService } from '../../runtime/runtime.service';
+import { CHANNEL_CAPABILITIES } from '../channel-adapter';
 
 /** Simple per-key sliding window for public chat abuse (MVP, in-process). */
 const RATE = new Map<string, { count: number; resetAt: number }>();
@@ -14,11 +15,17 @@ const RATE_WINDOW_MS = 60_000;
 
 @Injectable()
 export class WebsiteAdapterService {
+  readonly channel = 'website' as const;
+
   constructor(
     private readonly store: DataStore,
     private readonly conversations: ConversationService,
     private readonly runtime: RuntimeService,
   ) {}
+
+  capabilities() {
+    return CHANNEL_CAPABILITIES.website;
+  }
 
   async createSession(publicKey: string, origin?: string) {
     const channel = await this.store.channelByPublicKey(publicKey);
@@ -39,6 +46,44 @@ export class WebsiteAdapterService {
     };
   }
 
+  async listMessages(
+    publicKey: string,
+    conversationId: string,
+    origin?: string,
+  ) {
+    const channel = await this.store.channelByPublicKey(publicKey);
+    if (!channel || channel.channel !== 'website') {
+      throw new NotFoundException('Unknown public key');
+    }
+    this.assertOrigin(channel.allowedOrigins, origin);
+    this.assertRate(`poll:${publicKey}:${conversationId}`);
+
+    const conversation = await this.requireWebsiteConversation(
+      channel.tenantId,
+      conversationId,
+    );
+    const messages = await this.conversations.listMessages(
+      channel.tenantId,
+      conversationId,
+    );
+    const employee = await this.store.employeeForTenant(channel.tenantId);
+    const ownership = conversation.ownership;
+
+    return {
+      messages: messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        createdAt: m.createdAt,
+      })),
+      aiState:
+        ownership === 'human_owned'
+          ? 'awaiting_human'
+          : (employee?.status ?? 'active'),
+      ownership,
+    };
+  }
+
   async sendMessage(
     publicKey: string,
     conversationId: string,
@@ -50,10 +95,7 @@ export class WebsiteAdapterService {
     this.assertOrigin(channel.allowedOrigins, origin);
     this.assertRate(`msg:${publicKey}:${conversationId}`);
 
-    const conversation = await this.conversations.get(conversationId);
-    if (!conversation || conversation.tenantId !== channel.tenantId) {
-      throw new ForbiddenException('Conversation tenant mismatch');
-    }
+    await this.requireWebsiteConversation(channel.tenantId, conversationId);
 
     await this.conversations.addMessage({
       conversationId,
@@ -105,6 +147,21 @@ export class WebsiteAdapterService {
           : (employee?.status ?? 'active'),
       ownership,
     };
+  }
+
+  private async requireWebsiteConversation(
+    tenantId: string,
+    conversationId: string,
+  ) {
+    const conversation = await this.conversations.get(conversationId);
+    if (
+      !conversation ||
+      conversation.tenantId !== tenantId ||
+      conversation.channel !== 'website'
+    ) {
+      throw new ForbiddenException('Conversation tenant mismatch');
+    }
+    return conversation;
   }
 
   /**

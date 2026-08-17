@@ -976,6 +976,16 @@ export class DataStore implements OnModuleInit {
     return row ? this.mapConversation(row) : null;
   }
 
+  async linkConversationCustomer(
+    conversationId: string,
+    customerId: string,
+  ): Promise<void> {
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: { customerId },
+    });
+  }
+
   async listConversations(
     tenantId: string,
     filter?: { ownership?: Conversation['ownership'] },
@@ -2060,6 +2070,9 @@ export class DataStore implements OnModuleInit {
     channel: string;
     ownership: string;
     externalThreadId: string | null;
+    customerId?: string | null;
+    shoppingState?: string | null;
+    context?: Prisma.JsonValue | null;
     escalationReason: string | null;
     escalatedAt: Date | null;
     handoffPacket: Prisma.JsonValue | null;
@@ -2072,6 +2085,14 @@ export class DataStore implements OnModuleInit {
       channel: row.channel as Conversation['channel'],
       ownership: row.ownership as Conversation['ownership'],
       externalThreadId: row.externalThreadId,
+      customerId: row.customerId ?? null,
+      shoppingState:
+        (row.shoppingState as Conversation['shoppingState'] | null) ??
+        'browsing',
+      context:
+        row.context && typeof row.context === 'object' && !Array.isArray(row.context)
+          ? (row.context as Record<string, unknown>)
+          : {},
       escalationReason: (row.escalationReason as EscalationReason | null) ?? null,
       escalatedAt: row.escalatedAt?.toISOString() ?? null,
       handoffPacket: (row.handoffPacket as HandoffPacket | null) ?? null,

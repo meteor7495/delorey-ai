@@ -11,14 +11,26 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { FormDialog } from '@/components/shared/form-dialog';
+
+type HistoryRow = {
+  id: string;
+  fromStatus: string;
+  toStatus: string;
+  paymentStatus: string | null;
+  reason: string | null;
+  createdAt: string;
+};
 
 type Order = {
   id: string;
   orderNumber: string;
   status: string;
+  paymentStatus?: string;
   channel?: string;
   paymentMethod?: string;
   paymentRef?: string | null;
+  rejectionReason?: string | null;
   totalAmount: number;
   currency: string;
   customerName: string;
@@ -27,15 +39,29 @@ type Order = {
   customerNote?: string | null;
   createdAt: string;
   items: Array<{ title: string; quantity: number; lineTotal: number }>;
+  history?: HistoryRow[];
 };
 
 const STATUS_FA: Record<string, string> = {
+  draft: 'ثبت سفارش',
   pending: 'در انتظار تأیید',
   pending_payment: 'در انتظار پرداخت',
-  confirmed: 'تأیید / پرداخت‌شده',
+  pending_approval: 'در انتظار تأیید ادمین',
+  approved: 'تأییدشده',
+  processing: 'در حال آماده‌سازی',
   shipped: 'ارسال شده',
   delivered: 'تحویل شده',
   cancelled: 'لغو شده',
+  rejected: 'رد شده',
+  payment_failed: 'پرداخت ناموفق',
+};
+
+const PAYMENT_FA: Record<string, string> = {
+  unpaid: 'پرداخت‌نشده',
+  pending: 'در انتظار پرداخت',
+  paid: 'پرداخت‌شده',
+  failed: 'ناموفق',
+  refunded: 'بازگشت وجه',
 };
 
 const CHANNEL_FA: Record<string, string> = {
@@ -56,28 +82,14 @@ const STATUS_BADGE: Record<
 > = {
   pending: 'warning',
   pending_payment: 'info',
-  confirmed: 'success',
+  pending_approval: 'warning',
+  approved: 'success',
+  processing: 'info',
   shipped: 'default',
   delivered: 'secondary',
   cancelled: 'destructive',
-};
-
-const NEXT_ACTIONS: Record<string, Array<{ status: string; label: string; variant?: 'default' | 'outline' | 'destructive' }>> = {
-  pending: [
-    { status: 'confirmed', label: 'تأیید سفارش' },
-    { status: 'cancelled', label: 'لغو', variant: 'destructive' },
-  ],
-  pending_payment: [
-    { status: 'confirmed', label: 'ثبت پرداخت' },
-    { status: 'cancelled', label: 'لغو', variant: 'destructive' },
-  ],
-  confirmed: [
-    { status: 'shipped', label: 'ارسال شد' },
-    { status: 'cancelled', label: 'لغو', variant: 'destructive' },
-  ],
-  shipped: [{ status: 'delivered', label: 'تحویل شد' }],
-  delivered: [],
-  cancelled: [],
+  rejected: 'destructive',
+  payment_failed: 'destructive',
 };
 
 export default function ShopOrdersPage() {
@@ -86,6 +98,10 @@ export default function ShopOrdersPage() {
   const [status, setStatus] = useState('all');
   const [channel, setChannel] = useState('all');
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<Order | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [detail, setDetail] = useState<Order | null>(null);
 
   async function refresh() {
     setOrders((await api.listShopOrders()) as unknown as Order[]);
@@ -122,6 +138,131 @@ export default function ShopOrdersPage() {
     }
   }
 
+  async function approve(id: string) {
+    setBusyId(id);
+    try {
+      await api.approveShopOrder(id);
+      toastSuccess('سفارش تأیید شد');
+      await refresh();
+    } catch (err) {
+      toastFromError(err);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function submitReject() {
+    if (!rejecting) return;
+    setBusyId(rejecting.id);
+    try {
+      await api.rejectShopOrder(rejecting.id, rejectReason.trim());
+      toastSuccess('سفارش رد شد');
+      setRejecting(null);
+      setRejectReason('');
+      await refresh();
+    } catch (err) {
+      toastFromError(err);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function toggleTimeline(order: Order) {
+    if (expandedId === order.id) {
+      setExpandedId(null);
+      setDetail(null);
+      return;
+    }
+    setExpandedId(order.id);
+    try {
+      setDetail((await api.getShopOrder(order.id)) as unknown as Order);
+    } catch (err) {
+      toastFromError(err);
+    }
+  }
+
+  function actionsFor(order: Order) {
+    const s = order.status;
+    const buttons: Array<{
+      key: string;
+      label: string;
+      variant?: 'default' | 'outline' | 'destructive';
+      run: () => void;
+    }> = [];
+    if (s === 'pending' || s === 'pending_approval') {
+      buttons.push({ key: 'approve', label: 'تأیید', run: () => approve(order.id) });
+      buttons.push({
+        key: 'reject',
+        label: 'رد',
+        variant: 'destructive',
+        run: () => {
+          setRejectReason('');
+          setRejecting(order);
+        },
+      });
+    }
+    if (s === 'pending_payment') {
+      buttons.push({
+        key: 'paid',
+        label: 'ثبت پرداخت',
+        run: () => setStatusOf(order.id, 'pending_approval'),
+      });
+      buttons.push({
+        key: 'cancel',
+        label: 'لغو',
+        variant: 'destructive',
+        run: () => setStatusOf(order.id, 'cancelled'),
+      });
+    }
+    if (s === 'approved') {
+      buttons.push({
+        key: 'processing',
+        label: 'آماده‌سازی',
+        variant: 'outline',
+        run: () => setStatusOf(order.id, 'processing'),
+      });
+      buttons.push({
+        key: 'ship',
+        label: 'ارسال شد',
+        run: () => setStatusOf(order.id, 'shipped'),
+      });
+      buttons.push({
+        key: 'cancel',
+        label: 'لغو',
+        variant: 'destructive',
+        run: () => setStatusOf(order.id, 'cancelled'),
+      });
+    }
+    if (s === 'processing') {
+      buttons.push({
+        key: 'ship',
+        label: 'ارسال شد',
+        run: () => setStatusOf(order.id, 'shipped'),
+      });
+    }
+    if (s === 'shipped') {
+      buttons.push({
+        key: 'deliver',
+        label: 'تحویل شد',
+        run: () => setStatusOf(order.id, 'delivered'),
+      });
+    }
+    if (s === 'payment_failed') {
+      buttons.push({
+        key: 'paid',
+        label: 'ثبت پرداخت',
+        run: () => setStatusOf(order.id, 'pending_approval'),
+      });
+      buttons.push({
+        key: 'cancel',
+        label: 'لغو',
+        variant: 'destructive',
+        run: () => setStatusOf(order.id, 'cancelled'),
+      });
+    }
+    return buttons;
+  }
+
   return (
     <AppShell>
       <div className="space-y-6">
@@ -143,7 +284,9 @@ export default function ShopOrdersPage() {
             onChange={(e) => setStatus(e.target.value)}
           >
             <option value="all">همه وضعیت‌ها</option>
-            {Object.entries(STATUS_FA).map(([k, v]) => (
+            {Object.entries(STATUS_FA)
+              .filter(([k]) => k !== 'draft')
+              .map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
               </option>
@@ -192,6 +335,17 @@ export default function ShopOrdersPage() {
                         <Badge variant="outline">
                           {PAY_FA[o.paymentMethod ?? 'cod'] ?? o.paymentMethod}
                         </Badge>
+                        <Badge
+                          variant={
+                            o.paymentStatus === 'paid'
+                              ? 'success'
+                              : o.paymentStatus === 'failed'
+                                ? 'destructive'
+                                : 'outline'
+                          }
+                        >
+                          {PAYMENT_FA[o.paymentStatus ?? 'unpaid'] ?? o.paymentStatus}
+                        </Badge>
                       </p>
                       <p className="text-xs text-[var(--text-3)]">
                         {o.customerName} · {o.customerPhone} ·{' '}
@@ -202,22 +356,34 @@ export default function ShopOrdersPage() {
                       {o.customerNote ? (
                         <p className="text-xs text-[var(--text-4)]">یادداشت: {o.customerNote}</p>
                       ) : null}
+                      {o.rejectionReason ? (
+                        <p className="text-xs text-[var(--color-danger)]">
+                          دلیل رد: {o.rejectionReason}
+                        </p>
+                      ) : null}
                       <p className="text-[11px] text-[var(--text-4)]">
                         {new Date(o.createdAt).toLocaleString('fa-IR')}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {(NEXT_ACTIONS[o.status] ?? []).map((a) => (
+                      {actionsFor(o).map((a) => (
                         <Button
-                          key={a.status}
+                          key={a.key}
                           size="sm"
                           variant={a.variant ?? 'default'}
                           disabled={busyId === o.id}
-                          onClick={() => setStatusOf(o.id, a.status)}
+                          onClick={a.run}
                         >
                           {a.label}
                         </Button>
                       ))}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => toggleTimeline(o)}
+                      >
+                        {expandedId === o.id ? 'بستن تاریخچه' : 'تاریخچه'}
+                      </Button>
                     </div>
                   </div>
                   <ul className="text-sm text-[var(--text-3)]">
@@ -227,12 +393,62 @@ export default function ShopOrdersPage() {
                       </li>
                     ))}
                   </ul>
+                  {expandedId === o.id && detail?.id === o.id && detail.history?.length ? (
+                    <ol className="space-y-1 border-t border-[var(--border-color)] pt-3 text-xs text-[var(--text-3)]">
+                      {detail.history.map((h) => (
+                        <li key={h.id}>
+                          {STATUS_FA[h.fromStatus] ?? h.fromStatus}
+                          {' → '}
+                          {STATUS_FA[h.toStatus] ?? h.toStatus}
+                          {h.reason ? ` · ${h.reason}` : ''}
+                          <span className="text-[var(--text-4)]">
+                            {' · '}
+                            {new Date(h.createdAt).toLocaleString('fa-IR')}
+                          </span>
+                        </li>
+                      ))}
+                    </ol>
+                  ) : null}
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      <FormDialog
+        open={!!rejecting}
+        onOpenChange={(open) => {
+          if (!open) setRejecting(null);
+        }}
+        title="رد سفارش"
+        description={
+          rejecting
+            ? `سفارش ${rejecting.orderNumber} رد می‌شود. دلیل برای مشتری الزامی است.`
+            : undefined
+        }
+      >
+        <div className="space-y-3">
+          <textarea
+            className="min-h-24 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] p-2 text-sm"
+            placeholder="مثلاً موجودی کافی نیست"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setRejecting(null)}>
+              انصراف
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!rejecting || rejectReason.trim().length < 3 || busyId === rejecting.id}
+              onClick={() => submitReject()}
+            >
+              رد سفارش
+            </Button>
+          </div>
+        </div>
+      </FormDialog>
     </AppShell>
   );
 }

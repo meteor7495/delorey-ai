@@ -22,10 +22,15 @@ type Order = {
 const STATUS_FA: Record<string, string> = {
   pending: 'در انتظار تأیید',
   pending_payment: 'در انتظار پرداخت',
-  confirmed: 'تأیید شده / پرداخت‌شده',
+  pending_approval: 'پرداخت شد — در انتظار تأیید فروشگاه',
+  approved: 'تأیید شده',
+  confirmed: 'تأیید شده',
+  processing: 'در حال آماده‌سازی',
   shipped: 'ارسال شده',
   delivered: 'تحویل شده',
   cancelled: 'لغو شده',
+  rejected: 'رد شده',
+  payment_failed: 'پرداخت ناموفق',
 };
 
 function TrackInner({ storeSlug }: { storeSlug: string }) {

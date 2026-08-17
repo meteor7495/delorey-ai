@@ -10,7 +10,9 @@ export type CommerceRuleCode =
   | 'invalid_price'
   | 'invalid_quantity'
   | 'negative_inventory'
-  | 'invalid_discount';
+  | 'invalid_discount'
+  | 'invalid_order_transition'
+  | 'rejection_reason_required';
 
 export class CommerceRuleError extends Error {
   constructor(

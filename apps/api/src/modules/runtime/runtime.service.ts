@@ -8,6 +8,15 @@ import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
 import { ChannelCheckoutService } from '../shop/channel-checkout.service';
 import { ShopService } from '../shop/shop.service';
+import { CustomersService } from '../shop/customers.service';
+import {
+  extractOrderNumber,
+  isCancelOrderIntent,
+  isHumanRequest,
+  isOrderLookupIntent,
+  isRecommendIntent,
+  isRefundIntent,
+} from '../shop/domain';
 import type {
   AuditTurn,
   Citation,
@@ -23,32 +32,21 @@ export type TurnResult = {
   ownership?: 'ai_owned' | 'human_owned';
 };
 
-const HUMAN_REQUEST_RE =
-  /(انسان|اپراتور|پشتیبان|همکار|آدم|human|agent|operator|support)/i;
-
-const ORDER_INTENT_RE =
-  /(سفارش|وضعیت سفارش|پیگیری|کجا.*(سفارش|مرسول)|رسید|tracking|order\s*(status|number)?|where.?is.?my.?order)/i;
-
-const RECOMMEND_INTENT_RE =
-  /(پیشنهاد|توصیه|چی بخر|هدیه|recommend|suggest|gift|کدام.*(بهتر|بخر)|چی.*مناسب)/i;
-
-const REFUND_RE =
-  /(استرداد|بازگشت\s*وجه|پس\s*بگیر|refund|money\s*back)/i;
-const CANCEL_ORDER_RE =
-  /(لغو\s*سفارش|کنسل\s*سفارش|cancel\s*(my\s*)?order|order\s*cancel)/i;
-
-const ORDER_NUMBER_RE = /\b((?:DR-?\d{3,})|(?:SF-[A-Z0-9]+))\b/i;
-const PHONE_LAST4_RE = /\b(\d{4})\b/;
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const PHONE_LAST4_RE = /\b(\d{4})\b/;
 
 const STATUS_FA: Record<string, string> = {
   pending: 'در انتظار تأیید',
   pending_payment: 'در انتظار پرداخت',
+  pending_approval: 'در انتظار تأیید ادمین',
+  approved: 'تأییدشده',
   confirmed: 'تأییدشده',
   processing: 'در حال آماده‌سازی',
   shipped: 'ارسال‌شده',
   delivered: 'تحویل‌شده',
   cancelled: 'لغو‌شده',
+  rejected: 'ردشده',
+  payment_failed: 'پرداخت ناموفق',
 };
 
 function extractDiscountPercents(text: string): number[] {
@@ -88,6 +86,7 @@ export class RuntimeService {
     private readonly handoff: HandoffService,
     private readonly checkout: ChannelCheckoutService,
     private readonly shop: ShopService,
+    private readonly customers: CustomersService,
   ) {}
 
   async executeTurn(
@@ -113,7 +112,7 @@ export class RuntimeService {
     const syncHealth = storeConn?.syncHealth ?? 'never';
 
     if (
-      HUMAN_REQUEST_RE.test(userText) &&
+      isHumanRequest(userText) &&
       guardrails.escalationRules.onCustomerRequest
     ) {
       await this.handoff.escalate(
@@ -150,7 +149,7 @@ export class RuntimeService {
       };
     }
 
-    if (guardrails.restrictedMutations.refund && REFUND_RE.test(userText)) {
+    if (guardrails.restrictedMutations.refund && isRefundIntent(userText)) {
       await this.handoff.escalate(
         tenantId,
         conversationId,
@@ -170,7 +169,7 @@ export class RuntimeService {
 
     if (
       guardrails.restrictedMutations.cancel &&
-      CANCEL_ORDER_RE.test(userText)
+      isCancelOrderIntent(userText)
     ) {
       await this.handoff.escalate(
         tenantId,
@@ -247,13 +246,7 @@ export class RuntimeService {
       }
     }
 
-    const orderTurn = await this.tryOrderLookup(
-      tenantId,
-      conversationId,
-      userText,
-      employee,
-    );
-    if (orderTurn) return orderTurn;
+    await this.linkKnownCustomer(conversation);
 
     const checkoutTurn = await this.tryPlaceOrder(
       tenantId,
@@ -261,6 +254,14 @@ export class RuntimeService {
       userText,
     );
     if (checkoutTurn) return checkoutTurn;
+
+    const orderTurn = await this.tryOrderLookup(
+      tenantId,
+      conversationId,
+      userText,
+      employee,
+    );
+    if (orderTurn) return orderTurn;
 
     const recommendTurn = await this.tryRecommend(
       tenantId,
@@ -436,14 +437,8 @@ export class RuntimeService {
     employee: Employee | null,
   ): Promise<TurnResult | null> {
     const hasBudget = this.commerce.parseBudgetIrr(userText) != null;
-    const hasIntent = RECOMMEND_INTENT_RE.test(userText) || hasBudget;
-    // Category-only "کفش می‌خوام" also routes here when recommend skill on
-    const categoryAsk =
-      /(پیراهن|کیف|کفش|لینن|اسپرت).*(می‌خوام|میخوام|دارید|بده|پیدا)/i.test(
-        userText,
-      ) || /^(پیراهن|کیف|کفش)\b/i.test(userText.trim());
-
-    if (!hasIntent && !categoryAsk) return null;
+    const hasIntent = isRecommendIntent(userText) || hasBudget;
+    if (!hasIntent) return null;
 
     if (!employee?.skills.recommend) {
       const result: TurnResult = {
@@ -539,8 +534,7 @@ export class RuntimeService {
     const recentText = [...history.map((m) => m.content), userText].join('\n');
 
     const hasIntent =
-      ORDER_INTENT_RE.test(userText) ||
-      ORDER_NUMBER_RE.test(userText) ||
+      isOrderLookupIntent(userText) ||
       history.some(
         (m) =>
           m.role === 'employee' &&
@@ -560,9 +554,9 @@ export class RuntimeService {
       return result;
     }
 
-    let orderNumber = this.extractOrderNumber(userText);
+    let orderNumber = extractOrderNumber(userText);
     if (!orderNumber) {
-      orderNumber = this.extractOrderNumber(recentText);
+      orderNumber = extractOrderNumber(recentText);
     }
 
     if (!orderNumber) {
@@ -646,9 +640,35 @@ export class RuntimeService {
     return result;
   }
 
-  private extractOrderNumber(text: string): string | null {
-    const m = text.match(ORDER_NUMBER_RE);
-    return m?.[1] ?? null;
+  private async linkKnownCustomer(
+    conversation:
+      | {
+          id: string;
+          tenantId: string;
+          channel: string;
+          customerId: string | null;
+          externalThreadId: string | null;
+        }
+      | null
+      | undefined,
+  ) {
+    if (!conversation?.id || conversation.customerId || !conversation.externalThreadId) {
+      return;
+    }
+    if (
+      conversation.channel !== 'telegram' &&
+      conversation.channel !== 'bale' &&
+      conversation.channel !== 'instagram'
+    ) {
+      return;
+    }
+    const known = await this.customers.lookupByIdentity(
+      conversation.tenantId,
+      conversation.channel,
+      conversation.externalThreadId,
+    );
+    if (!known) return;
+    await this.store.linkConversationCustomer(conversation.id, known.id);
   }
 
   private extractPhoneLast4(text: string): string | null {

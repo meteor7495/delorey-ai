@@ -5,12 +5,14 @@ import { CommerceRetrievalService } from './commerce-retrieval.service';
 import { CustomersService, type SalesChannel } from './customers.service';
 import { isValidMobile, normalizePhone } from './phone';
 import { ShopService } from './shop.service';
-
-const BUY_RE =
-  /(سفارش\s*بده|ثبت\s*سفارش|میخوام بخرم|می‌خوام بخرم|بخرمش|بخرم|سبد|checkout)/i;
-const YES_RE = /^(بله|آره|آری|همین|ثبت[\s‌]?شده|ok|yes)$/i;
-const NEW_ADDR_RE = /(جدید|دیگر|دیگه|عوض)/i;
-const SKU_RE = /\b([A-Z]{2,10}-\d{2,6})\b/i;
+import { CheckoutSessionService } from './checkout-session.service';
+import {
+  CHECKOUT_NEW_ADDR_RE,
+  CHECKOUT_YES_RE,
+  PRODUCT_SKU_RE,
+  isPlaceOrderIntent,
+  shoppingStateFromCheckoutStep,
+} from './domain';
 
 type Step =
   | 'idle'
@@ -36,6 +38,7 @@ export class ChannelCheckoutService {
     private readonly shop: ShopService,
     private readonly customers: CustomersService,
     private readonly retrieval: CommerceRetrievalService,
+    private readonly checkoutSessions: CheckoutSessionService,
   ) {}
 
   cartSession(channel: SalesChannel, conversationId: string) {
@@ -50,8 +53,9 @@ export class ChannelCheckoutService {
     externalThreadId: string | null;
   }): Promise<{ reply: string; decision: string } | null> {
     const session = await this.getSession(input.tenantId, input.conversationId);
+    await this.linkCustomer(input);
     const active = session.step !== 'idle';
-    if (!active && !BUY_RE.test(input.userText)) {
+    if (!active && !isPlaceOrderIntent(input.userText)) {
       return null;
     }
 
@@ -94,10 +98,10 @@ export class ChannelCheckoutService {
     }
 
     if (session.step === 'awaiting_address_confirm') {
-      if (YES_RE.test(input.userText.trim())) {
+      if (CHECKOUT_YES_RE.test(input.userText.trim())) {
         return this.askPaymentOrPlace(input, sessionId, payload, options);
       }
-      if (NEW_ADDR_RE.test(input.userText)) {
+      if (CHECKOUT_NEW_ADDR_RE.test(input.userText)) {
         await this.saveSession(
           input.tenantId,
           input.conversationId,
@@ -141,6 +145,12 @@ export class ChannelCheckoutService {
       }
       payload.phone = phone;
       const known = await this.customers.lookupByPhone(input.tenantId, phone);
+      if (known) {
+        await this.prisma.conversation.update({
+          where: { id: input.conversationId },
+          data: { customerId: known.id },
+        });
+      }
       if (known?.defaultAddress) {
         payload.name = payload.name || known.name;
         payload.address = known.defaultAddress;
@@ -226,7 +236,12 @@ export class ChannelCheckoutService {
       const cart = await this.shop.getCart(options.storeSlug, sessionId);
       return {
         decision: 'place_order',
-        reply: `سبد: ${cart.items.map((i: { product: { title: string }; quantity: number }) => `${i.product.title} × ${i.quantity}`).join('، ')}\nآدرس ثبت‌شده:\n${known.defaultAddress}\nبه همین آدرس بفرستم یا آدرس دیگری مدنظر است؟`,
+        reply: await this.withCheckoutLink(
+          `سبد: ${cart.items.map((i: { product: { title: string }; quantity: number }) => `${i.product.title} × ${i.quantity}`).join('، ')}\nآدرس ثبت‌شده:\n${known.defaultAddress}\nبه همین آدرس بفرستم یا آدرس دیگری مدنظر است؟\nبرای تکمیل در وبسایت از لینک تسویه هم می‌توانید استفاده کنید.`,
+          input.tenantId,
+          options.storeSlug,
+          sessionId,
+        ),
       };
     }
     await this.saveSession(
@@ -235,7 +250,15 @@ export class ChannelCheckoutService {
       'awaiting_name',
       payload,
     );
-    return { decision: 'place_order', reply: 'نام گیرنده را بفرستید.' };
+    return {
+      decision: 'place_order',
+      reply: await this.withCheckoutLink(
+        'نام گیرنده را بفرستید. اگر ترجیح می‌دهید در وبسایت ادامه دهید، لینک تسویه را باز کنید.',
+        input.tenantId,
+        options.storeSlug,
+        sessionId,
+      ),
+    };
   }
 
   private async askPaymentOrPlace(
@@ -308,6 +331,12 @@ export class ChannelCheckoutService {
         onlinePaymentEnabled: options.onlinePaymentEnabled,
       });
       await this.saveSession(input.tenantId, input.conversationId, 'idle', {});
+      if (order.customerId) {
+        await this.prisma.conversation.update({
+          where: { id: input.conversationId },
+          data: { customerId: order.customerId },
+        });
+      }
       let reply = `سفارش ${order.orderNumber} ثبت شد (${order.totalAmount.toLocaleString('fa-IR')} ریال).`;
       if (order.payUrl) {
         reply += `\nپرداخت: ${order.payUrl}`;
@@ -324,7 +353,7 @@ export class ChannelCheckoutService {
     sessionId: string,
     userText: string,
   ) {
-    const skuMatch = userText.match(SKU_RE);
+    const skuMatch = userText.match(PRODUCT_SKU_RE);
     let product = skuMatch
       ? await this.prisma.product.findFirst({
           where: {
@@ -360,6 +389,24 @@ export class ChannelCheckoutService {
     }
   }
 
+  private async withCheckoutLink(
+    reply: string,
+    tenantId: string,
+    storeSlug: string,
+    sessionId: string,
+  ) {
+    try {
+      const session = await this.checkoutSessions.create({
+        tenantId,
+        sessionId,
+        storeSlug,
+      });
+      return `${reply}\n\nلینک تسویه (۴۵ دقیقه):\n${session.url}`;
+    } catch {
+      return reply;
+    }
+  }
+
   private async getSession(tenantId: string, conversationId: string) {
     const row = await this.prisma.channelCheckoutSession.findUnique({
       where: { conversationId },
@@ -367,6 +414,25 @@ export class ChannelCheckoutService {
     if (row) return row;
     return this.prisma.channelCheckoutSession.create({
       data: { tenantId, conversationId, step: 'idle', payload: {} },
+    });
+  }
+
+  private async linkCustomer(input: {
+    tenantId: string;
+    conversationId: string;
+    channel: SalesChannel;
+    externalThreadId: string | null;
+  }) {
+    if (!input.externalThreadId) return;
+    const known = await this.customers.lookupByIdentity(
+      input.tenantId,
+      input.channel,
+      input.externalThreadId,
+    );
+    if (!known) return;
+    await this.prisma.conversation.update({
+      where: { id: input.conversationId },
+      data: { customerId: known.id },
     });
   }
 
@@ -385,6 +451,16 @@ export class ChannelCheckoutService {
         payload: payload as Prisma.InputJsonValue,
       },
       update: { step, payload: payload as Prisma.InputJsonValue },
+    });
+    await this.prisma.conversation.update({
+      where: { id: conversationId },
+      data: {
+        shoppingState: shoppingStateFromCheckoutStep(step),
+        context: {
+          checkoutStep: step,
+          payload,
+        } as Prisma.InputJsonValue,
+      },
     });
   }
 }

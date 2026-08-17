@@ -1,10 +1,10 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { StoreShell } from '@/components/StoreShell';
-import { api, getCartSessionId } from '@/lib/api';
+import { api, getCartSessionId, setCartSessionId } from '@/lib/api';
 import { useStoreSlug, useStorefrontChrome } from '@/lib/use-storefront';
 import { pageTitleClass, useStoreTheme } from '@/themes/theme-context';
 
@@ -16,8 +16,23 @@ export default function CheckoutPage({
 }: {
   params: Promise<{ storeSlug: string }>;
 }) {
-  const router = useRouter();
   const storeSlug = useStoreSlug(params);
+  return (
+    <Suspense
+      fallback={
+        <main className="dk-container py-20 text-center text-zh-600">
+          در حال بارگذاری…
+        </main>
+      }
+    >
+      <CheckoutInner storeSlug={storeSlug} />
+    </Suspense>
+  );
+}
+
+function CheckoutInner({ storeSlug }: { storeSlug: string }) {
+  const router = useRouter();
+  const search = useSearchParams();
   const { settings, categories, error: chromeError } = useStorefrontChrome(storeSlug);
   const [subtotal, setSubtotal] = useState(0);
   const [name, setName] = useState('');
@@ -33,14 +48,24 @@ export default function CheckoutPage({
   const [useSaved, setUseSaved] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [checkoutToken, setCheckoutToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (!storeSlug) return;
-    api
-      .storefrontGetCart(storeSlug, getCartSessionId(storeSlug))
-      .then((cart) => setSubtotal(Number((cart as { total?: number }).total ?? 0)))
-      .catch((e) => setError(String(e)));
-  }, [storeSlug]);
+    const token = search.get('token');
+    const load = async () => {
+      if (token) {
+        const session = await api.hydrateCheckoutSession(token);
+        setCartSessionId(storeSlug, session.sessionId);
+        setCheckoutToken(token);
+        setSubtotal(Number(session.cart?.total ?? 0));
+        return;
+      }
+      const cart = await api.storefrontGetCart(storeSlug, getCartSessionId(storeSlug));
+      setSubtotal(Number((cart as { total?: number }).total ?? 0));
+    };
+    load().catch((e) => setError(String(e)));
+  }, [storeSlug, search]);
 
   useEffect(() => {
     if (settings?.codEnabled === false && settings.onlinePaymentEnabled) {
@@ -107,6 +132,7 @@ export default function CheckoutPage({
         customerNote: note || undefined,
         discountCode: discountCode.trim() || undefined,
         paymentMethod,
+        checkoutToken: checkoutToken ?? undefined,
       });
       if (order.payUrl) {
         window.location.href = order.payUrl;

@@ -373,6 +373,9 @@ export interface Conversation {
   channel: 'website' | 'telegram' | 'bale' | 'instagram';
   ownership: 'ai_owned' | 'human_owned';
   externalThreadId: string | null;
+  customerId: string | null;
+  shoppingState: 'browsing' | 'collecting_cart' | 'checking_out' | 'awaiting_payment';
+  context: Record<string, unknown>;
   escalationReason: EscalationReason | null;
   escalatedAt: string | null;
   handoffPacket: HandoffPacket | null;

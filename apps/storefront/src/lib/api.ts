@@ -26,6 +26,11 @@ export function getCartSessionId(storeSlug: string): string {
   return id;
 }
 
+export function setCartSessionId(storeSlug: string, sessionId: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(cartSessionKey(storeSlug), sessionId);
+}
+
 export function formatIrr(n: number) {
   return `${n.toLocaleString('fa-IR')} ریال`;
 }

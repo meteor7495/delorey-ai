@@ -25,6 +25,11 @@ class CartItemDto {
   quantity!: number;
 }
 
+class CheckoutSessionDto {
+  @IsString()
+  sessionId!: string;
+}
+
 class CheckoutDto {
   @IsString()
   sessionId!: string;
@@ -52,6 +57,10 @@ class CheckoutDto {
   @IsOptional()
   @IsIn(['cod', 'online'])
   paymentMethod?: 'cod' | 'online';
+
+  @IsOptional()
+  @IsString()
+  checkoutToken?: string;
 }
 
 class CustomerRegisterDto {
@@ -164,6 +173,14 @@ export class StorefrontController {
       dto.code,
       dto.subtotal ?? 0,
     );
+  }
+
+  @Post(':storeSlug/checkout/sessions')
+  createCheckoutSession(
+    @Param('storeSlug') storeSlug: string,
+    @Body() dto: CheckoutSessionDto,
+  ) {
+    return this.shop.createCheckoutSession(storeSlug, dto.sessionId);
   }
 
   @Post(':storeSlug/checkout')

@@ -19,6 +19,7 @@ const titleMap: Record<string, string> = {
   '/shop/articles': 'مقالات',
   '/shop/categories': 'دسته‌ها',
   '/shop/orders': 'سفارش‌ها',
+  '/shop/customers': 'مشتری‌ها',
   '/shop/appearance': 'ظاهر و بنر',
   '/shop/settings': 'تنظیمات فروشگاه',
   '/shop': 'فروشگاه بومی',

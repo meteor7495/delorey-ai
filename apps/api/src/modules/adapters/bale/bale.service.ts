@@ -12,15 +12,31 @@ import { DataStore } from '../../platform/data.store';
 import { decryptSecret, encryptSecret } from '../../platform/crypto.util';
 import { RuntimeService } from '../../runtime/runtime.service';
 import { BaleBotClient, type BaleUpdate } from './bale.client';
+import { WebhookEventsService } from '../webhook-events.service';
+import { ChannelMenuService } from '../../shop/channel-menu.service';
+import {
+  CHANNEL_CAPABILITIES,
+  isOrdersMenuText,
+  isStartCommand,
+  isStoreMenuText,
+} from '../channel-adapter';
 
 @Injectable()
 export class BaleAdapterService {
+  readonly channel = 'bale' as const;
+
   constructor(
     private readonly store: DataStore,
     @Inject(forwardRef(() => RuntimeService))
     private readonly runtime: RuntimeService,
     private readonly config: ConfigService,
+    private readonly webhooks: WebhookEventsService,
+    private readonly menu: ChannelMenuService,
   ) {}
+
+  capabilities() {
+    return CHANNEL_CAPABILITIES.bale;
+  }
 
   private credentialsSecret() {
     return (
@@ -160,6 +176,16 @@ export class BaleAdapterService {
       return { ignored: true };
     }
 
+    const claimed = await this.webhooks.claim({
+      tenantId,
+      provider: 'bale',
+      externalEventId: String(update.update_id),
+      payload: update,
+    });
+    if (claimed === 'duplicate') {
+      return { duplicate: true };
+    }
+
     const idempotencyKey = `bale:${update.update_id}`;
     const existingMsg = await this.store.findMessageByIdempotency(
       tenantId,
@@ -186,6 +212,24 @@ export class BaleAdapterService {
       content: text,
       idempotencyKey,
     });
+
+    const menuReply = await this.tryMenu(tenantId, conversation, text);
+    if (menuReply) {
+      await this.store.addMessage({
+        tenantId,
+        conversationId: conversation.id,
+        role: 'employee',
+        content: menuReply,
+      });
+      await this.deliverToChat(bindingId, String(chatId), menuReply);
+      await this.webhooks.markProcessed(tenantId, 'bale', String(update.update_id));
+      return {
+        conversationId: conversation.id,
+        decision: 'channel_menu',
+        reply: menuReply,
+        duplicate: false,
+      };
+    }
 
     const turn = await this.runtime.executeTurn(
       tenantId,
@@ -216,6 +260,8 @@ export class BaleAdapterService {
       }
     }
 
+    await this.webhooks.markProcessed(tenantId, 'bale', String(update.update_id));
+
     return {
       conversationId: conversation.id,
       decision: turn.decision,
@@ -223,5 +269,34 @@ export class BaleAdapterService {
       reply: turn.reply,
       duplicate: false,
     };
+  }
+
+  private async tryMenu(
+    tenantId: string,
+    conversation: { id: string; shoppingState: string },
+    text: string,
+  ): Promise<string | null> {
+    const start = isStartCommand(text);
+    const browsing = conversation.shoppingState === 'browsing';
+    if (!start && !(browsing && (isStoreMenuText(text) || isOrdersMenuText(text)))) {
+      return null;
+    }
+    if (start) return this.menu.startMenu('bale').text;
+    if (isStoreMenuText(text)) return this.menu.storePreview(tenantId, 'bale');
+    return this.menu.myOrders(tenantId, conversation.id);
+  }
+
+  private async deliverToChat(bindingId: string, chatId: string, text: string) {
+    const channel = await this.store.channelById(bindingId);
+    if (!channel?.credentialsCipher) return;
+    const token = decryptSecret(
+      channel.credentialsCipher,
+      this.credentialsSecret(),
+    );
+    const client = this.clientForToken(token);
+    const sent = await client.sendMessage(chatId, text);
+    if (!sent.ok) {
+      await this.store.setChannelStatus(bindingId, 'degraded');
+    }
   }
 }

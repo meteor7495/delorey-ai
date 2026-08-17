@@ -7,8 +7,15 @@ import { InstagramAdapterService } from './instagram.service';
 import { InstagramSpikeController } from './instagram-spike.controller';
 import { InstagramSpikeService } from './instagram-spike.service';
 
+import { ShopModule } from '../../shop/shop.module';
+
 @Module({
-  imports: [PlatformModule, AuditModule, forwardRef(() => RuntimeModule)],
+  imports: [
+    PlatformModule,
+    AuditModule,
+    ShopModule,
+    forwardRef(() => RuntimeModule),
+  ],
   controllers: [InstagramSpikeController, InstagramAdapterController],
   providers: [InstagramSpikeService, InstagramAdapterService],
   exports: [InstagramSpikeService, InstagramAdapterService],

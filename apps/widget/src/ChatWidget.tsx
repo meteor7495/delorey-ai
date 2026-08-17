@@ -1,5 +1,6 @@
 import {
   FormEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -9,9 +10,55 @@ import { createApiClient } from '@seloma/api-client';
 import { aiStateLabel } from '@seloma/ui/tokens';
 
 type ChatMsg = {
+  id?: string;
   role: 'shopper' | 'employee' | 'system' | 'operator';
   content: string;
 };
+
+type ServerChatMessage = {
+  id: string;
+  role: string;
+  content: string;
+};
+
+function welcomeMessage(employeeName: string): ChatMsg {
+  return {
+    role: 'employee',
+    content: `سلام، من ${employeeName} هستم. درباره محصولات فروشگاه بپرسید.`,
+  };
+}
+
+function mapServerRole(role: string): ChatMsg['role'] {
+  if (
+    role === 'shopper' ||
+    role === 'system' ||
+    role === 'operator' ||
+    role === 'employee'
+  ) {
+    return role;
+  }
+  return 'employee';
+}
+
+function mergeThread(
+  server: ServerChatMessage[],
+  employeeName: string,
+  pendingShopper: string | null,
+): ChatMsg[] {
+  const mapped: ChatMsg[] = server.map((m) => ({
+    id: m.id,
+    role: mapServerRole(m.role),
+    content: m.content,
+  }));
+  if (
+    pendingShopper &&
+    !mapped.some((m) => m.role === 'shopper' && m.content === pendingShopper)
+  ) {
+    mapped.push({ role: 'shopper', content: pendingShopper });
+  }
+  if (mapped.length === 0) return [welcomeMessage(employeeName)];
+  return mapped;
+}
 
 type StoredSession = {
   conversationId: string;
@@ -108,9 +155,39 @@ export function ChatWidget({
   const [busy, setBusy] = useState(false);
   const [booting, setBooting] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const pendingShopperRef = useRef<string | null>(null);
+  const employeeNameRef = useRef(employeeName);
+  employeeNameRef.current = employeeName;
 
   const humanOwned =
     aiState === 'awaiting_human' || aiState === 'paused';
+
+  const applyThread = useCallback(
+    (server: ServerChatMessage[], nextAiState: string) => {
+      setAiState(nextAiState);
+      setMessages(
+        mergeThread(
+          server,
+          employeeNameRef.current,
+          pendingShopperRef.current,
+        ),
+      );
+    },
+    [],
+  );
+
+  const pullThread = useCallback(async () => {
+    if (!conversationId || !publicKey.trim()) return;
+    const res = await api.listChatMessages(publicKey.trim(), conversationId);
+    const pending = pendingShopperRef.current;
+    if (
+      pending &&
+      res.messages.some((m) => m.role === 'shopper' && m.content === pending)
+    ) {
+      pendingShopperRef.current = null;
+    }
+    applyThread(res.messages, res.aiState);
+  }, [api, applyThread, conversationId, publicKey]);
 
   useEffect(() => {
     if (!open || !publicKey.trim()) return;
@@ -132,10 +209,7 @@ export function ChatWidget({
       try {
         const session = await api.createChatSession(publicKey.trim());
         if (cancelled) return;
-        const welcome: ChatMsg = {
-          role: 'employee',
-          content: `سلام، من ${session.employee} هستم. درباره محصولات فروشگاه بپرسید.`,
-        };
+        const welcome = welcomeMessage(session.employee);
         setConversationId(session.conversationId);
         setEmployeeName(session.employee);
         setAiState(session.status);
@@ -183,7 +257,27 @@ export function ChatWidget({
     });
   }, [publicKey, conversationId, employeeName, aiState, messages]);
 
+  useEffect(() => {
+    if (!open || !conversationId || !publicKey.trim()) return;
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        await pullThread();
+      } catch {
+        if (cancelled) return;
+      }
+    };
+    void tick();
+    const intervalMs = humanOwned ? 2500 : 4000;
+    const timer = window.setInterval(() => void tick(), intervalMs);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [open, conversationId, publicKey, humanOwned, pullThread]);
+
   async function startFresh() {
+    pendingShopperRef.current = null;
     clearSession(publicKey);
     setConversationId(null);
     setMessages([]);
@@ -196,26 +290,13 @@ export function ChatWidget({
     if (!conversationId || !text.trim() || busy) return;
     const outgoing = text.trim();
     setText('');
+    pendingShopperRef.current = outgoing;
     setMessages((m) => [...m, { role: 'shopper', content: outgoing }]);
     setBusy(true);
     setError(null);
     try {
-      const res = await api.sendChatMessage(
-        publicKey.trim(),
-        conversationId,
-        outgoing,
-      );
-      setAiState(res.aiState);
-      const role =
-        res.message.role === 'system' || res.message.role === 'operator'
-          ? (res.message.role as ChatMsg['role'])
-          : res.ownership === 'human_owned' && res.aiState === 'awaiting_human'
-            ? 'system'
-            : 'employee';
-      setMessages((m) => [
-        ...m,
-        { role, content: res.message.content },
-      ]);
+      await api.sendChatMessage(publicKey.trim(), conversationId, outgoing);
+      await pullThread();
     } catch (err) {
       const msg = friendlyError(err);
       setError(msg);
@@ -272,7 +353,10 @@ export function ChatWidget({
 
           <div className="drw-messages" ref={listRef}>
             {messages.map((m, i) => (
-              <div key={i} className={`drw-bubble drw-${m.role}`}>
+              <div key={m.id ?? `local-${i}`} className={`drw-bubble drw-${m.role}`}>
+                {m.role === 'operator' && (
+                  <div className="drw-author">همکار فروشگاه</div>
+                )}
                 {m.content}
               </div>
             ))}

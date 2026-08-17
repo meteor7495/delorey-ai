@@ -12,15 +12,36 @@ import { DataStore } from '../../platform/data.store';
 import { decryptSecret, encryptSecret } from '../../platform/crypto.util';
 import { RuntimeService } from '../../runtime/runtime.service';
 import { TelegramBotClient, type TelegramUpdate } from './telegram.client';
+import { WebhookEventsService } from '../webhook-events.service';
+import { ChannelMenuService } from '../../shop/channel-menu.service';
+import {
+  CHANNEL_CAPABILITIES,
+  formatCheckoutLink,
+  isOrdersMenuText,
+  isStartCommand,
+  isStoreMenuText,
+  type IChannelAdapter,
+} from '../channel-adapter';
 
 @Injectable()
-export class TelegramAdapterService {
+export class TelegramAdapterService implements Pick<
+  IChannelAdapter,
+  'channel' | 'capabilities' | 'sendCheckoutLink'
+> {
+  readonly channel = 'telegram' as const;
+
   constructor(
     private readonly store: DataStore,
     @Inject(forwardRef(() => RuntimeService))
     private readonly runtime: RuntimeService,
     private readonly config: ConfigService,
+    private readonly webhooks: WebhookEventsService,
+    private readonly menu: ChannelMenuService,
   ) {}
+
+  capabilities() {
+    return CHANNEL_CAPABILITIES.telegram;
+  }
 
   private credentialsSecret() {
     return (
@@ -148,6 +169,19 @@ export class TelegramAdapterService {
     }
   }
 
+  async sendCheckoutLink(input: {
+    tenantId: string;
+    conversationId: string;
+    text: string;
+    url: string;
+  }) {
+    await this.deliverOperatorReply(
+      input.tenantId,
+      input.conversationId,
+      `${input.text}\n${formatCheckoutLink(input.url)}`,
+    );
+  }
+
   private async ingestUpdate(
     tenantId: string,
     bindingId: string,
@@ -157,6 +191,16 @@ export class TelegramAdapterService {
     const chatId = update.message?.chat?.id;
     if (!text || chatId == null) {
       return { ignored: true };
+    }
+
+    const claimed = await this.webhooks.claim({
+      tenantId,
+      provider: 'telegram',
+      externalEventId: String(update.update_id),
+      payload: update as unknown as Record<string, unknown>,
+    });
+    if (claimed === 'duplicate') {
+      return { duplicate: true };
     }
 
     const idempotencyKey = `tg:${update.update_id}`;
@@ -186,6 +230,24 @@ export class TelegramAdapterService {
       idempotencyKey,
     });
 
+    const menuReply = await this.tryMenu(tenantId, conversation, text);
+    if (menuReply) {
+      await this.store.addMessage({
+        tenantId,
+        conversationId: conversation.id,
+        role: 'employee',
+        content: menuReply.text,
+      });
+      await this.deliverToChat(bindingId, String(chatId), menuReply.text, menuReply.replyKeyboard);
+      await this.webhooks.markProcessed(tenantId, 'telegram', String(update.update_id));
+      return {
+        conversationId: conversation.id,
+        decision: 'channel_menu',
+        reply: menuReply.text,
+        duplicate: false,
+      };
+    }
+
     const turn = await this.runtime.executeTurn(
       tenantId,
       conversation.id,
@@ -202,18 +264,8 @@ export class TelegramAdapterService {
       });
     }
 
-    const channel = await this.store.channelById(bindingId);
-    if (channel?.credentialsCipher) {
-      const token = decryptSecret(
-        channel.credentialsCipher,
-        this.credentialsSecret(),
-      );
-      const client = this.clientForToken(token);
-      const sent = await client.sendMessage(String(chatId), turn.reply);
-      if (!sent.ok) {
-        await this.store.setChannelStatus(bindingId, 'degraded');
-      }
-    }
+    await this.deliverToChat(bindingId, String(chatId), turn.reply);
+    await this.webhooks.markProcessed(tenantId, 'telegram', String(update.update_id));
 
     return {
       conversationId: conversation.id,
@@ -223,4 +275,45 @@ export class TelegramAdapterService {
       duplicate: false,
     };
   }
+
+  private async tryMenu(
+    tenantId: string,
+    conversation: { id: string; shoppingState: string },
+    text: string,
+  ) {
+    const start = isStartCommand(text);
+    const browsing = conversation.shoppingState === 'browsing';
+    if (!start && !(browsing && (isStoreMenuText(text) || isOrdersMenuText(text)))) {
+      return null;
+    }
+    if (start) return this.menu.startMenu('telegram');
+    if (isStoreMenuText(text)) {
+      return { text: await this.menu.storePreview(tenantId, 'telegram') };
+    }
+    return { text: await this.menu.myOrders(tenantId, conversation.id) };
+  }
+
+  private async deliverToChat(
+    bindingId: string,
+    chatId: string,
+    text: string,
+    replyKeyboard?: { keyboard: Array<Array<{ text: string }>>; resize_keyboard: true },
+  ) {
+    const channel = await this.store.channelById(bindingId);
+    if (!channel?.credentialsCipher) return;
+    const token = decryptSecret(
+      channel.credentialsCipher,
+      this.credentialsSecret(),
+    );
+    const client = this.clientForToken(token);
+    const sent = await client.sendMessage(
+      chatId,
+      text,
+      replyKeyboard ? { reply_markup: replyKeyboard } : undefined,
+    );
+    if (!sent.ok) {
+      await this.store.setChannelStatus(bindingId, 'degraded');
+    }
+  }
 }
+

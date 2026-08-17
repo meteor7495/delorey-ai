@@ -41,6 +41,7 @@ export class TelegramBotClient {
   async sendMessage(
     chatId: string,
     text: string,
+    extra?: { reply_markup?: unknown },
   ): Promise<{ ok: boolean; mocked?: boolean; error?: string }> {
     if (!this.live) {
       return { ok: true, mocked: true };
@@ -52,6 +53,7 @@ export class TelegramBotClient {
         body: JSON.stringify({
           chat_id: chatId,
           text,
+          ...(extra?.reply_markup ? { reply_markup: extra.reply_markup } : {}),
         }),
       });
       const json = (await res.json()) as {
