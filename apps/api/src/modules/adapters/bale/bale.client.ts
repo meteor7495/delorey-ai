@@ -2,8 +2,9 @@
  * Bale Bot API quirks (eng notes — not product scope):
  * - Base: https://tapi.bale.ai/bot{token}/{method} (Telegram-compatible methods)
  * - Webhook HTTPS ports commonly limited (443 / 88)
- * - setWebhook may not accept Telegram-style secret_token; we still verify
- *   X-Bale-Bot-Api-Secret-Token (and Telegram header as fallback) on our side
+ * - setWebhook only takes `url` — no Telegram-style secret_token
+ * - Incoming POSTs therefore usually have no secret header; the binding id in
+ *   the path is the shared secret. If a header is present, it must match.
  * - Outbound text is treated as Markdown — escape meta chars for plain replies
  */
 
@@ -20,6 +21,17 @@ export type BaleUpdate = {
 /** Escape Markdown meta so plain operator/AI text does not break on Bale. */
 export function escapeBaleMarkdown(text: string): string {
   return text.replace(/([_*\[\]()])/g, '\\$1');
+}
+
+/** Bale does not send secret_token; reject only when a header is present and wrong. */
+export function isBaleWebhookAuthorized(
+  expectedSecret: string | null | undefined,
+  header: string | undefined,
+): boolean {
+  if (!expectedSecret) return false;
+  const provided = header?.trim();
+  if (!provided) return true;
+  return provided === expectedSecret;
 }
 
 export class BaleBotClient {
@@ -64,7 +76,7 @@ export class BaleBotClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: chatId,
+          chat_id: /^-?\d+$/.test(chatId) ? Number(chatId) : chatId,
           text: escapeBaleMarkdown(text),
         }),
       });
@@ -76,6 +88,55 @@ export class BaleBotClient {
         return { ok: false, error: json.description ?? 'send failed' };
       }
       return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'network' };
+    }
+  }
+
+  async setWebhook(
+    webhookUrl: string,
+  ): Promise<{ ok: boolean; error?: string }> {
+    if (!this.live) {
+      return { ok: true };
+    }
+    try {
+      const res = await fetch(this.url('setWebhook'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: webhookUrl }),
+      });
+      const json = (await res.json()) as {
+        ok: boolean;
+        description?: string;
+      };
+      if (!json.ok) {
+        return { ok: false, error: json.description ?? 'setWebhook failed' };
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'network' };
+    }
+  }
+
+  async getWebhookInfo(): Promise<{
+    ok: boolean;
+    url?: string;
+    error?: string;
+  }> {
+    if (!this.live) {
+      return { ok: true, url: '' };
+    }
+    try {
+      const res = await fetch(this.url('getWebhookInfo'));
+      const json = (await res.json()) as {
+        ok: boolean;
+        result?: { url?: string };
+        description?: string;
+      };
+      if (!json.ok) {
+        return { ok: false, error: json.description ?? 'getWebhookInfo failed' };
+      }
+      return { ok: true, url: json.result?.url ?? '' };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'network' };
     }

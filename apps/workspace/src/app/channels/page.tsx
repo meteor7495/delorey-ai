@@ -17,6 +17,8 @@ type BotChannelStatus = {
   status?: string;
   botUsername?: string | null;
   webhookUrl?: string;
+  registeredUrl?: string | null;
+  webhookSet?: boolean;
   live?: boolean;
 } | null;
 
@@ -249,6 +251,13 @@ export default function ChannelsPage() {
                 {bale.webhookUrl}
               </p>
             )}
+            {bale?.connected && bale.live && (
+              <p className="text-xs text-[var(--text-3)]">
+                {bale.webhookSet
+                  ? 'وب‌هوک روی تونل ثبت شده است'
+                  : 'وب‌هوک هنوز روی بله ثبت نشده — توکن واقعی را Connect کنید یا ثبت وب‌هوک را بزنید'}
+              </p>
+            )}
             <form onSubmit={onConnectBale} className="space-y-3">
               <div className="space-y-1.5">
                 <Label>توکن ربات</Label>
@@ -261,6 +270,26 @@ export default function ChannelsPage() {
               </div>
               <Button type="submit">اتصال بله</Button>
             </form>
+            {bale?.connected && bale.live && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    const res = await api.registerBaleWebhook();
+                    toastSuccess(`وب‌هوک ثبت شد · ${res.webhookUrl}`);
+                    await refresh();
+                  } catch (err) {
+                    toastFromError(
+                      err,
+                      'ثبت وب‌هوک ناموفق بود. توکن واقعی را دوباره Connect کنید.',
+                    );
+                  }
+                }}
+              >
+                ثبت وب‌هوک روی تونل
+              </Button>
+            )}
             {bale?.connected && (
               <form onSubmit={onSimulateBale} className="space-y-3 border-t border-[var(--border-color)] pt-4">
                 <div className="space-y-1.5">

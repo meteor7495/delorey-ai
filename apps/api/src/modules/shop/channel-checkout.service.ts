@@ -9,8 +9,9 @@ import { CheckoutSessionService } from './checkout-session.service';
 import {
   CHECKOUT_NEW_ADDR_RE,
   CHECKOUT_YES_RE,
-  PRODUCT_SKU_RE,
+  extractProductSku,
   isPlaceOrderIntent,
+  normalizeShopperText,
   shoppingStateFromCheckoutStep,
 } from './domain';
 
@@ -56,7 +57,11 @@ export class ChannelCheckoutService {
     await this.linkCustomer(input);
     const active = session.step !== 'idle';
     if (!active && !isPlaceOrderIntent(input.userText)) {
-      return null;
+      const exact = await this.findExactProduct(
+        input.tenantId,
+        input.userText,
+      );
+      if (!exact) return null;
     }
 
     const options = await this.shop.paymentOptions(input.tenantId);
@@ -348,17 +353,36 @@ export class ChannelCheckoutService {
     }
   }
 
+  private async findExactProduct(tenantId: string, userText: string) {
+    const sku = extractProductSku(userText);
+    const title = normalizeShopperText(userText);
+    if (!sku && title.length < 3) return null;
+    return this.prisma.product.findFirst({
+      where: {
+        tenantId,
+        status: 'published',
+        source: { in: ['native', 'mock'] },
+        OR: [
+          ...(sku
+            ? [{ sku: { equals: sku, mode: 'insensitive' as const } }]
+            : []),
+          { title: { equals: title, mode: 'insensitive' } },
+        ],
+      },
+    });
+  }
+
   private async tryAddProduct(
     tenantId: string,
     sessionId: string,
     userText: string,
   ) {
-    const skuMatch = userText.match(PRODUCT_SKU_RE);
+    const skuMatch = extractProductSku(userText);
     let product = skuMatch
       ? await this.prisma.product.findFirst({
           where: {
             tenantId,
-            sku: { equals: skuMatch[1], mode: 'insensitive' },
+            sku: { equals: skuMatch, mode: 'insensitive' },
             status: 'published',
             source: { in: ['native', 'mock'] },
           },

@@ -3,6 +3,8 @@ import {
   CHECKOUT_YES_RE,
   classifyCommerceIntent,
   extractOrderNumber,
+  extractProductSku,
+  normalizeShopperText,
   shoppingStateFromCheckoutStep,
 } from './rule-engine';
 
@@ -29,6 +31,7 @@ describe('classifyCommerceIntent', () => {
     expect(classifyCommerceIntent('یه هدیه پیشنهاد بده')).toBe('recommend');
     expect(classifyCommerceIntent('کفش می‌خوام')).toBe('recommend');
     expect(classifyCommerceIntent('کفش')).toBe('recommend');
+    expect(classifyCommerceIntent('پیراهن لنین موجود؟')).toBe('recommend');
   });
 
   it('returns none when no commerce rule matches', () => {
@@ -53,5 +56,20 @@ describe('checkout confirm', () => {
   it('accepts short yes replies', () => {
     expect(CHECKOUT_YES_RE.test('بله')).toBe(true);
     expect(CHECKOUT_YES_RE.test('آدرس تهران')).toBe(false);
+  });
+});
+
+describe('shopper text from Bale copy-paste', () => {
+  it('strips markdown leftovers and fake slash-commands', () => {
+    expect(normalizeShopperText('/start')).toBe('/start');
+    expect(normalizeShopperText('/نگهدارنده کتاب سرامیکی')).toBe(
+      'نگهدارنده کتاب سرامیکی',
+    );
+    expect(normalizeShopperText('\\نگهدارنده کتاب سرامیکی')).toBe(
+      'نگهدارنده کتاب سرامیکی',
+    );
+    expect(normalizeShopperText('CASE-220\\')).toBe('CASE-220');
+    expect(extractProductSku('CASE-220\\')).toBe('CASE-220');
+    expect(extractProductSku('\\(BOOK-011\\)')).toBe('BOOK-011');
   });
 });

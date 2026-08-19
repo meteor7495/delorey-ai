@@ -322,7 +322,8 @@ export class CommerceRetrievalService {
   private tokenize(query: string): string[] {
     return query
       .toLowerCase()
-      .split(/[\s,?!.;:،؟]+/)
+      .replace(/\\/g, ' ')
+      .split(/[\s,?!.;:،؟/]+/)
       .map((t) => t.trim())
       .filter((t) => t.length >= 2)
       .slice(0, 8);

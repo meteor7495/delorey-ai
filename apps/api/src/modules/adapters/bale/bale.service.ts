@@ -11,9 +11,14 @@ import { v4 as uuid } from 'uuid';
 import { DataStore } from '../../platform/data.store';
 import { decryptSecret, encryptSecret } from '../../platform/crypto.util';
 import { RuntimeService } from '../../runtime/runtime.service';
-import { BaleBotClient, type BaleUpdate } from './bale.client';
+import {
+  BaleBotClient,
+  isBaleWebhookAuthorized,
+  type BaleUpdate,
+} from './bale.client';
 import { WebhookEventsService } from '../webhook-events.service';
 import { ChannelMenuService } from '../../shop/channel-menu.service';
+import { normalizeShopperText } from '../../shop/domain';
 import {
   CHANNEL_CAPABILITIES,
   isOrdersMenuText,
@@ -55,6 +60,27 @@ export class BaleAdapterService {
     return new BaleBotClient(token, this.liveMode());
   }
 
+  private publicBase() {
+    const raw =
+      this.config.get<string>('PUBLIC_API_BASE_URL') ??
+      `http://localhost:${this.config.get('API_PORT') ?? 3001}`;
+    return raw.replace(/\/+$/, '');
+  }
+
+  private webhookUrlFor(channelId: string) {
+    return `${this.publicBase()}/v1/webhooks/bale/${channelId}`;
+  }
+
+  private decryptStoredToken(cipher: string): string {
+    try {
+      return decryptSecret(cipher, this.credentialsSecret());
+    } catch {
+      throw new BadRequestException(
+        'Stored Bale token cannot be decrypted — reconnect in Workspace with the bot token',
+      );
+    }
+  }
+
   async connect(tenantId: string, botToken: string) {
     const token = botToken.trim();
     if (token.length < 20) {
@@ -73,19 +99,48 @@ export class BaleAdapterService {
       botUsername: me.username ?? null,
       status: 'connected',
     });
-    const publicBase =
-      this.config.get<string>('PUBLIC_API_BASE_URL') ??
-      `http://localhost:${this.config.get('API_PORT') ?? 3001}`;
+    const webhookUrl = this.webhookUrlFor(channel.id);
+    if (this.liveMode()) {
+      const hooked = await client.setWebhook(webhookUrl);
+      if (!hooked.ok) {
+        throw new BadRequestException(hooked.error ?? 'Bale setWebhook failed');
+      }
+    }
     return {
       id: channel.id,
       status: channel.status,
       botUsername: channel.botUsername,
-      webhookUrl: `${publicBase}/v1/webhooks/bale/${channel.id}`,
+      webhookUrl,
       webhookSecret,
       live: this.liveMode(),
+      webhookSet: this.liveMode(),
       note: this.liveMode()
-        ? 'Point Bale webhook to webhookUrl; send secret via X-Bale-Bot-Api-Secret-Token if supported'
+        ? 'Bale webhook registered at webhookUrl'
         : 'BALE_LIVE=0 — delivery mocked; use simulate for local smoke',
+    };
+  }
+
+  async registerWebhook(tenantId: string) {
+    const channel = await this.store.baleChannel(tenantId);
+    if (!channel) throw new NotFoundException('Bale not connected');
+    if (!channel.credentialsCipher) {
+      throw new BadRequestException('No Bale token stored — connect first');
+    }
+    const token = this.decryptStoredToken(channel.credentialsCipher);
+    if (token.includes('DEV_MOCK') || token.startsWith('0000000000:')) {
+      throw new BadRequestException(
+        'Mock token stored — paste the real bot token and Connect',
+      );
+    }
+    const webhookUrl = this.webhookUrlFor(channel.id);
+    const hooked = await this.clientForToken(token).setWebhook(webhookUrl);
+    if (!hooked.ok) {
+      throw new BadRequestException(hooked.error ?? 'Bale setWebhook failed');
+    }
+    return {
+      webhookUrl,
+      webhookSet: true,
+      live: this.liveMode(),
     };
   }
 
@@ -94,15 +149,28 @@ export class BaleAdapterService {
     if (!channel) {
       return { status: 'disconnected' as const, connected: false };
     }
-    const publicBase =
-      this.config.get<string>('PUBLIC_API_BASE_URL') ??
-      `http://localhost:${this.config.get('API_PORT') ?? 3001}`;
+    const webhookUrl = this.webhookUrlFor(channel.id);
+    let registeredUrl: string | null = null;
+    if (this.liveMode() && channel.credentialsCipher) {
+      try {
+        const token = decryptSecret(
+          channel.credentialsCipher,
+          this.credentialsSecret(),
+        );
+        const info = await this.clientForToken(token).getWebhookInfo();
+        if (info.ok) registeredUrl = info.url ?? null;
+      } catch {
+        registeredUrl = null;
+      }
+    }
     return {
       connected: true,
       id: channel.id,
       status: channel.status,
       botUsername: channel.botUsername,
-      webhookUrl: `${publicBase}/v1/webhooks/bale/${channel.id}`,
+      webhookUrl,
+      registeredUrl,
+      webhookSet: Boolean(registeredUrl) && registeredUrl === webhookUrl,
       hasWebhookSecret: Boolean(channel.webhookSecret),
       live: this.liveMode(),
     };
@@ -117,7 +185,7 @@ export class BaleAdapterService {
     if (!channel || channel.channel !== 'bale') {
       throw new NotFoundException('Unknown Bale binding');
     }
-    if (!channel.webhookSecret || secretHeader !== channel.webhookSecret) {
+    if (!isBaleWebhookAuthorized(channel.webhookSecret, secretHeader)) {
       throw new UnauthorizedException('Invalid webhook secret');
     }
     return this.ingestUpdate(channel.tenantId, channel.id, update);
@@ -175,6 +243,7 @@ export class BaleAdapterService {
     if (!text || chatId == null) {
       return { ignored: true };
     }
+    const normalized = normalizeShopperText(text);
 
     const claimed = await this.webhooks.claim({
       tenantId,
@@ -209,11 +278,11 @@ export class BaleAdapterService {
       tenantId,
       conversationId: conversation.id,
       role: 'shopper',
-      content: text,
+      content: normalized,
       idempotencyKey,
     });
 
-    const menuReply = await this.tryMenu(tenantId, conversation, text);
+    const menuReply = await this.tryMenu(tenantId, conversation, normalized);
     if (menuReply) {
       await this.store.addMessage({
         tenantId,
@@ -234,7 +303,7 @@ export class BaleAdapterService {
     const turn = await this.runtime.executeTurn(
       tenantId,
       conversation.id,
-      text,
+      normalized,
     );
 
     if (!turn.decision.startsWith('escalated:')) {

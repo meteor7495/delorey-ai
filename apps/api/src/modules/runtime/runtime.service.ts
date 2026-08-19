@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
 import { CommerceService } from '../commerce/commerce.service';
 import { CommerceRetrievalService } from '../shop/commerce-retrieval.service';
+import type { ProductFacts } from '../shop/commerce-retrieval.service';
 import { KnowledgeService } from '../knowledge/knowledge.service';
 import { AiGatewayService } from '../ai-gateway/ai-gateway.service';
 import { HandoffService } from '../inbox/handoff.service';
@@ -16,6 +17,7 @@ import {
   isOrderLookupIntent,
   isRecommendIntent,
   isRefundIntent,
+  normalizeShopperText,
 } from '../shop/domain';
 import type {
   AuditTurn,
@@ -31,6 +33,32 @@ export type TurnResult = {
   decision: string;
   ownership?: 'ai_owned' | 'human_owned';
 };
+
+export function composeGroundedReply(
+  products: ProductFacts[],
+  knowledgeHits: Array<{
+    doc: { title: string; sourceAttribution: string };
+    chunk: { content: string };
+  }>,
+): string {
+  const productLines = products.slice(0, 3).map((p) => {
+    const price = Number(p.finalPrice).toLocaleString('fa-IR');
+    return `• ${p.title}\n  کد: ${p.sku} — ${price} ${p.currency} — ${p.availabilityLabel}`;
+  });
+  const knowledgeLines = knowledgeHits.slice(0, 2).map((h) => {
+    return `• ${h.doc.title}: ${h.chunk.content}\n  منبع: ${h.doc.sourceAttribution}`;
+  });
+  if (productLines.length && knowledgeLines.length) {
+    return `بر اساس کاتالوگ و دانش فروشگاه:\n${knowledgeLines.join('\n')}\n${productLines.join('\n')}\n\nبرای افزودن به سبد، کد کالا را بفرستید.`;
+  }
+  if (productLines.length) {
+    return `بر اساس کاتالوگ فروشگاه:\n${productLines.join('\n')}\n\nبرای افزودن به سبد، کد کالا را بفرستید.`;
+  }
+  if (knowledgeLines.length) {
+    return `بر اساس دانش فروشگاه:\n${knowledgeLines.join('\n')}`;
+  }
+  return 'این مورد را در کاتالوگ پیدا نکردم. کد کالا را مثل CASE-220 بفرستید.';
+}
 
 const EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
 const PHONE_LAST4_RE = /\b(\d{4})\b/;
@@ -248,17 +276,19 @@ export class RuntimeService {
 
     await this.linkKnownCustomer(conversation);
 
+    const normalizedText = normalizeShopperText(userText);
+
     const checkoutTurn = await this.tryPlaceOrder(
       tenantId,
       conversationId,
-      userText,
+      normalizedText,
     );
     if (checkoutTurn) return checkoutTurn;
 
     const orderTurn = await this.tryOrderLookup(
       tenantId,
       conversationId,
-      userText,
+      normalizedText,
       employee,
     );
     if (orderTurn) return orderTurn;
@@ -266,7 +296,7 @@ export class RuntimeService {
     const recommendTurn = await this.tryRecommend(
       tenantId,
       conversationId,
-      userText,
+      normalizedText,
       employee,
     );
     if (recommendTurn) return recommendTurn;
@@ -274,8 +304,8 @@ export class RuntimeService {
     // Commerce Core returns a bounded, pre-priced slice — the model never sees
     // the catalog and never does arithmetic on it.
     const [grounding, knowledgeHits] = await Promise.all([
-      this.retrieval.groundTurn(tenantId, userText, { limit: 5 }),
-      this.knowledge.search(tenantId, userText),
+      this.retrieval.groundTurn(tenantId, normalizedText, { limit: 5 }),
+      this.knowledge.search(tenantId, normalizedText),
     ]);
 
     const citations: Citation[] = [
@@ -297,90 +327,12 @@ export class RuntimeService {
       ),
     ];
 
-    const contextJson = JSON.stringify({
-      syncHealth,
-      employee: employee
-        ? {
-            name: employee.name,
-            tone: employee.tone,
-            language: employee.language,
-          }
-        : null,
-      guardrails: {
-        blockedTopics: guardrails.blockedTopics,
-        discountCapPercent: guardrails.discountCapPercent,
-        restrictedMutations: guardrails.restrictedMutations,
-      },
-      matches: grounding.products,
-      promotions: grounding.promotions,
-      articles: grounding.articles,
-      knowledge: knowledgeHits.slice(0, 5).map((h) => ({
-        docId: h.doc.id,
-        title: h.doc.title,
-        body: h.chunk.content,
-        sourceAttribution: h.doc.sourceAttribution,
-        docType: h.doc.docType,
-      })),
-    });
-
-    const system = [
-      'You are a Seloma AI Sales Employee. Answer only from CONTEXT_JSON.',
-      'Never invent SKUs, prices, stock, policies, or order status.',
-      'matches[].finalPrice is authoritative and already includes every applicable discount — quote it verbatim and never recalculate it.',
-      'matches[].availabilityLabel is authoritative for stock — never infer availability from quantities.',
-      'Prefer Persian if employee.language is fa.',
-      'When answering from knowledge, cite sourceAttribution.',
-      `Never offer discounts above ${guardrails.discountCapPercent}%. Never process refunds or order cancellations.`,
-      `CONTEXT_JSON:${contextJson}`,
-    ].join('\n');
-
-    const completion = await this.gateway.complete({
-      system,
-      user: userText,
-      tenantId,
-      conversationId,
-      feature: 'sales_reply',
-      taskClass: 'chat.reply.cheap',
-      routeHint: 'cheap',
-    });
-
-    const replyDiscounts = extractDiscountPercents(completion.text);
-    const replyOverCap = replyDiscounts.find(
-      (p) => p > guardrails.discountCapPercent,
-    );
-    if (
-      replyOverCap != null &&
-      guardrails.escalationRules.onDiscountAboveCap
-    ) {
-      await this.handoff.escalate(
-        tenantId,
-        conversationId,
-        'discount_cap',
-        citations,
-        `پیشنهاد مدل ${replyOverCap}٪ بالاتر از سقف مجاز`,
-      );
-      await this.audit(
-        tenantId,
-        conversationId,
-        'guardrail_block:discount_cap_reply',
-        citations,
-        completion.meter,
-      );
-      return {
-        reply: `پاسخ مدل شامل تخفیف بالاتر از سقف (${guardrails.discountCapPercent}٪) بود و اعمال نشد. همکار انسانی پیگیری می‌کند.`,
-        citations,
-        decision: 'escalated:discount_cap',
-        ownership: 'human_owned',
-      };
-    }
-
+    // Commerce Core is the source of truth — do not ask the LLM/mock to
+    // restate prices. Mock JSON parsing was returning a generic refuse.
+    const reply = composeGroundedReply(grounding.products, knowledgeHits);
     let decision = 'answer_empty_catalog';
     if (grounding.products.length) decision = 'answer_grounded';
     else if (knowledgeHits.length) decision = 'answer_knowledge';
-    if (completion.mode === 'live') decision = `${decision}:live`;
-    else if (completion.meter.fallbackReason) {
-      decision = `${decision}:mock_fallback`;
-    }
 
     await this.store.addAudit({
       id: uuid(),
@@ -388,11 +340,10 @@ export class RuntimeService {
       conversationId,
       decision,
       citations,
-      gateway: completion.meter,
     });
 
     return {
-      reply: completion.text,
+      reply,
       citations,
       decision,
       ownership: 'ai_owned',

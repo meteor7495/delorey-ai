@@ -17,7 +17,7 @@ export const RECOMMEND_INTENT_RE =
   /(پیشنهاد|توصیه|چی بخر|هدیه|recommend|suggest|gift|کدام.*(بهتر|بخر)|چی.*مناسب)/i;
 
 export const CATEGORY_ASK_RE =
-  /(پیراهن|کیف|کفش|لینن|اسپرت).*(می‌خوام|میخوام|دارید|بده|پیدا)/i;
+  /(پیراهن|کیف|کفش|لینن|لنین|اسپرت).*(می‌خوام|میخوام|دارید|بده|پیدا|موجود)/i;
 
 export const CATEGORY_ONLY_RE = /^(پیراهن|کیف|کفش)$/i;
 
@@ -34,6 +34,24 @@ export const CHECKOUT_YES_RE = /^(بله|آره|آری|همین|ثبت[\s‌]?ش
 export const CHECKOUT_NEW_ADDR_RE = /(جدید|دیگر|دیگه|عوض)/i;
 
 export const PRODUCT_SKU_RE = /\b([A-Z]{2,10}-\d{2,6})\b/i;
+
+/** Bale markdown and copy-paste leave stray `\` `/` around titles and SKUs. */
+export function normalizeShopperText(text: string): string {
+  let t = text.trim();
+  if (/^\/start(?:@\w+)?$/i.test(t)) return t;
+  t = t.replace(/\\([_*\[\]()])/g, '$1');
+  t = t.replace(/\\+$/g, '').replace(/^\\+/g, '');
+  if (/^\/(?!start(?:@\w+)?$)/i.test(t)) {
+    t = t.replace(/^\//, '');
+  }
+  return t.trim();
+}
+
+export function extractProductSku(text: string): string | null {
+  const cleaned = normalizeShopperText(text).replace(/\\/g, '');
+  const match = cleaned.match(PRODUCT_SKU_RE);
+  return match?.[1]?.toUpperCase() ?? null;
+}
 
 export type CommerceIntent =
   | 'human_request'

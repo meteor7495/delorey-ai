@@ -120,7 +120,7 @@ export function formatButtons(
 }
 
 export function formatProduct(caps: ChannelCapabilities, product: OutboundProduct): string {
-  const lines = [`${product.title} (${product.sku})`, product.priceLabel];
+  const lines = [product.title, `کد: ${product.sku}`, product.priceLabel];
   if (product.url && (caps.supportsCheckoutLink || !caps.supportsProductCards)) {
     lines.push(product.url);
   }

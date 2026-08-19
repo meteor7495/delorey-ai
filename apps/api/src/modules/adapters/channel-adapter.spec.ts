@@ -35,7 +35,7 @@ describe('channel capabilities', () => {
       priceLabel: '۱۲۰٬۰۰۰ تومان',
       url: 'https://shop.example/p/1',
     });
-    expect(text).toContain('SH-01');
+    expect(text).toContain('کد: SH-01');
     expect(text).toContain('https://shop.example/p/1');
   });
 });

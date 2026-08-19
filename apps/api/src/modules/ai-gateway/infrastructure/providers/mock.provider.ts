@@ -117,6 +117,27 @@ export class MockProvider implements AiProviderPort {
   }
 }
 
+function formatMatchLine(m: {
+  sku: string;
+  title: string;
+  price?: number;
+  finalPrice?: number;
+  inStock?: boolean;
+  availability?: string;
+  availabilityLabel?: string;
+  currency: string;
+}): string {
+  const amount = m.finalPrice ?? m.price ?? 0;
+  const stock =
+    m.availabilityLabel ??
+    (m.inStock === true ||
+    m.availability === 'in_stock' ||
+    m.availability === 'low_stock'
+      ? 'موجود'
+      : 'ناموجود');
+  return `• ${m.title} (${m.sku}) — ${amount.toLocaleString('fa-IR')} ${m.currency} — ${stock}`;
+}
+
 export function mockFromContext(system: string): string {
   const block = system.match(/CONTEXT_JSON:([\s\S]*)$/);
   if (!block?.[1]) {
@@ -128,8 +149,11 @@ export function mockFromContext(system: string): string {
       matches?: Array<{
         sku: string;
         title: string;
-        price: number;
-        inStock: boolean;
+        price?: number;
+        finalPrice?: number;
+        inStock?: boolean;
+        availability?: string;
+        availabilityLabel?: string;
         currency: string;
       }>;
       knowledge?: Array<{
@@ -138,12 +162,11 @@ export function mockFromContext(system: string): string {
         sourceAttribution: string;
       }>;
     };
-    if (ctx.syncHealth && ctx.syncHealth !== 'healthy') {
-      return 'همگام‌سازی فروشگاه سالم نیست؛ نمی‌توانم قیمت یا موجودی را با اطمینان بگویم.';
-    }
-
     const knowledge = ctx.knowledge ?? [];
     const matches = ctx.matches ?? [];
+    if (ctx.syncHealth && ctx.syncHealth !== 'healthy' && matches.length === 0) {
+      return 'همگام‌سازی فروشگاه سالم نیست؛ نمی‌توانم قیمت یا موجودی را با اطمینان بگویم.';
+    }
 
     if (knowledge.length > 0 && matches.length === 0) {
       const lines = knowledge.slice(0, 3).map((k) => {
@@ -156,20 +179,14 @@ export function mockFromContext(system: string): string {
       const kLines = knowledge.slice(0, 2).map((k) => {
         return `• ${k.title}: ${k.body}\n  منبع: ${k.sourceAttribution}`;
       });
-      const pLines = matches.slice(0, 2).map((m) => {
-        const stock = m.inStock ? 'موجود' : 'ناموجود';
-        return `• ${m.title} (${m.sku}) — ${m.price.toLocaleString('fa-IR')} ${m.currency} — ${stock}`;
-      });
+      const pLines = matches.slice(0, 2).map((m) => formatMatchLine(m));
       return `بر اساس دانش و کاتالوگ فروشگاه:\n${kLines.join('\n')}\n${pLines.join('\n')}`;
     }
 
     if (matches.length === 0) {
       return 'این مورد را در کاتالوگ یا دانش فروشگاه پیدا نکردم. اگر نام دقیق‌تری بدهید دوباره جستجو می‌کنم.';
     }
-    const lines = matches.slice(0, 3).map((m) => {
-      const stock = m.inStock ? 'موجود' : 'ناموجود';
-      return `• ${m.title} (${m.sku}) — ${m.price.toLocaleString('fa-IR')} ${m.currency} — ${stock}`;
-    });
+    const lines = matches.slice(0, 3).map((m) => formatMatchLine(m));
     return `بر اساس کاتالوگ فروشگاه:\n${lines.join('\n')}`;
   } catch {
     return 'الان اطلاعات مطمئنی ندارم.';

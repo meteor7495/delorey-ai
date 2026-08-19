@@ -66,6 +66,12 @@ export class BaleAdapterController {
     return this.bale.getStatus(auth.tenantId);
   }
 
+  @Post('channels/bale/webhook')
+  @UseGuards(SessionAuthGuard)
+  registerWebhook(@CurrentAuth() auth: AuthContext) {
+    return this.bale.registerWebhook(auth.tenantId);
+  }
+
   @Post('channels/bale/simulate')
   @UseGuards(SessionAuthGuard)
   simulate(@CurrentAuth() auth: AuthContext, @Body() dto: SimulateDto) {

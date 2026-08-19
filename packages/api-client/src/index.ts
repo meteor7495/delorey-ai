@@ -559,6 +559,7 @@ export function createApiClient(opts: ApiClientOptions) {
         webhookUrl: string;
         webhookSecret: string;
         live: boolean;
+        webhookSet?: boolean;
         note: string;
       }>(opts, '/channels/bale/connect', {
         method: 'POST',
@@ -570,9 +571,17 @@ export function createApiClient(opts: ApiClientOptions) {
         status?: string;
         botUsername?: string | null;
         webhookUrl?: string;
+        registeredUrl?: string | null;
+        webhookSet?: boolean;
         id?: string;
         live?: boolean;
       }>(opts, '/channels/bale'),
+    registerBaleWebhook: () =>
+      request<{
+        webhookUrl: string;
+        webhookSet: boolean;
+        live: boolean;
+      }>(opts, '/channels/bale/webhook', { method: 'POST' }),
     simulateBale: (body: {
       text: string;
       chatId?: string;
