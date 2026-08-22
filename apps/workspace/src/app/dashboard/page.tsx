@@ -9,6 +9,7 @@ import {
   RefreshCw,
   ShoppingBag,
   BookOpen,
+  Wallet,
 } from 'lucide-react';
 import {
   channelLabel,
@@ -25,10 +26,12 @@ import { EmptyState } from '@/components/shared/empty-state';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { formatToman } from '@/lib/money';
 
 type Summary = Awaited<ReturnType<typeof api.analyticsSummary>>;
 type Gaps = Awaited<ReturnType<typeof api.analyticsKnowledgeGaps>>;
 type Revenue = Awaited<ReturnType<typeof api.analyticsRevenue>>;
+type WalletDto = Awaited<ReturnType<typeof api.billingWallet>>;
 
 function formatMoney(amount: number, currency: string) {
   try {
@@ -47,17 +50,20 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [gaps, setGaps] = useState<Gaps | null>(null);
   const [revenue, setRevenue] = useState<Revenue | null>(null);
+  const [wallet, setWallet] = useState<WalletDto | null>(null);
 
   useEffect(() => {
     Promise.all([
       api.analyticsSummary(days),
       api.analyticsKnowledgeGaps(days),
       api.analyticsRevenue(days),
+      api.billingWallet().catch(() => null),
     ])
-      .then(([s, g, r]) => {
+      .then(([s, g, r, w]) => {
         setSummary(s);
         setGaps(g);
         setRevenue(r);
+        setWallet(w);
       })
       .catch((e) => toastFromError(e));
   }, [days]);
@@ -84,6 +90,36 @@ export default function DashboardPage() {
           }
         />
 
+        {wallet && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>اعتبار سلومـا</CardTitle>
+              <Button size="sm" asChild>
+                <Link href="/billing">شارژ کیف پول</Link>
+              </Button>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-3">
+              <StatCard
+                title="موجودی"
+                value={formatToman(wallet.available)}
+                icon={Wallet}
+              />
+              <StatCard
+                title="مصرف این ماه"
+                value={formatToman(wallet.monthUsage)}
+                icon={Wallet}
+              />
+              <StatCard
+                title="باقی‌مانده تخمینی"
+                value={formatToman(wallet.estimatedRemaining)}
+                description={
+                  wallet.autoRecharge.enabled ? 'شارژ خودکار روشن است' : undefined
+                }
+                icon={Wallet}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {revenue && (
           <div className="grid gap-3 kpi-grid-responsive">

@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   LogOut,
   Sparkles,
+  Wallet,
   ShoppingBag,
   Package,
   Tags,
@@ -61,6 +62,7 @@ const aiNav: NavLeaf[] = [
   { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/knowledge', icon: BookOpen, label: 'دانش' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },
+  { href: '/billing', icon: Wallet, label: 'اعتبار سلومـا' },
 ];
 
 function isActivePath(pathname: string, href: string) {

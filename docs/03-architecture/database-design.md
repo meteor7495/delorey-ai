@@ -657,7 +657,7 @@ Critical shopper turns remain **request/response** on Runtime path; events are s
 | AI Access | Redis cache/circuits; token fields on `audit_turns` / metering; provider secrets outside DB plaintext |
 | Audit | `audit_turns` |
 | Analytics | `attributions` + rollups/views |
-| Billing (V1) | Future `subscriptions`…; MVP `usage_events` only |
+| Billing | `wallets`, `wallet_transactions`, `usage_records`, `pricing_rules`, `credit_packs`, `billing_payments` — see [billing-design](./billing-design.md) |
 | Notifications | Queue jobs; optional `notification_outbox` if needed for reliability (tenant-scoped) |
 
 ---

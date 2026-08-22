@@ -1,10 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { randomUUID } from 'crypto';
 import { GatewayError } from './domain/gateway-errors';
 import type { GenerateResponse } from './domain/provider.port';
 import type { RouteHint, TaskClass } from './domain/routing.types';
 import { RouterService } from './application/router.service';
 import { CircuitBreakerService } from './infrastructure/circuit-breaker.redis';
 import { UsageLedgerService } from './infrastructure/persistence/usage-ledger.service';
+import { UsageBillingService } from '../billing/usage.service';
+import { ReservationService } from '../billing/reservation.service';
+import { isBillingUserError } from '../billing/billing.errors';
+import { BillingUnavailableError } from '../billing/billing.errors';
+import {
+  estimateInputTokens,
+  mapTaskClassToService,
+} from '../billing/domain/pricing';
+import { SERVICE_LABELS_FA } from '../billing/domain/billing.types';
 
 export type CompleteInput = {
   system: string;
@@ -52,6 +62,8 @@ export class AiGatewayService {
     private readonly router: RouterService,
     private readonly circuits: CircuitBreakerService,
     private readonly ledger: UsageLedgerService,
+    private readonly usageBilling: UsageBillingService,
+    private readonly reservations: ReservationService,
   ) {}
 
   async complete(input: CompleteInput): Promise<CompleteResult> {
@@ -72,6 +84,13 @@ export class AiGatewayService {
     let lastReason: string | undefined;
     if (decision.rejectReason) {
       lastReason = decision.rejectReason;
+    }
+
+    const billingRequestId = randomUUID();
+    let reservationId: string | null = null;
+    const livePrimary = decision.primary.providerId !== 'mock';
+    if (livePrimary) {
+      reservationId = await this.reserveForLive(input, decision.primary, billingRequestId);
     }
 
     for (let i = 0; i < chain.length; i++) {
@@ -130,12 +149,32 @@ export class AiGatewayService {
           fallbackCount,
           cacheHit: false,
         });
+        if (mode === 'live' && reservationId) {
+          await this.settleLiveUsage({
+            input,
+            meter,
+            billingRequestId,
+            reservationId,
+            taskClass,
+          });
+        } else if (reservationId) {
+          await this.reservations
+            .release({
+              tenantId: input.tenantId,
+              reservationId,
+              idempotencyKey: `reserve-release:${billingRequestId}`,
+            })
+            .catch(() => undefined);
+        }
         return {
           text: res.text?.trim() || '',
           mode,
           meter,
         };
       } catch (err) {
+        if (isBillingUserError(err) || err instanceof BillingUnavailableError) {
+          throw err;
+        }
         const reason =
           err instanceof GatewayError
             ? `${err.code}:${err.message}`
@@ -178,6 +217,16 @@ export class AiGatewayService {
           );
         }
       }
+    }
+
+    if (reservationId) {
+      await this.reservations
+        .release({
+          tenantId: input.tenantId,
+          reservationId,
+          idempotencyKey: `reserve-release:${billingRequestId}`,
+        })
+        .catch(() => undefined);
     }
 
     const mock = this.router.resolveProvider('mock');
@@ -228,6 +277,77 @@ export class AiGatewayService {
       fallbackCount,
     });
     return { text: res.text?.trim() || '', mode: 'mock', meter };
+  }
+
+  private async reserveForLive(
+    input: CompleteInput,
+    candidate: { providerId: string; modelId: string },
+    billingRequestId: string,
+  ): Promise<string> {
+    const service = mapTaskClassToService(input.taskClass ?? 'chat.reply.cheap');
+    const quote = await this.usageBilling.quote({
+      service,
+      provider: candidate.providerId,
+      model: candidate.modelId,
+      inputUnits: estimateInputTokens(input.system, input.user),
+      outputUnits: input.maxTokens ?? 512,
+    });
+    const amount = Math.max(1, quote.customerCharge);
+    await this.usageBilling.assertSpendAllowed(input.tenantId, amount);
+    const reserved = await this.reservations.reserve({
+      tenantId: input.tenantId,
+      amount,
+      referenceId: billingRequestId,
+      idempotencyKey: `reserve:${input.tenantId}:${billingRequestId}`,
+    });
+    return reserved.id;
+  }
+
+  private async settleLiveUsage(args: {
+    input: CompleteInput;
+    meter: GatewayMeter;
+    billingRequestId: string;
+    reservationId: string;
+    taskClass: TaskClass;
+  }) {
+    const service = mapTaskClassToService(args.taskClass);
+    const quote = await this.usageBilling.quote({
+      service,
+      provider: args.meter.providerId,
+      model: args.meter.modelId,
+      inputUnits: args.meter.tokensIn,
+      outputUnits: args.meter.tokensOut,
+    });
+    try {
+      await this.reservations.capture({
+        tenantId: args.input.tenantId,
+        reservationId: args.reservationId,
+        actualCharge: quote.customerCharge,
+        description: SERVICE_LABELS_FA[service],
+        usageIdempotencyKey: `ledger:usage:${args.input.tenantId}:${args.billingRequestId}`,
+      });
+      await this.usageBilling.charge({
+        tenantId: args.input.tenantId,
+        service,
+        provider: args.meter.providerId,
+        model: args.meter.modelId,
+        requestId: args.billingRequestId,
+        inputUnits: args.meter.tokensIn,
+        outputUnits: args.meter.tokensOut,
+        taskClass: args.taskClass,
+        feature: args.input.feature,
+        idempotencyKey: `usage:${args.input.tenantId}:${args.billingRequestId}`,
+        skipWallet: true,
+      });
+    } catch (err) {
+      this.log.error(
+        `billing settle failed tenant=${args.input.tenantId}: ${err instanceof Error ? err.message : err}`,
+      );
+      if (isBillingUserError(err) || err instanceof BillingUnavailableError) {
+        throw err;
+      }
+      throw new BillingUnavailableError();
+    }
   }
 
   private toMeter(args: {

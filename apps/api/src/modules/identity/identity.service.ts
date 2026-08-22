@@ -6,10 +6,14 @@ import {
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { DataStore } from '../platform/data.store';
+import { BillingService } from '../billing/billing.service';
 
 @Injectable()
 export class IdentityService {
-  constructor(private readonly store: DataStore) {}
+  constructor(
+    private readonly store: DataStore,
+    private readonly billing: BillingService,
+  ) {}
 
   async signup(
     email: string,
@@ -38,6 +42,10 @@ export class IdentityService {
     });
     await this.store.addMembership({ userId, tenantId, role: 'owner' });
     await this.store.provisionTenantDefaults(tenantId);
+    const plan = opts?.plan ?? 'trial';
+    if ((opts?.billingStatus ?? 'trial') !== 'pending_payment') {
+      await this.billing.grantSubscriptionCredit(tenantId, plan, 'provision');
+    }
     return this.issueSession(userId, tenantId);
   }
 

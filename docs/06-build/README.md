@@ -25,7 +25,7 @@ Active implementation slices for Seloma AI MVP.
 | 18 — Website Chat Harden | [vertical-slice-18.md](./vertical-slice-18.md) | Done |
 | 19 — Design-Partner E2E | [vertical-slice-19.md](./vertical-slice-19.md) | Done |
 | 20 — AI Provider Layer Ops | [vertical-slice-20.md](./vertical-slice-20.md) | Done |
-| 21–26 — Native Storefront + CMS | [vertical-slice-21-26-native-storefront.md](./vertical-slice-21-26-native-storefront.md) | Done |
+| 28 — Credit wallet billing | [billing-design](../03-architecture/billing-design.md) | Wallet + PAYG + auto-recharge |
 | 27–33 — Omnichannel native shop | (this epic) | Done — one catalog, in-channel checkout, customer addresses, channel revenue |
 
 Native shop is the only storefront. Sales complete on website, Telegram, Bale, and Instagram into `StorefrontOrder.channel`. COD is optional per shop settings. Customer phone is the identity key.

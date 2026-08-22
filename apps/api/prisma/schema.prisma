@@ -61,6 +61,14 @@ model Tenant {
   discounts              Discount[]
   discountTargets        DiscountTarget[]
   articles               Article[]
+  wallet                 Wallet?
+  walletTransactions     WalletTransaction[]
+  usageRecords           UsageRecord[]
+  walletReservations     WalletReservation[]
+  autoRecharge           AutoRechargeConfig?
+  spendingLimit          SpendingLimit?
+  billingPayments        BillingPayment[]
+  billingAlerts          BillingAlert[]
 
   @@map("tenants")
 }
@@ -1106,4 +1114,274 @@ model AiCallEvent {
   @@index([conversationId])
   @@index([tenantId, feature, createdAt])
   @@map("ai_call_events")
+}
+
+/// ---------------------------------------------------------------------------
+/// Billing — Credit Wallet + PAYG + Auto Recharge (SaaS, not shop-order payments)
+/// Amounts are integer تومان (IRT). Merchants never see tokens.
+/// ---------------------------------------------------------------------------
+
+model Wallet {
+  id                        String   @id @default(uuid())
+  tenantId                  String   @unique @map("tenant_id")
+  /// Available+reserved ledger balance (IRT toman)
+  balance                   Decimal  @default(0) @db.Decimal(18, 0)
+  /// Held by PENDING reservations
+  reserved                  Decimal  @default(0) @db.Decimal(18, 0)
+  currency                  String   @default("IRT")
+  /// active | suspended | restricted
+  status                    String   @default("active")
+  lowBalanceThreshold       Decimal  @default(500000) @map("low_balance_threshold") @db.Decimal(18, 0)
+  criticalBalanceThreshold  Decimal  @default(200000) @map("critical_balance_threshold") @db.Decimal(18, 0)
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  tenant         Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  transactions   WalletTransaction[]
+  usageRecords   UsageRecord[]
+  reservations   WalletReservation[]
+  autoRecharge   AutoRechargeConfig?
+  spendingLimit  SpendingLimit?
+  payments       BillingPayment[]
+  alerts         BillingAlert[]
+
+  @@index([tenantId])
+  @@map("wallets")
+}
+
+/// Append-only financial ledger. Never update/delete rows; reverse with a new txn.
+model WalletTransaction {
+  id              String   @id @default(uuid())
+  walletId        String   @map("wallet_id")
+  tenantId        String   @map("tenant_id")
+  /// CREDIT_PURCHASE | SUBSCRIPTION_CREDIT | USAGE | REFUND | MANUAL_ADJUSTMENT | AUTO_RECHARGE | BONUS | EXPIRATION | RESERVATION | RESERVATION_CAPTURE | RESERVATION_RELEASE
+  type            String
+  /// Signed IRT: +credit / −debit
+  amount          Decimal  @db.Decimal(18, 0)
+  balanceBefore   Decimal  @map("balance_before") @db.Decimal(18, 0)
+  balanceAfter    Decimal  @map("balance_after") @db.Decimal(18, 0)
+  referenceType   String?  @map("reference_type")
+  referenceId     String?  @map("reference_id")
+  description     String
+  metadata        Json?
+  idempotencyKey  String?  @unique @map("idempotency_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, type, createdAt])
+  @@index([referenceType, referenceId])
+  @@map("wallet_transactions")
+}
+
+model UsageRecord {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  walletId        String   @map("wallet_id")
+  /// AI_CHAT | IMAGE_GENERATION | VOICE | OCR | CONTENT_GENERATION | EMBEDDING | SEARCH | EXTERNAL_API
+  service         String
+  provider        String
+  model           String
+  requestId       String?  @map("request_id")
+  inputUnits      Decimal  @default(0) @map("input_units") @db.Decimal(18, 4)
+  outputUnits     Decimal  @default(0) @map("output_units") @db.Decimal(18, 4)
+  totalUnits      Decimal  @default(0) @map("total_units") @db.Decimal(18, 4)
+  unitType        String   @default("token") @map("unit_type")
+  /// Seloma COGS in IRT (never shown to merchant)
+  providerCost    Decimal  @map("provider_cost") @db.Decimal(18, 4)
+  /// Amount deducted from merchant wallet (IRT toman, integer)
+  customerCharge  Decimal  @map("customer_charge") @db.Decimal(18, 0)
+  currency        String   @default("IRT")
+  metadata        Json?
+  idempotencyKey  String?  @unique @map("idempotency_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, createdAt])
+  @@index([walletId, createdAt])
+  @@index([tenantId, service, createdAt])
+  @@map("usage_records")
+}
+
+model PricingRule {
+  id             String    @id @default(uuid())
+  /// AI_CHAT | IMAGE_GENERATION | …
+  service        String
+  /// Exact provider id or *
+  provider       String    @default("*")
+  /// Exact model id or *
+  model          String    @default("*")
+  /// input_token | output_token | image | minute | page | request
+  unitType       String    @map("unit_type")
+  /// Provider cost per unit, IRT
+  unitPrice      Decimal   @map("unit_price") @db.Decimal(18, 8)
+  /// customer_charge = ceil(provider_cost * markup)
+  markup         Decimal   @default(2) @db.Decimal(8, 4)
+  currency       String    @default("IRT")
+  effectiveFrom  DateTime  @default(now()) @map("effective_from")
+  effectiveTo    DateTime? @map("effective_to")
+  /// active | inactive
+  status         String    @default("active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@index([service, provider, model, status, effectiveFrom])
+  @@index([status, effectiveFrom])
+  @@map("pricing_rules")
+}
+
+model CreditPack {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  amount    Decimal  @db.Decimal(18, 0)
+  currency  String   @default("IRT")
+  label     String
+  sortOrder Int      @default(0) @map("sort_order")
+  /// active | inactive
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, sortOrder])
+  @@map("credit_packs")
+}
+
+model SubscriptionCreditGrant {
+  id              String   @id @default(uuid())
+  plan            String   @unique
+  includedCredit  Decimal  @map("included_credit") @db.Decimal(18, 0)
+  currency        String   @default("IRT")
+  /// active | inactive
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("subscription_credit_grants")
+}
+
+model WalletReservation {
+  id              String    @id @default(uuid())
+  walletId        String    @map("wallet_id")
+  tenantId        String    @map("tenant_id")
+  amount          Decimal   @db.Decimal(18, 0)
+  /// PENDING | CAPTURED | RELEASED | EXPIRED
+  status          String    @default("PENDING")
+  referenceId     String    @map("reference_id")
+  idempotencyKey  String?   @unique @map("idempotency_key")
+  expiresAt       DateTime  @map("expires_at")
+  capturedAmount  Decimal?  @map("captured_amount") @db.Decimal(18, 0)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, status])
+  @@index([tenantId, status, createdAt])
+  @@index([expiresAt, status])
+  @@map("wallet_reservations")
+}
+
+model AutoRechargeConfig {
+  id               String    @id @default(uuid())
+  walletId         String    @unique @map("wallet_id")
+  tenantId         String    @unique @map("tenant_id")
+  enabled          Boolean   @default(false)
+  thresholdAmount  Decimal   @map("threshold_amount") @db.Decimal(18, 0)
+  rechargeAmount   Decimal   @map("recharge_amount") @db.Decimal(18, 0)
+  monthlyLimit     Decimal   @map("monthly_limit") @db.Decimal(18, 0)
+  /// mock | zarinpal
+  paymentMethodId  String?   @map("payment_method_id")
+  cooldownUntil    DateTime? @map("cooldown_until")
+  pausedReason     String?   @map("paused_reason")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("auto_recharge_configs")
+}
+
+model SpendingLimit {
+  id            String   @id @default(uuid())
+  walletId      String   @unique @map("wallet_id")
+  tenantId      String   @unique @map("tenant_id")
+  monthlyLimit  Decimal? @map("monthly_limit") @db.Decimal(18, 0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("spending_limits")
+}
+
+/// SaaS wallet top-up (not storefront order Payment)
+model BillingPayment {
+  id                    String    @id @default(uuid())
+  tenantId              String    @map("tenant_id")
+  walletId              String    @map("wallet_id")
+  /// CREDIT_PURCHASE | AUTO_RECHARGE
+  kind                  String
+  /// pending | paid | failed | refunded
+  status                String    @default("pending")
+  amount                Decimal   @db.Decimal(18, 0)
+  currency              String    @default("IRT")
+  provider              String
+  authority             String?
+  /// Gateway verify reference — unique when present
+  providerTransactionId String?   @unique @map("provider_transaction_id")
+  creditPackId          String?   @map("credit_pack_id")
+  idempotencyKey        String    @unique @map("idempotency_key")
+  metadata              Json?
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, authority])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status])
+  @@index([walletId, kind, createdAt])
+  @@map("billing_payments")
+}
+
+model BillingAlert {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  walletId  String   @map("wallet_id")
+  /// low_balance | critical_balance | auto_recharge_paused | auto_recharge_failed | spending_limit
+  kind      String
+  lastSentAt DateTime @map("last_sent_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([walletId, kind])
+  @@index([tenantId, kind])
+  @@map("billing_alerts")
+}
+
+model BillingSettings {
+  id                         String   @id
+  /// customer_charge = ceil(provider_cost * markup)
+  chargeFormula              String   @default("ceil(provider_cost * markup)") @map("charge_formula")
+  defaultLowBalance          Decimal  @default(500000) @map("default_low_balance") @db.Decimal(18, 0)
+  defaultCriticalBalance     Decimal  @default(200000) @map("default_critical_balance") @db.Decimal(18, 0)
+  autoRechargeCooldownSec    Int      @default(900) @map("auto_recharge_cooldown_sec")
+  alertCooldownSec           Int      @default(86400) @map("alert_cooldown_sec")
+  currency                   String   @default("IRT")
+  reservationTtlSec          Int      @default(180) @map("reservation_ttl_sec")
+  createdAt                  DateTime @default(now()) @map("created_at")
+  updatedAt                  DateTime @updatedAt @map("updated_at")
+
+  @@map("billing_settings")
 }

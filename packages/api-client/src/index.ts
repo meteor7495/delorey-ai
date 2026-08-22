@@ -289,6 +289,179 @@ export function createApiClient(opts: ApiClientOptions) {
         body: JSON.stringify(body),
       }),
     workspaceMe: () => request<Record<string, unknown>>(opts, '/workspace/me'),
+
+    billingWallet: () =>
+      request<{
+        currency: string;
+        currencyLabel: string;
+        tagline: string;
+        balance: number;
+        reserved: number;
+        available: number;
+        status: string;
+        monthUsage: number;
+        estimatedRemaining: number;
+        lowBalance: boolean;
+        criticalBalance: boolean;
+        spendingLimit: {
+          monthlyLimit: number | null;
+          monthUsage: number;
+          remaining: number | null;
+          restricted: boolean;
+        };
+        autoRecharge: {
+          enabled: boolean;
+          thresholdAmount: number;
+          rechargeAmount: number;
+          monthlyLimit: number;
+          monthRecharged: number;
+          pausedReason: string | null;
+          cooldownUntil: string | null;
+        };
+        packs: Array<{ id: string; slug: string; amount: number; label: string }>;
+        isPlatformAdmin: boolean;
+      }>(opts, '/billing/wallet'),
+    billingUsage: () =>
+      request<{
+        currency: string;
+        currencyLabel: string;
+        today: number;
+        thisMonth: number;
+        breakdown: Array<{ service: string; label: string; amount: number }>;
+        items: Array<{
+          id: string;
+          date: string;
+          service: string;
+          label: string;
+          cost: number;
+          currency: string;
+        }>;
+      }>(opts, '/billing/usage'),
+    billingTransactions: (query?: { limit?: number; offset?: number; type?: string }) => {
+      const q = new URLSearchParams();
+      if (query?.limit) q.set('limit', String(query.limit));
+      if (query?.offset) q.set('offset', String(query.offset));
+      if (query?.type) q.set('type', query.type);
+      const suffix = q.toString() ? `?${q.toString()}` : '';
+      return request<{
+        total: number;
+        items: Array<{
+          id: string;
+          date: string;
+          type: string;
+          label: string;
+          amount: number;
+          description: string;
+        }>;
+        currencyLabel: string;
+      }>(opts, `/billing/transactions${suffix}`);
+    },
+    billingPurchase: (body: { packId: string; idempotencyKey?: string }) =>
+      request<{
+        paymentId: string;
+        amount: number;
+        payUrl: string | null;
+        status: string;
+        alreadyPaid: boolean;
+      }>(opts, '/billing/credits/purchase', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    billingGetAutoRecharge: () =>
+      request<{
+        enabled: boolean;
+        thresholdAmount: number;
+        rechargeAmount: number;
+        monthlyLimit: number;
+        pausedReason: string | null;
+      }>(opts, '/billing/auto-recharge'),
+    billingPutAutoRecharge: (body: {
+      enabled?: boolean;
+      thresholdAmount?: number;
+      rechargeAmount?: number;
+      monthlyLimit?: number;
+    }) =>
+      request(opts, '/billing/auto-recharge', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    billingGetSpendingLimit: () =>
+      request<{
+        monthlyLimit: number | null;
+        monthUsage: number;
+        remaining: number | null;
+        restricted: boolean;
+      }>(opts, '/billing/spending-limit'),
+    billingPutSpendingLimit: (body: { monthlyLimit: number | null }) =>
+      request(opts, '/billing/spending-limit', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    adminBillingTenant: (tenantId: string) =>
+      request<Record<string, unknown>>(
+        opts,
+        `/admin/billing/tenants/${encodeURIComponent(tenantId)}`,
+      ),
+    adminBillingMargins: (tenantId?: string) =>
+      request<{
+        providerCost: number;
+        customerCharge: number;
+        grossMargin: number;
+        items: Array<Record<string, unknown>>;
+      }>(
+        opts,
+        `/admin/billing/margins${tenantId ? `?tenantId=${encodeURIComponent(tenantId)}` : ''}`,
+      ),
+    adminBillingCredit: (body: {
+      tenantId: string;
+      amount: number;
+      description?: string;
+      idempotencyKey: string;
+    }) =>
+      request(opts, '/admin/billing/credit', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    adminBillingRefund: (body: {
+      tenantId: string;
+      amount: number;
+      description?: string;
+      idempotencyKey: string;
+    }) =>
+      request(opts, '/admin/billing/refund', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    adminBillingPricing: () =>
+      request<
+        Array<{
+          id: string;
+          service: string;
+          provider: string;
+          model: string;
+          unitType: string;
+          unitPrice: unknown;
+          markup: unknown;
+          status: string;
+        }>
+      >(opts, '/admin/billing/pricing'),
+    adminBillingUpsertPricing: (body: Record<string, unknown>) =>
+      request(opts, '/admin/billing/pricing', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    adminBillingFailedPayments: () =>
+      request<
+        Array<{
+          id: string;
+          tenantId: string;
+          kind: string;
+          amount: number;
+          provider: string;
+          createdAt: string;
+        }>
+      >(opts, '/admin/billing/payments/failed'),
+
     getEmployee: () =>
       request<{
         id: string;

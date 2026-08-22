@@ -192,7 +192,7 @@ Modules follow Bounded Contexts ([DDD §9](./domain-driven-design.md)) — **not
 | `audit` | Audit | Persist `audit_turns` | Analytics rollups sole owner |
 | `analytics` | Analytics | Events → rollups, attributions | Conversation SoR |
 | `notifications` | Notifications | Escalation/channel health notify jobs | Campaign blasts |
-| `billing` | Billing | **V1** — MVP: optional `usage_events` writer only | Token invoices |
+| `billing` | Billing | Credit wallet, IRT ledger, PAYG usage, auto-recharge — [billing-design](./billing-design.md) | Token invoices to merchants; shop-order `payments` |
 | `shared` / `platform` | L8 | TenantContext, outbox, observability, crypto helpers | Product opinions |
 
 ```mermaid
@@ -537,7 +537,7 @@ Aligned with System Architecture implementation guidance:
 6. Thin `adapters/website|telegram|bale`  
 7. `knowledge` + `index-worker`  
 8. `inbox` + `handoff` + `notifications`  
-9. `usage_events` hooks; full `billing` at V1  
+9. Credit-wallet `billing` (IRT) + `usage_records`; `AiCallEvent` remains internal COGS  
 
 ---
 

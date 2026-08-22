@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PlatformModule } from '../platform/platform.module';
 import { AuditModule } from '../audit/audit.module';
+import { BillingModule } from '../billing/billing.module';
 import { AiGatewayService } from './ai-gateway.service';
 import { AiGatewayController } from './ai-gateway.controller';
 import { RouterService } from './application/router.service';
@@ -16,7 +17,7 @@ import { ModelBindingService } from './infrastructure/persistence/model-binding.
 import { ModelBindingBootstrap } from './infrastructure/persistence/model-binding.bootstrap';
 
 @Module({
-  imports: [PlatformModule, AuditModule],
+  imports: [PlatformModule, AuditModule, BillingModule],
   controllers: [AiGatewayController],
   providers: [
     ProviderFactory,

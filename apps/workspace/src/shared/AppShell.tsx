@@ -28,6 +28,10 @@ const titleMap: Record<string, string> = {
   '/inbox': 'صندوق ورودی',
   '/knowledge': 'دانش',
   '/audit': 'ممیزی',
+  '/billing': 'اعتبار سلومـا',
+  '/billing/usage': 'مصرف اعتبار',
+  '/billing/history': 'تاریخچه مالی',
+  '/billing/ops': 'عملیات مالی',
 };
 
 export function AppShell({ children }: { children: ReactNode }) {

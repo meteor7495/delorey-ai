@@ -19,6 +19,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { ShopModule } from './modules/shop/shop.module';
 import { AccessModule } from './modules/access/access.module';
+import { BillingModule } from './modules/billing/billing.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -28,6 +29,7 @@ import { HealthController } from './health.controller';
     JobsModule,
     IdentityModule,
     AccessModule,
+    BillingModule,
     WorkspaceModule,
     EmployeeModule,
     CommerceModule,

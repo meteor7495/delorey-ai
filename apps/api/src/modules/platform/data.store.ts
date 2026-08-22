@@ -79,6 +79,18 @@ export class DataStore implements OnModuleInit {
   }
 
   async provisionTenantDefaults(tenantId: string) {
+    await this.prisma.wallet.upsert({
+      where: { tenantId },
+      create: {
+        tenantId,
+        balance: 0,
+        reserved: 0,
+        currency: 'IRT',
+        status: 'active',
+      },
+      update: {},
+    });
+
     const existingEmployee = await this.prisma.employee.findFirst({
       where: { tenantId },
     });

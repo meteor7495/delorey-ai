@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { IdentityService } from '../identity/identity.service';
 import { PrismaService } from '../platform/prisma.service';
+import { BillingService } from '../billing/billing.service';
 
 const PLANS = [
   'site-starter',
@@ -24,6 +25,7 @@ export class AccessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly identity: IdentityService,
+    private readonly billing: BillingService,
   ) {}
 
   async submitRequest(body: {
@@ -120,6 +122,11 @@ export class AccessService {
       where: { id: requestId },
       data: { status: 'paid' },
     });
+    await this.billing.grantSubscriptionCredit(
+      request.tenantId,
+      request.plan,
+      requestId,
+    );
 
     const workspaceBase = (
       process.env.WORKSPACE_BASE_URL ?? 'http://localhost:3010'
