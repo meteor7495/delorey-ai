@@ -1,8 +1,24 @@
 # Seloma AI
 
-**سِلوما** — AI Commerce Platform. Primary product: **AI Sales Employee** (Website, Telegram, Bale).
+**سِلوما** — AI Commerce Platform. Primary product: **native storefront + unified ops**; **AI Sales Employee** is an optional add-on (Website, Telegram, Bale).
 
 Build status: vertical slices **01–26** (see [`docs/06-build/README.md`](docs/06-build/README.md)).
+
+## Seloma AI Development Framework
+
+This repository includes a shared AI engineering layer for Cursor / Claude agents.
+
+| Item | Location |
+|------|----------|
+| **Canonical source** | [`.ai/`](.ai/README.md) |
+| Agents | Frontend, Backend, Review, Refactor/Debug — [`.ai/agents/`](.ai/agents/) |
+| Commands | `/agent-task`, `/agent-review`, `/agent-refactor`, `/agent-debug` |
+| Cursor adapter | [`.cursor/`](.cursor/rules/seloma-ai.mdc) (points at `.ai/`, does not duplicate rules) |
+| Claude adapter | [`CLAUDE.md`](CLAUDE.md), [`AGENTS.md`](AGENTS.md) |
+
+Workflow: **Task → Discovery → Plan → Implementation → Test → Review**.
+
+Agents must reuse existing Nest modules, `packages/api-client`, and Workspace components. They must not invent APIs or rebuild the monorepo. Sample prompts: [`.ai/examples/sample-tasks.md`](.ai/examples/sample-tasks.md).
 
 ## Docs map
 

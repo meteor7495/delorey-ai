@@ -4,6 +4,6 @@ import { Controller, Get } from '@nestjs/common';
 export class HealthController {
   @Get()
   check() {
-    return { ok: true, service: 'seloma-api', slice: '01-grounded-chat' };
+    return { ok: true, service: 'seloma-api', slice: 'omnichannel-native-shop' };
   }
 }

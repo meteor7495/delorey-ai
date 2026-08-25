@@ -1,0 +1,20 @@
+---
+description: Seloma AI framework — always load canonical .ai source of truth
+alwaysApply: true
+---
+
+# Seloma AI adapter (Cursor)
+
+Canonical AI engineering knowledge lives in **`.ai/`**, not in duplicated Cursor rules.
+
+Before non-trivial work:
+
+1. Read `.ai/README.md`
+2. Read `.ai/rules/core.md` and `.ai/rules/dont-do.md`
+3. Classify the task; load only relevant `.ai/rules/*` and `.ai/discovery/*`
+4. Follow `.ai/workflows/*` for `/agent-task`, `/agent-review`, `/agent-refactor`, `/agent-debug`
+5. Report with `.ai/templates/*`
+
+Do not rebuild Seloma. Do not invent APIs. Prefer existing `packages/api-client`, Nest modules, and Workspace components.
+
+Product docs under `docs/` remain authoritative for product intent; **running code** wins for implementation details.
