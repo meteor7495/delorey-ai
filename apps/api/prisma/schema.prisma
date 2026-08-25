@@ -69,6 +69,11 @@ model Tenant {
   spendingLimit          SpendingLimit?
   billingPayments        BillingPayment[]
   billingAlerts          BillingAlert[]
+  mcpClients             McpClient[]
+  mcpAccessTokens        McpAccessToken[]
+  mcpToolOverrides       McpToolOverride[]
+  mcpExecutions          McpExecution[]
+  mcpApprovals           McpApproval[]
 
   @@map("tenants")
 }
@@ -1391,4 +1396,134 @@ model BillingSettings {
   updatedAt                  DateTime @updatedAt @map("updated_at")
 
   @@map("billing_settings")
+}
+
+/// Registered MCP client (internal agent runtime or external AI)
+model McpClient {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  /// internal | external
+  kind        String   @default("internal")
+  /// public | internal — which registry surface this client may use
+  surface     String   @default("internal")
+  status      String   @default("active")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tokens      McpAccessToken[]
+  executions  McpExecution[]
+  approvals   McpApproval[]
+
+  @@index([tenantId, status])
+  @@map("mcp_clients")
+}
+
+/// Scoped MCP access token (hashed secret; never store plaintext)
+model McpAccessToken {
+  id               String    @id @default(uuid())
+  tenantId         String    @map("tenant_id")
+  clientId         String    @map("client_id")
+  name             String
+  tokenPrefix      String    @map("token_prefix")
+  tokenHash        String    @map("token_hash")
+  /// JSON string array of scopes e.g. ["products.read","orders.read"]
+  scopes           Json
+  /// optional user binding
+  userId           String?   @map("user_id")
+  /// optional employee/agent binding
+  employeeId       String?   @map("employee_id")
+  expiresAt        DateTime? @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  lastUsedAt       DateTime? @map("last_used_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  tenant Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client McpClient @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([tokenHash])
+  @@index([tenantId, clientId])
+  @@index([tokenPrefix])
+  @@map("mcp_access_tokens")
+}
+
+/// Per-tenant tool enable/disable and risk policy overrides
+model McpToolOverride {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  toolName        String   @map("tool_name")
+  enabled         Boolean  @default(true)
+  /// auto | approval_required | disabled
+  approvalPolicy  String?  @map("approval_policy")
+  publicEnabled   Boolean? @map("public_enabled")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, toolName])
+  @@index([tenantId])
+  @@map("mcp_tool_overrides")
+}
+
+/// MCP tool execution audit + usage metering readiness
+model McpExecution {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  clientId         String?  @map("client_id")
+  userId           String?  @map("user_id")
+  employeeId       String?  @map("employee_id")
+  correlationId    String   @map("correlation_id")
+  toolName         String   @map("tool_name")
+  toolVersion      String   @map("tool_version")
+  riskLevel        String   @map("risk_level")
+  /// success | error | approval_required | rate_limited | forbidden
+  status           String
+  inputHash        String?  @map("input_hash")
+  inputSanitized   Json?    @map("input_sanitized")
+  outputMeta       Json?    @map("output_meta")
+  errorCode        String?  @map("error_code")
+  errorMessage     String?  @map("error_message")
+  durationMs       Int      @map("duration_ms")
+  approvalId       String?  @map("approval_id")
+  idempotencyKey   String?  @map("idempotency_key")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client   McpClient? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  approval McpApproval? @relation(fields: [approvalId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, toolName, createdAt])
+  @@index([correlationId])
+  @@map("mcp_executions")
+}
+
+/// Human approval queue for high-risk MCP tools
+model McpApproval {
+  id            String    @id @default(uuid())
+  tenantId      String    @map("tenant_id")
+  clientId      String?   @map("client_id")
+  toolName      String    @map("tool_name")
+  toolVersion   String    @map("tool_version")
+  riskLevel     String    @map("risk_level")
+  /// pending | approved | rejected | expired
+  status        String    @default("pending")
+  inputSanitized Json     @map("input_sanitized")
+  reason        String?
+  requestedByUserId String? @map("requested_by_user_id")
+  decidedByUserId   String? @map("decided_by_user_id")
+  decidedAt     DateTime? @map("decided_at")
+  expiresAt     DateTime  @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  tenant     Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  client     McpClient?     @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  executions McpExecution[]
+
+  @@index([tenantId, status, createdAt])
+  @@map("mcp_approvals")
 }

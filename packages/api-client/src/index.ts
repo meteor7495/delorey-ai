@@ -1010,6 +1010,47 @@ export function createApiClient(opts: ApiClientOptions) {
         createdAt: string;
       }>(opts, `/audit/admin/${id}`),
 
+    // ── MCP admin ────────────────────────────────────────────────────
+    mcpListTools: () =>
+      request<{
+        items: Array<{
+          name: string;
+          domain: string;
+          title: string;
+          description: string;
+          version: string;
+          permissions: string[];
+          risk: string;
+          surface: string;
+          deprecated: boolean;
+          timeoutMs: number;
+        }>;
+      }>(opts, '/mcp/admin/tools'),
+    mcpListExecutions: (query: { tool?: string; limit?: number; offset?: number } = {}) => {
+      const params = new URLSearchParams();
+      if (query.tool) params.set('tool', query.tool);
+      if (query.limit != null) params.set('limit', String(query.limit));
+      if (query.offset != null) params.set('offset', String(query.offset));
+      const qs = params.toString();
+      return request<{ items: unknown[]; total: number; limit: number; offset: number }>(
+        opts,
+        `/mcp/admin/executions${qs ? `?${qs}` : ''}`,
+      );
+    },
+    mcpInvoke: (body: { tool: string; args?: Record<string, unknown>; idempotencyKey?: string }) =>
+      request<{ ok: boolean; data?: unknown; error?: { code: string; message: string }; executionId: string }>(
+        opts,
+        '/mcp/admin/invoke',
+        { method: 'POST', body: JSON.stringify(body) },
+      ),
+    mcpListApprovals: (status = 'pending') =>
+      request<unknown[]>(opts, `/mcp/admin/approvals?status=${encodeURIComponent(status)}`),
+    mcpDecideApproval: (id: string, body: { decision: 'approved' | 'rejected'; reason?: string }) =>
+      request<unknown>(opts, `/mcp/admin/approvals/${id}/decide`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+
     // ── Native shop CMS ──────────────────────────────────────────────
     shopOverview: () =>
       request<{

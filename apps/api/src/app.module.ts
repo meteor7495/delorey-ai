@@ -21,6 +21,7 @@ import { ShopModule } from './modules/shop/shop.module';
 import { AccessModule } from './modules/access/access.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { HealthController } from './health.controller';
+import { McpModule } from './modules/mcp/mcp.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { HealthController } from './health.controller';
     TelegramAdapterModule,
     BaleAdapterModule,
     InstagramSpikeModule,
+    McpModule,
   ],
   controllers: [HealthController],
 })

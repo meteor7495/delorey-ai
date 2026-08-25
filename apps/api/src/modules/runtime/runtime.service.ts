@@ -10,6 +10,7 @@ import { HandoffService } from '../inbox/handoff.service';
 import { ChannelCheckoutService } from '../shop/channel-checkout.service';
 import { ShopService } from '../shop/shop.service';
 import { CustomersService } from '../shop/customers.service';
+import { McpClientService } from '../mcp/client/mcp-client.service';
 import {
   extractOrderNumber,
   isCancelOrderIntent,
@@ -115,7 +116,34 @@ export class RuntimeService {
     private readonly checkout: ChannelCheckoutService,
     private readonly shop: ShopService,
     private readonly customers: CustomersService,
+    private readonly mcp: McpClientService,
   ) {}
+
+  /**
+   * Capability discovery for internal agents / future LLM tool-calling loops.
+   * Filters by permission scopes; does not hardcode tool lists into executeTurn.
+   */
+  discoverMcpTools(tenantId: string, employeeId?: string) {
+    const ctx = this.mcp.createContext({ tenantId, employeeId });
+    return this.mcp.discoverTools(ctx);
+  }
+
+  /** Execute an MCP tool in-process with tenant-bound internal context. */
+  executeMcpTool(
+    tenantId: string,
+    toolName: string,
+    args: unknown,
+    opts?: { userId?: string; employeeId?: string; idempotencyKey?: string },
+  ) {
+    const ctx = this.mcp.createContext({
+      tenantId,
+      userId: opts?.userId,
+      employeeId: opts?.employeeId,
+    });
+    return this.mcp.callTool(ctx, toolName, args, {
+      idempotencyKey: opts?.idempotencyKey,
+    });
+  }
 
   async executeTurn(
     tenantId: string,
