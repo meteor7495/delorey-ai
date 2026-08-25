@@ -7,7 +7,7 @@ import {
 } from './storefront-themes';
 
 describe('storefront themes', () => {
-  it('keeps seven named packs including the current classic look', () => {
+  it('keeps eight named packs including the current classic look', () => {
     expect(STOREFRONT_THEMES.map((t) => t.id)).toEqual([
       'zi-home',
       'regal',
@@ -16,6 +16,7 @@ describe('storefront themes', () => {
       'noir',
       'exclusive',
       'rivo',
+      'freebie',
     ]);
   });
 
@@ -50,11 +51,22 @@ describe('storefront themes', () => {
     expect(isStorefrontThemeId('rivo')).toBe(true);
   });
 
+  it('registers the freebie clothes theme with preview assets', () => {
+    const freebie = STOREFRONT_THEMES.find((t) => t.id === 'freebie');
+    expect(freebie).toBeDefined();
+    expect(freebie?.name).toBe('فری‌بی');
+    expect(freebie?.category).toBe('fashion');
+    expect(freebie?.previewImage).toBe('/theme-previews/freebie.svg');
+    expect(freebie?.mobilePreviewImage).toBe('/theme-previews/freebie-mobile.svg');
+    expect(freebie?.defaults.primaryColor).toBe('#000000');
+    expect(isStorefrontThemeId('freebie')).toBe(true);
+  });
+
   it('filters themes by search query and category', () => {
     const fashion = filterStorefrontThemes(STOREFRONT_THEMES, {
       category: 'fashion',
     });
-    expect(fashion.map((t) => t.id)).toEqual(['regal', 'rivo']);
+    expect(fashion.map((t) => t.id)).toEqual(['regal', 'rivo', 'freebie']);
 
     const tech = filterStorefrontThemes(STOREFRONT_THEMES, { query: 'تکنولوژی' });
     expect(tech.map((t) => t.id)).toEqual(['icenter']);

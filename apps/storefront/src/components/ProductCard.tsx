@@ -125,6 +125,59 @@ export function ProductCard({
     );
   }
 
+  if (theme === 'freebie') {
+    return (
+      <Link href={href} className={`group block ${compact ? 'min-w-[200px]' : ''}`}>
+        <div
+          className="aspect-square bg-zh-100 overflow-hidden"
+          style={{ borderRadius: 'var(--zh-radius)' }}
+        >
+          {img ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={img}
+              alt=""
+              className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+            />
+          ) : (
+            <div className="h-full grid place-items-center text-zh-500 text-[12px]">
+              بدون تصویر
+            </div>
+          )}
+        </div>
+        <div className="mt-4 space-y-2 text-right">
+          <h3 className="text-[16px] lg:text-[20px] font-bold text-zh-ink line-clamp-1">
+            {product.title}
+          </h3>
+          <div
+            className="flex items-center gap-1.5 text-[14px] text-zh-ink"
+            aria-label="امتیاز ۴ از ۵"
+          >
+            <span className="text-[#ffc633]" aria-hidden="true">
+              ★★★★☆
+            </span>
+            <span className="text-zh-600 tnum">۴.۵/۵</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[20px] lg:text-[24px] font-bold text-zh-ink tnum">
+              {product.price.toLocaleString('fa-IR')} تومان
+            </span>
+            {off != null && product.compareAtPrice != null && (
+              <>
+                <span className="text-[16px] lg:text-[20px] text-zh-400 line-through tnum">
+                  {product.compareAtPrice.toLocaleString('fa-IR')}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-[#ff33331a] px-3 py-1 text-[12px] font-medium text-[#ff3333] tnum">
+                  ٪{off.toLocaleString('fa-IR')}-
+                </span>
+              </>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   if (theme === 'customme') {
     return (
       <Link

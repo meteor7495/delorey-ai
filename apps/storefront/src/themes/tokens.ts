@@ -170,6 +170,27 @@ export const THEME_TOKENS: Record<string, ThemeTokens> = {
     surface: '#ffffff',
     radius: '3px',
   },
+  freebie: {
+    primary: '#000000',
+    primaryHover: '#333333',
+    primarySoft: '#f0f0f0',
+    pink: '#ff3333',
+    warning: '#ffc633',
+    ink: '#000000',
+    900: '#000000',
+    800: '#000000',
+    700: '#333333',
+    600: '#666666',
+    500: '#999999',
+    400: '#b3b3b3',
+    300: '#d9d9d9',
+    200: '#e6e6e6',
+    100: '#f0f0f0',
+    50: '#f2f0f1',
+    bg: '#ffffff',
+    surface: '#ffffff',
+    radius: '20px',
+  },
 };
 
 export function resolveThemeTokens(themeId?: string | null): ThemeTokens {

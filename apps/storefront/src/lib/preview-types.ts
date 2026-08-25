@@ -5,4 +5,5 @@ export type StorefrontThemeId =
   | 'icenter'
   | 'noir'
   | 'exclusive'
-  | 'rivo';
+  | 'rivo'
+  | 'freebie';

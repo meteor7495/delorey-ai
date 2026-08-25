@@ -84,6 +84,7 @@ export const PREVIEW_THEME_DEFAULTS: Record<
   noir: { primaryColor: '#c9a227', secondaryColor: '#050505' },
   exclusive: { primaryColor: '#db4444', secondaryColor: '#000000' },
   rivo: { primaryColor: '#224f34', secondaryColor: '#224f34' },
+  freebie: { primaryColor: '#000000', secondaryColor: '#000000' },
 };
 
 export function isKnownPreviewTheme(

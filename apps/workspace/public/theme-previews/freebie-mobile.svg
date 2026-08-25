@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 320" role="img" aria-label="FreeBie mobile theme preview">
+  <rect width="200" height="320" fill="#ffffff"/>
+  <rect width="200" height="24" fill="#000000"/>
+  <rect x="24" y="8" width="152" height="8" rx="2" fill="#ffffff" opacity="0.85"/>
+  <rect x="12" y="32" width="16" height="12" rx="1" fill="#000000"/>
+  <rect x="36" y="34" width="56" height="10" rx="2" fill="#000000"/>
+  <rect x="156" y="32" width="12" height="12" rx="1" fill="#000000"/>
+  <rect x="176" y="32" width="12" height="12" rx="1" fill="#000000"/>
+  <rect x="12" y="52" width="176" height="120" rx="2" fill="#f2f0f1"/>
+  <rect x="20" y="64" width="120" height="14" rx="2" fill="#000000"/>
+  <rect x="20" y="84" width="100" height="6" rx="2" fill="#999999"/>
+  <rect x="20" y="98" width="56" height="14" rx="7" fill="#000000"/>
+  <rect y="180" width="200" height="20" fill="#000000"/>
+  <rect x="16" y="210" width="72" height="8" rx="2" fill="#000000"/>
+  <rect x="16" y="224" width="84" height="40" rx="8" fill="#f0f0f0"/>
+  <rect x="108" y="224" width="76" height="40" rx="8" fill="#f0f0f0"/>
+  <rect x="16" y="276" width="168" height="28" rx="14" fill="#000000" opacity="0.12"/>
+</svg>

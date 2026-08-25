@@ -68,10 +68,12 @@ export function HomeByTheme(props: HomeViewProps) {
         <ExclusiveHome {...props} />
       ) : theme === 'rivo' ? (
         <RivoHome {...props} />
+      ) : theme === 'freebie' ? (
+        <FreebieHome {...props} />
       ) : (
         <ClassicHome {...props} />
       )}
-      {theme !== 'rivo' && (
+      {theme !== 'rivo' && theme !== 'freebie' && (
         <ArticlesStrip storeSlug={props.storeSlug} articles={props.articles ?? []} />
       )}
     </>
@@ -595,6 +597,223 @@ function RivoHome({
         </section>
       )}
     </>
+  );
+}
+
+function FreebieHome({
+  storeSlug,
+  settings,
+  categories,
+  featured,
+  slides,
+  slide,
+}: HomeViewProps) {
+  const current = slides[slide] ?? slides[0];
+  const newArrivals = featured.slice(0, 4);
+  const onSale = featured.filter(
+    (p) => p.compareAtPrice != null && p.compareAtPrice > p.price,
+  );
+  const topSelling =
+    onSale.length >= 2 ? onSale.slice(0, 4) : featured.slice(4, 8);
+  const topList = topSelling.length > 0 ? topSelling : featured.slice(0, 4);
+  const styleCats = categories.slice(0, 4);
+  const brandLabels =
+    categories.length > 0
+      ? categories.slice(0, 5).map((c) => c.name)
+      : [settings.storeName, 'کیفیت', 'ارسال سریع', 'تنوع', 'پشتیبانی'];
+
+  return (
+    <>
+      {/* Hero — SHOP.CO style split */}
+      <section className="bg-zh-50 overflow-hidden">
+        <div className="dk-container grid lg:grid-cols-2 gap-8 lg:gap-0 items-center py-10 lg:py-0 lg:min-h-[560px]">
+          <div className="text-right space-y-6 lg:space-y-8 order-2 lg:order-1 py-4 lg:py-16">
+            <h1 className="text-[36px] sm:text-[48px] lg:text-[64px] leading-[1.05] font-bold uppercase text-zh-ink tracking-tight">
+              {current?.title || 'لباسی که سبک شما را کامل می‌کند'}
+            </h1>
+            <p className="text-[14px] lg:text-[16px] text-zh-600 leading-7 max-w-xl ms-auto">
+              {current?.subtitle ||
+                settings.tagline ||
+                'مجموعه‌ای متنوع از پوشاک باکیفیت برای استایل شخصی شما.'}
+            </p>
+            <Link
+              href={`/s/${storeSlug}/products`}
+              className="inline-flex items-center justify-center h-[52px] px-14 bg-zh-primary text-white text-[16px] font-medium rounded-full hover:opacity-90 transition-opacity"
+            >
+              خرید کنید
+            </Link>
+            <div className="flex flex-wrap items-stretch gap-4 lg:gap-8 pt-2">
+              {[
+                { value: `${Math.max(categories.length, 1).toLocaleString('fa-IR')}+`, label: 'دسته‌بندی' },
+                {
+                  value: `${Math.max(featured.length, 1).toLocaleString('fa-IR')}+`,
+                  label: 'محصول باکیفیت',
+                },
+                { value: '۳۰٬۰۰۰+', label: 'مشتری راضی' },
+              ].map((stat, i) => (
+                <div key={stat.label} className="flex items-stretch gap-4 lg:gap-8">
+                  {i > 0 ? (
+                    <span className="hidden sm:block w-px self-stretch bg-zh-200" aria-hidden="true" />
+                  ) : null}
+                  <div className="text-right">
+                    <p className="text-[24px] lg:text-[40px] font-bold text-zh-ink tnum leading-none">
+                      {stat.value}
+                    </p>
+                    <p className="mt-1 text-[12px] lg:text-[16px] text-zh-600">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative order-1 lg:order-2 min-h-[280px] sm:min-h-[360px] lg:min-h-[560px]">
+            {current?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={current.imageUrl}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover object-top"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-zh-100" />
+            )}
+            <span
+              className="absolute top-[8%] start-[8%] size-12 lg:size-16 text-zh-ink opacity-90"
+              aria-hidden="true"
+            >
+              <FreebieStar />
+            </span>
+            <span
+              className="absolute bottom-[18%] end-[10%] size-7 lg:size-10 text-zh-ink opacity-90"
+              aria-hidden="true"
+            >
+              <FreebieStar />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Brand / category strip */}
+      <div className="bg-zh-primary text-white">
+        <div className="dk-container flex flex-wrap items-center justify-center gap-x-10 gap-y-4 py-5 lg:py-7">
+          {brandLabels.map((label) => (
+            <span
+              key={label}
+              className="text-[14px] lg:text-[22px] font-bold uppercase tracking-wide opacity-95"
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* New arrivals */}
+      {newArrivals.length > 0 && (
+        <section className="dk-container py-12 lg:py-16">
+          <h2 className="text-center text-[32px] lg:text-[48px] font-bold uppercase text-zh-ink mb-8 lg:mb-12">
+            تازه‌ها
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
+            {newArrivals.map((p) => (
+              <ProductCard key={p.id} storeSlug={storeSlug} product={p} />
+            ))}
+          </div>
+          <div className="mt-8 lg:mt-10 flex justify-center">
+            <Link
+              href={`/s/${storeSlug}/products`}
+              className="inline-flex h-[46px] lg:h-[52px] items-center justify-center px-14 rounded-full border border-zh-ink/10 text-[14px] lg:text-[16px] text-zh-ink hover:bg-zh-50 transition-colors"
+            >
+              مشاهده همه
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {newArrivals.length > 0 && topList.length > 0 ? (
+        <div className="dk-container">
+          <hr className="border-zh-100" />
+        </div>
+      ) : null}
+
+      {/* Top selling */}
+      {topList.length > 0 && (
+        <section className="dk-container py-12 lg:py-16">
+          <h2 className="text-center text-[32px] lg:text-[48px] font-bold uppercase text-zh-ink mb-8 lg:mb-12">
+            پرفروش‌ها
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
+            {topList.map((p) => (
+              <ProductCard key={`top-${p.id}`} storeSlug={storeSlug} product={p} />
+            ))}
+          </div>
+          <div className="mt-8 lg:mt-10 flex justify-center">
+            <Link
+              href={`/s/${storeSlug}/products`}
+              className="inline-flex h-[46px] lg:h-[52px] items-center justify-center px-14 rounded-full border border-zh-ink/10 text-[14px] lg:text-[16px] text-zh-ink hover:bg-zh-50 transition-colors"
+            >
+              مشاهده همه
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Browse by style — categories */}
+      {styleCats.length > 0 && (
+        <section className="dk-container pb-12 lg:pb-16">
+          <div
+            className="bg-zh-100 px-6 py-10 lg:px-16 lg:py-16"
+            style={{ borderRadius: '40px' }}
+          >
+            <h2 className="text-center text-[32px] lg:text-[48px] font-bold uppercase text-zh-ink mb-8 lg:mb-12">
+              مرور بر اساس استایل
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-5">
+              {styleCats.map((c, i) => {
+                const wide = i === 1 || i === 2;
+                return (
+                  <Link
+                    key={c.id}
+                    href={`/s/${storeSlug}/products?category=${c.slug}`}
+                    className={`group relative overflow-hidden bg-zh-surface min-h-[190px] lg:min-h-[289px] ${
+                      wide ? 'sm:col-span-1 lg:min-h-[289px]' : ''
+                    }`}
+                    style={{ borderRadius: 'var(--zh-radius)' }}
+                  >
+                    {c.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={c.imageUrl}
+                        alt=""
+                        className="absolute inset-0 h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-zh-200" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 to-transparent" />
+                    <span className="absolute top-5 start-6 lg:top-7 lg:start-9 text-[24px] lg:text-[36px] font-bold text-zh-ink drop-shadow-sm">
+                      {c.name}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {featured.length === 0 && categories.length === 0 && (
+        <p className="dk-container py-20 text-center text-zh-600 text-[14px]">
+          هنوز محصول یا دسته‌ای برای نمایش نیست.
+        </p>
+      )}
+    </>
+  );
+}
+
+function FreebieStar() {
+  return (
+    <svg viewBox="0 0 56 56" fill="currentColor" className="size-full" aria-hidden="true">
+      <path d="M28 0L34.2 21.8L56 28L34.2 34.2L28 56L21.8 34.2L0 28L21.8 21.8L28 0Z" />
+    </svg>
   );
 }
 

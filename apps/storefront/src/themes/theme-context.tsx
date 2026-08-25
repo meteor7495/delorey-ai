@@ -41,6 +41,8 @@ export function listingGridClass(theme: string) {
       return 'grid grid-cols-2 xl:grid-cols-3 gap-6';
     case 'rivo':
       return 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6';
+    case 'freebie':
+      return 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-8';
     default:
       return 'grid grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6';
   }
@@ -72,6 +74,8 @@ export function pageTitleClass(theme: string) {
       return 'text-[24px] lg:text-[32px] font-bold text-zh-ink';
     case 'rivo':
       return 'text-[32px] lg:text-[50px] font-medium text-zh-ink';
+    case 'freebie':
+      return 'text-[32px] lg:text-[48px] font-bold uppercase tracking-tight text-zh-ink';
     default:
       return 'text-[20px] lg:text-[24px] text-zh-ink';
   }

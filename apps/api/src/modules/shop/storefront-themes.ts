@@ -13,6 +13,7 @@ export const STOREFRONT_THEME_IDS = [
   'noir',
   'exclusive',
   'rivo',
+  'freebie',
 ] as const;
 
 export type StorefrontThemeId = (typeof STOREFRONT_THEME_IDS)[number];
@@ -191,6 +192,26 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     styles: ['modern', 'elegant', 'minimal', 'colorful'],
     audiences: ['young_trend', 'premium', 'general'],
     priorities: ['visual_branding', 'products', 'premium_experience'],
+    recommendationWeight: 4,
+  },
+  {
+    id: 'freebie',
+    name: 'فری‌بی',
+    description:
+      'پوشاک مینیمال — قهرمان روشن، کارت‌های گرد، بنر برند و مرور استایل',
+    layout: 'editorial',
+    category: 'fashion',
+    tags: ['مد', 'پوشاک', 'مینیمال', 'FreeBie', 'Clothes'],
+    previewImage: '/theme-previews/freebie.svg',
+    mobilePreviewImage: '/theme-previews/freebie-mobile.svg',
+    capabilities: { desktop: true, mobile: true },
+    sortOrder: 7,
+    defaults: { primaryColor: '#000000', secondaryColor: '#000000' },
+    swatches: { bg: '#ffffff', fg: '#000000', accent: '#f0f0f0' },
+    industries: ['fashion', 'beauty', 'sports'],
+    styles: ['modern', 'minimal', 'bold', 'elegant'],
+    audiences: ['young_trend', 'general', 'premium'],
+    priorities: ['visual_branding', 'products', 'categories', 'fast_shopping'],
     recommendationWeight: 4,
   },
 ];
