@@ -17,6 +17,7 @@ import {
   IsIn,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Min,
@@ -303,6 +304,57 @@ class RejectOrderDto {
   reason!: string;
 }
 
+class ThemeRecommendDto {
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  industries?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  styles?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  audiences?: string[];
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  priorities?: string[];
+
+  @IsOptional()
+  @IsString()
+  brandingLevel?: string | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  limit?: number;
+}
+
+class ThemeRecommendationEventDto {
+  @IsIn([
+    'theme_recommendation_started',
+    'theme_question_answered',
+    'theme_recommendation_previewed',
+    'theme_recommendation_selected',
+    'theme_gallery_opened_from_recommendation',
+  ])
+  name!:
+    | 'theme_recommendation_started'
+    | 'theme_question_answered'
+    | 'theme_recommendation_previewed'
+    | 'theme_recommendation_selected'
+    | 'theme_gallery_opened_from_recommendation';
+
+  @IsOptional()
+  @IsObject()
+  payload?: Record<string, unknown>;
+}
+
 @Controller('shop')
 @UseGuards(SessionAuthGuard)
 @UseFilters(CommerceRuleFilter)
@@ -326,6 +378,31 @@ export class ShopCmsController {
   @Get('themes')
   themes() {
     return this.shop.listThemes();
+  }
+
+  @Get('themes/recommendation-hints')
+  themeRecommendationHints(@CurrentAuth() auth: AuthContext) {
+    return this.shop.getThemeRecommendationHints(auth.tenantId);
+  }
+
+  @Post('themes/recommend')
+  recommendThemes(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: ThemeRecommendDto,
+  ) {
+    return this.shop.recommendThemes(auth.tenantId, dto);
+  }
+
+  @Post('themes/recommendation-events')
+  themeRecommendationEvent(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: ThemeRecommendationEventDto,
+  ) {
+    return this.shop.trackThemeRecommendationEvent(
+      auth.tenantId,
+      dto.name,
+      dto.payload,
+    );
   }
 
   @Put('settings')

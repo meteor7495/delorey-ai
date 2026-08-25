@@ -11,6 +11,11 @@ export type ShopTheme = {
   sortOrder: number;
   defaults: { primaryColor: string; secondaryColor: string };
   swatches: { bg: string; fg: string; accent: string };
+  industries?: string[];
+  styles?: string[];
+  audiences?: string[];
+  priorities?: string[];
+  recommendationWeight?: number;
 };
 
 export type ThemeCategoryFilter = ShopTheme['category'] | 'all';

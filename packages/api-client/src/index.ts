@@ -1063,8 +1063,90 @@ export function createApiClient(opts: ApiClientOptions) {
           sortOrder: number;
           defaults: { primaryColor: string; secondaryColor: string };
           swatches: { bg: string; fg: string; accent: string };
+          industries: string[];
+          styles: string[];
+          audiences: string[];
+          priorities: string[];
+          recommendationWeight: number;
         }>
       >(opts, '/shop/themes'),
+    getThemeRecommendationHints: () =>
+      request<{
+        knownIndustries: string[];
+        knownIndustryLabels: string[];
+        skipIndustryQuestion: boolean;
+      }>(opts, '/shop/themes/recommendation-hints'),
+    recommendShopThemes: (body: {
+      industries?: string[];
+      styles?: string[];
+      audiences?: string[];
+      priorities?: string[];
+      brandingLevel?: string | null;
+      limit?: number;
+    }) =>
+      request<{
+        preferences: {
+          industries: string[];
+          styles: string[];
+          audiences: string[];
+          priorities: string[];
+          brandingLevel?: string;
+        };
+        recommendations: Array<{
+          theme: {
+            id: string;
+            name: string;
+            description: string;
+            layout: string;
+            category: string;
+            tags: string[];
+            previewImage: string;
+            mobilePreviewImage?: string;
+            capabilities: { desktop: boolean; mobile: boolean };
+            sortOrder: number;
+            defaults: { primaryColor: string; secondaryColor: string };
+            swatches: { bg: string; fg: string; accent: string };
+            industries: string[];
+            styles: string[];
+            audiences: string[];
+            priorities: string[];
+            recommendationWeight: number;
+          };
+          score: number;
+          matchLabel: string;
+          reasons: string[];
+          matched: {
+            industries: string[];
+            styles: string[];
+            audiences: string[];
+            priorities: string[];
+          };
+          breakdown: {
+            industry: number;
+            style: number;
+            audience: number;
+            priority: number;
+            popularity: number;
+            total: number;
+          };
+        }>;
+      }>(opts, '/shop/themes/recommend', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    trackThemeRecommendationEvent: (body: {
+      name:
+        | 'theme_recommendation_started'
+        | 'theme_question_answered'
+        | 'theme_recommendation_previewed'
+        | 'theme_recommendation_selected'
+        | 'theme_gallery_opened_from_recommendation';
+      payload?: Record<string, unknown>;
+    }) =>
+      request<{ ok: true }>(opts, '/shop/themes/recommendation-events', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
     updateShopSettings: (body: Record<string, unknown>) =>
       request<Record<string, unknown>>(opts, '/shop/settings', {
         method: 'PUT',

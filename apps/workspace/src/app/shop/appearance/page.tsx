@@ -8,7 +8,7 @@ import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { FormDialog } from '@/components/shared/form-dialog';
 import { ImageField } from '@/components/shop/image-field';
-import { ThemeGallery } from '@/components/shop/themes/theme-gallery';
+import { ThemeRecommendFlow } from '@/components/shop/themes/theme-recommend/theme-recommend-flow';
 import type { ShopTheme } from '@/components/shop/themes/theme-gallery.utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -138,7 +138,7 @@ export default function ShopAppearancePage() {
       <div className="space-y-6">
         <PageHeader
           title="ظاهر و بنر"
-          description="تم ویترین را ببینید، پیش‌نمایش بگیرید و انتخاب کنید — محصولات، سفارش‌ها و بنرها سر جایشان می‌مانند"
+          description="با چند سؤال کوتاه، تم مناسب فروشگاهتان را پیدا کنید — محصولات و سفارش‌ها سر جایشان می‌مانند"
           actions={
             <Button onClick={openBannerCreate}>
               <Plus className="ms-1 h-4 w-4" />
@@ -149,12 +149,13 @@ export default function ShopAppearancePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>گالری تم‌ها</CardTitle>
+            <CardTitle>انتخاب ظاهر فروشگاه</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[var(--text-3)]">
-              هر تم فقط ظاهر ویترین را عوض می‌کند. پیش‌نمایش زنده با داده‌های واقعی
-              فروشگاه شما نمایش داده می‌شود.
+              چند سؤال کوتاه می‌پرسیم تا تم مناسب را پیشنهاد دهیم. پیش‌نمایش زنده با
+              داده‌های واقعی فروشگاه شما باز می‌شود و می‌توانید هر زمان همه تم‌ها را
+              ببینید.
             </p>
             {loadingThemes ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -167,7 +168,7 @@ export default function ShopAppearancePage() {
                 ))}
               </div>
             ) : (
-              <ThemeGallery
+              <ThemeRecommendFlow
                 themes={themes}
                 activeThemeId={themeId}
                 savingThemeId={savingThemeId}

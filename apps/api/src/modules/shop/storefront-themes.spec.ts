@@ -32,6 +32,12 @@ describe('storefront themes', () => {
       expect(theme.tags.length).toBeGreaterThan(0);
       expect(theme.capabilities.desktop).toBe(true);
       expect(theme.capabilities.mobile).toBe(true);
+      expect(theme.industries.length).toBeGreaterThan(0);
+      expect(theme.styles.length).toBeGreaterThan(0);
+      expect(theme.audiences.length).toBeGreaterThan(0);
+      expect(theme.priorities.length).toBeGreaterThan(0);
+      expect(theme.recommendationWeight).toBeGreaterThanOrEqual(0);
+      expect(theme.recommendationWeight).toBeLessThanOrEqual(5);
     }
   });
 

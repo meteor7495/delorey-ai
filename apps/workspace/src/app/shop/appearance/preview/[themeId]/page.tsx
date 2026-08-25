@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { toastFromError } from '@/lib/notify';
 import { api } from '@/shared/api';
 import { ThemePreview } from '@/components/shop/themes/theme-preview';
 import type { ShopTheme } from '@/components/shop/themes/theme-gallery.utils';
 
-export default function ThemePreviewPage() {
+function ThemePreviewPageInner() {
   const params = useParams<{ themeId: string }>();
   const router = useRouter();
   const [themes, setThemes] = useState<ShopTheme[]>([]);
@@ -55,5 +55,19 @@ export default function ThemePreviewPage() {
       storefrontUrl={storefrontUrl}
       activeThemeId={activeThemeId}
     />
+  );
+}
+
+export default function ThemePreviewPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center text-sm text-[var(--text-3)]">
+          در حال بارگذاری پیش‌نمایش…
+        </div>
+      }
+    >
+      <ThemePreviewPageInner />
+    </Suspense>
   );
 }

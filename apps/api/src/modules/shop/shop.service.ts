@@ -38,6 +38,12 @@ import {
   isStorefrontThemeId,
   STOREFRONT_THEMES,
 } from './storefront-themes';
+import {
+  industryLabelFa,
+  inferIndustriesFromCategoryNames,
+  normalizeThemePreferences,
+  recommendThemes,
+} from './domain/theme-recommendation';
 
 function mapProduct(row: {
   id: string;
@@ -223,6 +229,76 @@ export class ShopService {
 
   async listThemes() {
     return STOREFRONT_THEMES;
+  }
+
+  async getThemeRecommendationHints(tenantId: string) {
+    const categories = await this.listCategories(tenantId);
+    const knownIndustries = inferIndustriesFromCategoryNames(
+      categories.map((c) => c.name),
+    );
+    return {
+      knownIndustries,
+      knownIndustryLabels: knownIndustries.map(industryLabelFa),
+      skipIndustryQuestion: knownIndustries.length > 0,
+    };
+  }
+
+  async recommendThemes(
+    tenantId: string,
+    input: {
+      industries?: string[];
+      styles?: string[];
+      audiences?: string[];
+      priorities?: string[];
+      brandingLevel?: string | null;
+      limit?: number;
+    },
+  ) {
+    const preferences = normalizeThemePreferences(input);
+    const limit =
+      input.limit && Number.isInteger(input.limit) && input.limit > 0
+        ? Math.min(input.limit, STOREFRONT_THEMES.length)
+        : 3;
+    const recommendations = recommendThemes(STOREFRONT_THEMES, preferences, {
+      limit,
+    }).map((row) => ({
+      theme: row.theme,
+      score: row.score,
+      matchLabel: row.matchLabel,
+      reasons: row.reasons,
+      matched: row.matched,
+      breakdown: row.breakdown,
+    }));
+
+    await this.events.track({
+      tenantId,
+      name: 'theme_recommendation_completed',
+      payload: {
+        preferences,
+        themeIds: recommendations.map((r) => r.theme.id),
+        scores: recommendations.map((r) => r.score),
+      },
+    });
+
+    return { preferences, recommendations };
+  }
+
+  async trackThemeRecommendationEvent(
+    tenantId: string,
+    name:
+      | 'theme_recommendation_started'
+      | 'theme_question_answered'
+      | 'theme_recommendation_previewed'
+      | 'theme_recommendation_selected'
+      | 'theme_gallery_opened_from_recommendation',
+    payload?: Record<string, unknown>,
+  ) {
+    await this.events.track({
+      tenantId,
+      name,
+      payload: payload ?? {},
+    });
+    return { ok: true as const };
   }
 
   async getSettings(tenantId: string) {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowRight, Loader2, Monitor, Smartphone, X } from 'lucide-react';
 import { toastFromError, toastSuccess } from '@/lib/notify';
 import { api } from '@/shared/api';
@@ -28,6 +28,8 @@ export function ThemePreview({
   activeThemeId,
 }: ThemePreviewProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromRecommend = searchParams.get('from') === 'recommend';
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [device, setDevice] = useState<PreviewDevice>('desktop');
   const [iframeLoading, setIframeLoading] = useState(true);
@@ -60,6 +62,14 @@ export function ThemePreview({
         primaryColor: theme.defaults.primaryColor,
         secondaryColor: theme.defaults.secondaryColor,
       });
+      if (fromRecommend) {
+        api
+          .trackThemeRecommendationEvent({
+            name: 'theme_recommendation_selected',
+            payload: { themeId: theme.id, source: 'preview' },
+          })
+          .catch(() => undefined);
+      }
       toastSuccess('تم انتخاب و ذخیره شد');
       router.push('/shop/appearance');
     } catch (err) {
@@ -181,7 +191,7 @@ export function ThemePreview({
         پیش‌نمایش زنده با داده‌های فروشگاه شما — خرید و ثبت سفارش در این حالت
         غیرفعال است.{' '}
         <Link href="/shop/appearance" className="text-[var(--brand-500)]">
-          بازگشت به گالری
+          بازگشت به ظاهر فروشگاه
         </Link>
       </footer>
     </div>

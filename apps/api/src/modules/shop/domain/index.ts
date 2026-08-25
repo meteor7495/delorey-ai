@@ -16,4 +16,5 @@ export * from './payment';
 export * from './pricing';
 export * from './rule-engine';
 export * from './sku';
+export * from './theme-recommendation';
 export * from './variant-combinations';

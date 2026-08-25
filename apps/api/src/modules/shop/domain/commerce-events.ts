@@ -8,6 +8,12 @@ export const ANALYTICS_EVENTS = [
   'order_rejected',
   'order_shipped',
   'order_delivered',
+  'theme_recommendation_started',
+  'theme_question_answered',
+  'theme_recommendation_completed',
+  'theme_recommendation_previewed',
+  'theme_recommendation_selected',
+  'theme_gallery_opened_from_recommendation',
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];

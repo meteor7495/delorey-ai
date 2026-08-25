@@ -1,3 +1,10 @@
+import type {
+  ThemeAudience,
+  ThemeIndustry,
+  ThemePriority,
+  ThemeStyle,
+} from './domain/theme-recommendation';
+
 export const STOREFRONT_THEME_IDS = [
   'zi-home',
   'regal',
@@ -43,6 +50,13 @@ export type StorefrontThemeMeta = {
   sortOrder: number;
   defaults: { primaryColor: string; secondaryColor: string };
   swatches: { bg: string; fg: string; accent: string };
+  /** Recommendation profile — used by the deterministic matcher. */
+  industries: ThemeIndustry[];
+  styles: ThemeStyle[];
+  audiences: ThemeAudience[];
+  priorities: ThemePriority[];
+  /** 0–5 popularity contribution toward the +5 scoring bucket. */
+  recommendationWeight: number;
 };
 
 export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
@@ -59,6 +73,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 0,
     defaults: { primaryColor: '#9b59b6', secondaryColor: '#292c2d' },
     swatches: { bg: '#ffffff', fg: '#292c2d', accent: '#9b59b6' },
+    industries: ['general', 'home', 'fashion'],
+    styles: ['modern', 'colorful', 'professional'],
+    audiences: ['general', 'families', 'young_trend'],
+    priorities: ['products', 'promotions', 'fast_shopping'],
+    recommendationWeight: 5,
   },
   {
     id: 'regal',
@@ -73,6 +92,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 1,
     defaults: { primaryColor: '#b0894d', secondaryColor: '#2c2118' },
     swatches: { bg: '#f7f3ee', fg: '#1c1410', accent: '#b0894d' },
+    industries: ['fashion', 'jewelry', 'beauty'],
+    styles: ['luxury', 'elegant', 'minimal'],
+    audiences: ['premium', 'young_trend', 'professionals'],
+    priorities: ['visual_branding', 'premium_experience', 'products'],
+    recommendationWeight: 4,
   },
   {
     id: 'customme',
@@ -87,6 +111,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 2,
     defaults: { primaryColor: '#1aa6a0', secondaryColor: '#1a1a2e' },
     swatches: { bg: '#ffffff', fg: '#1a1a2e', accent: '#1aa6a0' },
+    industries: ['fashion', 'kids', 'beauty', 'general'],
+    styles: ['modern', 'bold', 'colorful'],
+    audiences: ['young_trend', 'families', 'general'],
+    priorities: ['visual_branding', 'products', 'promotions'],
+    recommendationWeight: 3,
   },
   {
     id: 'icenter',
@@ -101,6 +130,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 3,
     defaults: { primaryColor: '#f5c400', secondaryColor: '#0e1520' },
     swatches: { bg: '#0e1520', fg: '#e8edf5', accent: '#f5c400' },
+    industries: ['electronics', 'sports'],
+    styles: ['dark_premium', 'professional', 'modern', 'bold'],
+    audiences: ['professionals', 'young_trend', 'businesses'],
+    priorities: ['products', 'categories', 'fast_shopping'],
+    recommendationWeight: 3,
   },
   {
     id: 'noir',
@@ -115,6 +149,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 4,
     defaults: { primaryColor: '#c9a227', secondaryColor: '#050505' },
     swatches: { bg: '#050505', fg: '#f5f5f5', accent: '#c9a227' },
+    industries: ['fashion', 'jewelry', 'beauty'],
+    styles: ['minimal', 'dark_premium', 'elegant', 'luxury'],
+    audiences: ['premium', 'young_trend', 'professionals'],
+    priorities: ['visual_branding', 'premium_experience', 'products'],
+    recommendationWeight: 4,
   },
   {
     id: 'exclusive',
@@ -129,6 +168,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 5,
     defaults: { primaryColor: '#db4444', secondaryColor: '#000000' },
     swatches: { bg: '#ffffff', fg: '#000000', accent: '#db4444' },
+    industries: ['general', 'home', 'food', 'kids', 'sports'],
+    styles: ['bold', 'modern', 'colorful', 'professional'],
+    audiences: ['general', 'families', 'businesses'],
+    priorities: ['categories', 'promotions', 'fast_shopping', 'products'],
+    recommendationWeight: 4,
   },
   {
     id: 'rivo',
@@ -143,6 +187,11 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 6,
     defaults: { primaryColor: '#224f34', secondaryColor: '#224f34' },
     swatches: { bg: '#ffffff', fg: '#224f34', accent: '#c2efd4' },
+    industries: ['fashion', 'beauty', 'jewelry'],
+    styles: ['modern', 'elegant', 'minimal', 'colorful'],
+    audiences: ['young_trend', 'premium', 'general'],
+    priorities: ['visual_branding', 'products', 'premium_experience'],
+    recommendationWeight: 4,
   },
 ];
 
@@ -185,6 +234,8 @@ export function filterStorefrontThemes(
       theme.category,
       theme.layout,
       ...theme.tags,
+      ...theme.industries,
+      ...theme.styles,
     ]
       .join(' ')
       .toLowerCase();
