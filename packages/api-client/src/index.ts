@@ -1055,6 +1055,12 @@ export function createApiClient(opts: ApiClientOptions) {
           name: string;
           description: string;
           layout: string;
+          category: string;
+          tags: string[];
+          previewImage: string;
+          mobilePreviewImage?: string;
+          capabilities: { desktop: boolean; mobile: boolean };
+          sortOrder: number;
           defaults: { primaryColor: string; secondaryColor: string };
           swatches: { bg: string; fg: string; accent: string };
         }>

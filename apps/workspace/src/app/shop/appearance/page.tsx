@@ -8,6 +8,8 @@ import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
 import { FormDialog } from '@/components/shared/form-dialog';
 import { ImageField } from '@/components/shop/image-field';
+import { ThemeGallery } from '@/components/shop/themes/theme-gallery';
+import type { ShopTheme } from '@/components/shop/themes/theme-gallery.utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,17 +35,11 @@ export default function ShopAppearancePage() {
   const [primaryColor, setPrimaryColor] = useState('#ef4056');
   const [secondaryColor, setSecondaryColor] = useState('#0c0c0c');
   const [themeId, setThemeId] = useState('zi-home');
-  const [themes, setThemes] = useState<
-    Array<{
-      id: string;
-      name: string;
-      description: string;
-      defaults: { primaryColor: string; secondaryColor: string };
-      swatches: { bg: string; fg: string; accent: string };
-    }>
-  >([]);
+  const [themes, setThemes] = useState<ShopTheme[]>([]);
   const [logoUrl, setLogoUrl] = useState('');
   const [bannerDialogOpen, setBannerDialogOpen] = useState(false);
+  const [savingThemeId, setSavingThemeId] = useState<string | null>(null);
+  const [loadingThemes, setLoadingThemes] = useState(true);
 
   async function refresh() {
     const [b, s, packs] = await Promise.all([
@@ -53,11 +49,12 @@ export default function ShopAppearancePage() {
     ]);
     setBanners(b as unknown as Banner[]);
     setSettings(s);
-    setThemes(packs);
+    setThemes(packs as ShopTheme[]);
     setPrimaryColor(String(s.primaryColor ?? '#ef4056'));
     setSecondaryColor(String(s.secondaryColor ?? '#0c0c0c'));
     setThemeId(String(s.themeId ?? 'zi-home'));
     setLogoUrl(String(s.logoUrl ?? ''));
+    setLoadingThemes(false);
   }
 
   useEffect(() => {
@@ -97,6 +94,27 @@ export default function ShopAppearancePage() {
     }
   }
 
+  async function selectTheme(theme: ShopTheme) {
+    setThemeId(theme.id);
+    setPrimaryColor(theme.defaults.primaryColor);
+    setSecondaryColor(theme.defaults.secondaryColor);
+    setSavingThemeId(theme.id);
+    try {
+      await api.updateShopSettings({
+        themeId: theme.id,
+        primaryColor: theme.defaults.primaryColor,
+        secondaryColor: theme.defaults.secondaryColor,
+        logoUrl: logoUrl || null,
+      });
+      toastSuccess(`تم «${theme.name}» انتخاب شد`);
+      await refresh();
+    } catch (err) {
+      toastFromError(err, 'انتخاب تم ناموفق بود');
+    } finally {
+      setSavingThemeId(null);
+    }
+  }
+
   async function addBanner(e: FormEvent) {
     e.preventDefault();
     try {
@@ -120,7 +138,7 @@ export default function ShopAppearancePage() {
       <div className="space-y-6">
         <PageHeader
           title="ظاهر و بنر"
-          description="تم ویترین را عوض کنید — محصولات، سفارش‌ها و بنرها سر جایشان می‌مانند"
+          description="تم ویترین را ببینید، پیش‌نمایش بگیرید و انتخاب کنید — محصولات، سفارش‌ها و بنرها سر جایشان می‌مانند"
           actions={
             <Button onClick={openBannerCreate}>
               <Plus className="ms-1 h-4 w-4" />
@@ -131,59 +149,38 @@ export default function ShopAppearancePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>تم فروشگاه</CardTitle>
+            <CardTitle>گالری تم‌ها</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-[var(--text-3)]">
-              هر تم فقط ظاهر ویترین را عوض می‌کند. کاتالوگ و سفارش‌ها دست نمی‌خورند.
+              هر تم فقط ظاهر ویترین را عوض می‌کند. پیش‌نمایش زنده با داده‌های واقعی
+              فروشگاه شما نمایش داده می‌شود.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {themes.map((pack) => {
-                const selected = themeId === pack.id;
-                return (
-                  <button
-                    key={pack.id}
-                    type="button"
-                    onClick={() => {
-                      setThemeId(pack.id);
-                      setPrimaryColor(pack.defaults.primaryColor);
-                      setSecondaryColor(pack.defaults.secondaryColor);
-                    }}
-                    className={`rounded-xl border p-3 text-start transition ${
-                      selected
-                        ? 'border-[var(--brand-500)] ring-2 ring-[var(--brand-500)]/30'
-                        : 'border-[var(--line-1,#e5e7eb)] hover:border-[var(--brand-400)]'
-                    }`}
-                  >
-                    <div
-                      className="mb-3 h-16 overflow-hidden rounded-lg border"
-                      style={{
-                        background: pack.swatches.bg,
-                        borderColor: pack.swatches.fg,
-                      }}
-                    >
-                      <div className="flex h-full">
-                        <div
-                          className="w-1/3"
-                          style={{ background: pack.swatches.accent }}
-                        />
-                        <div
-                          className="w-2/3 p-2 text-[10px] font-semibold"
-                          style={{ color: pack.swatches.fg }}
-                        >
-                          {pack.name}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="font-semibold">{pack.name}</div>
-                    <div className="mt-1 text-xs text-[var(--text-3)]">
-                      {pack.description}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <form onSubmit={saveColors} className="grid gap-3 sm:grid-cols-2">
+            {loadingThemes ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-64 animate-pulse rounded-xl bg-[var(--surface-2)]"
+                    aria-hidden
+                  />
+                ))}
+              </div>
+            ) : (
+              <ThemeGallery
+                themes={themes}
+                activeThemeId={themeId}
+                savingThemeId={savingThemeId}
+                onSelectTheme={selectTheme}
+              />
+            )}
+            <form onSubmit={saveColors} className="grid gap-3 border-t pt-4 sm:grid-cols-2">
+              <div className="space-y-1.5 sm:col-span-2">
+                <p className="text-sm font-medium">سفارشی‌سازی رنگ و لوگو</p>
+                <p className="text-xs text-[var(--text-3)]">
+                  پس از انتخاب تم می‌توانید رنگ‌ها و لوگو را تنظیم کنید.
+                </p>
+              </div>
               <div className="space-y-1.5">
                 <Label>رنگ اصلی</Label>
                 <Input

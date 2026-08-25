@@ -6,6 +6,7 @@ import { StoreShell } from '@/components/StoreShell';
 import { api, formatIrr, getCartSessionId } from '@/lib/api';
 import { useStorefrontChrome } from '@/lib/use-storefront';
 import { pageTitleClass, pdpLayout, useStoreTheme } from '@/themes/theme-context';
+import { readPersistedPreview } from '@/lib/preview-mode';
 
 type VariantOption = {
   attributeId: string;
@@ -133,6 +134,10 @@ export default function ProductDetailPage({
     if (!product) return;
     setError(null);
     setMessage(null);
+    if (readPersistedPreview()?.active) {
+      setError('در حالت پیش‌نمایش افزودن به سبد غیرفعال است');
+      return;
+    }
     if (needsVariant && !selectedVariant) {
       setError('لطفاً همه گزینه‌ها را انتخاب کنید');
       return;

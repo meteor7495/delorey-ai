@@ -7,6 +7,7 @@ import { StoreShell } from '@/components/StoreShell';
 import { api, getCartSessionId, setCartSessionId } from '@/lib/api';
 import { useStoreSlug, useStorefrontChrome } from '@/lib/use-storefront';
 import { pageTitleClass, useStoreTheme } from '@/themes/theme-context';
+import { readPersistedPreview } from '@/lib/preview-mode';
 
 const fieldClass =
   'mt-1 w-full h-11 border border-zh-300 px-3 text-[14px] bg-zh-surface outline-none focus:border-zh-primary';
@@ -121,6 +122,10 @@ function CheckoutInner({ storeSlug }: { storeSlug: string }) {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (readPersistedPreview()?.active) {
+      setError('در حالت پیش‌نمایش ثبت سفارش غیرفعال است');
+      return;
+    }
     setBusy(true);
     setError(null);
     try {

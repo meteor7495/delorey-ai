@@ -6,6 +6,7 @@ import { StoreShell } from '@/components/StoreShell';
 import { api, getCartSessionId } from '@/lib/api';
 import { useStoreSlug, useStorefrontChrome } from '@/lib/use-storefront';
 import { pageTitleClass, useStoreTheme } from '@/themes/theme-context';
+import { readPersistedPreview } from '@/lib/preview-mode';
 
 type Cart = {
   items: Array<{
@@ -56,6 +57,10 @@ export default function CartPage({
     quantity: number,
     variantId?: string | null,
   ) {
+    if (readPersistedPreview()?.active) {
+      setError('در حالت پیش‌نمایش تغییر سبد غیرفعال است');
+      return;
+    }
     try {
       const c = await api.storefrontSetCartItem(storeSlug, {
         sessionId: getCartSessionId(storeSlug),
