@@ -86,6 +86,45 @@ export function ProductCard({
     );
   }
 
+  if (theme === 'rivo') {
+    return (
+      <Link href={href} className={`group block ${compact ? 'min-w-[220px]' : ''}`}>
+        <div
+          className="aspect-[3/4] bg-zh-primarySoft overflow-hidden"
+          style={{ borderRadius: 'var(--zh-radius)' }}
+        >
+          {img ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={img}
+              alt=""
+              className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+            />
+          ) : (
+            <div className="h-full grid place-items-center text-zh-600 text-[12px]">
+              بدون تصویر
+            </div>
+          )}
+        </div>
+        <div className="mt-4 text-right space-y-1">
+          <h3 className="text-[16px] lg:text-[18px] font-medium text-zh-ink line-clamp-1">
+            {product.title}
+          </h3>
+          <div className="flex items-center gap-3 text-[16px]">
+            <span className="text-zh-ink tnum">
+              {product.price.toLocaleString('fa-IR')} تومان
+            </span>
+            <span className="w-px h-[27px] bg-zh-300" aria-hidden="true" />
+            <span className="flex items-center gap-1 text-zh-600">
+              <span className="tnum">۴.۸</span>
+              <span className="text-zh-primary" aria-hidden="true">★</span>
+            </span>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   if (theme === 'customme') {
     return (
       <Link

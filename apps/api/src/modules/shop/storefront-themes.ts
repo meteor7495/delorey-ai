@@ -5,6 +5,7 @@ export const STOREFRONT_THEME_IDS = [
   'icenter',
   'noir',
   'exclusive',
+  'rivo',
 ] as const;
 
 export type StorefrontThemeId = (typeof STOREFRONT_THEME_IDS)[number];
@@ -128,6 +129,20 @@ export const STOREFRONT_THEMES: StorefrontThemeMeta[] = [
     sortOrder: 5,
     defaults: { primaryColor: '#db4444', secondaryColor: '#000000' },
     swatches: { bg: '#ffffff', fg: '#000000', accent: '#db4444' },
+  },
+  {
+    id: 'rivo',
+    name: 'ریوو',
+    description: 'فشن سبز — قهرمان دوبخشی، کارت‌های پرتره و پیشنهاد اختصاصی',
+    layout: 'editorial',
+    category: 'fashion',
+    tags: ['مد', 'فشن', 'سبز', 'مجله‌ای'],
+    previewImage: '/theme-previews/rivo.svg',
+    mobilePreviewImage: '/theme-previews/rivo-mobile.svg',
+    capabilities: { desktop: true, mobile: true },
+    sortOrder: 6,
+    defaults: { primaryColor: '#224f34', secondaryColor: '#224f34' },
+    swatches: { bg: '#ffffff', fg: '#224f34', accent: '#c2efd4' },
   },
 ];
 

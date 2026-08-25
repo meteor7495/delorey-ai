@@ -83,6 +83,7 @@ export const PREVIEW_THEME_DEFAULTS: Record<
   icenter: { primaryColor: '#f5c400', secondaryColor: '#0e1520' },
   noir: { primaryColor: '#c9a227', secondaryColor: '#050505' },
   exclusive: { primaryColor: '#db4444', secondaryColor: '#000000' },
+  rivo: { primaryColor: '#224f34', secondaryColor: '#224f34' },
 };
 
 export function isKnownPreviewTheme(

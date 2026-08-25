@@ -4,4 +4,5 @@ export type StorefrontThemeId =
   | 'customme'
   | 'icenter'
   | 'noir'
-  | 'exclusive';
+  | 'exclusive'
+  | 'rivo';

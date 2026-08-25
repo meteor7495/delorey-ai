@@ -7,7 +7,7 @@ import {
 } from './storefront-themes';
 
 describe('storefront themes', () => {
-  it('keeps six named packs including the current classic look', () => {
+  it('keeps seven named packs including the current classic look', () => {
     expect(STOREFRONT_THEMES.map((t) => t.id)).toEqual([
       'zi-home',
       'regal',
@@ -15,6 +15,7 @@ describe('storefront themes', () => {
       'icenter',
       'noir',
       'exclusive',
+      'rivo',
     ]);
   });
 
@@ -34,11 +35,20 @@ describe('storefront themes', () => {
     }
   });
 
+  it('registers the rivo fashion theme with preview assets', () => {
+    const rivo = STOREFRONT_THEMES.find((t) => t.id === 'rivo');
+    expect(rivo).toBeDefined();
+    expect(rivo?.category).toBe('fashion');
+    expect(rivo?.previewImage).toBe('/theme-previews/rivo.svg');
+    expect(rivo?.mobilePreviewImage).toBe('/theme-previews/rivo-mobile.svg');
+    expect(isStorefrontThemeId('rivo')).toBe(true);
+  });
+
   it('filters themes by search query and category', () => {
     const fashion = filterStorefrontThemes(STOREFRONT_THEMES, {
       category: 'fashion',
     });
-    expect(fashion.map((t) => t.id)).toEqual(['regal']);
+    expect(fashion.map((t) => t.id)).toEqual(['regal', 'rivo']);
 
     const tech = filterStorefrontThemes(STOREFRONT_THEMES, { query: 'تکنولوژی' });
     expect(tech.map((t) => t.id)).toEqual(['icenter']);

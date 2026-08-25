@@ -158,6 +158,20 @@ input {
   border-color: var(--zh-200);
   background: var(--zh-surface);
 }
+
+[data-store-theme='rivo'] .zh-btn-primary {
+  border-radius: var(--zh-radius);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  height: auto;
+  min-height: 52px;
+  padding: 12px 32px;
+  font-size: 15px;
+}
+
+[data-store-theme='rivo'] .zh-card {
+  border-radius: var(--zh-radius);
+}
 .zh-btn-primary:hover {
   background: var(--zh-primary-hover, #7d3c98);
 }

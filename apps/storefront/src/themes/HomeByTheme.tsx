@@ -66,10 +66,14 @@ export function HomeByTheme(props: HomeViewProps) {
         <NoirHome {...props} />
       ) : theme === 'exclusive' ? (
         <ExclusiveHome {...props} />
+      ) : theme === 'rivo' ? (
+        <RivoHome {...props} />
       ) : (
         <ClassicHome {...props} />
       )}
-      <ArticlesStrip storeSlug={props.storeSlug} articles={props.articles ?? []} />
+      {theme !== 'rivo' && (
+        <ArticlesStrip storeSlug={props.storeSlug} articles={props.articles ?? []} />
+      )}
     </>
   );
 }
@@ -366,6 +370,230 @@ function ExclusiveHome({
         countdown={countdown}
       />
       <ProductGrid storeSlug={storeSlug} title="محصولات" products={featured.slice(0, 8)} />
+    </>
+  );
+}
+
+function RivoHome({
+  storeSlug,
+  settings,
+  categories,
+  featured,
+  slides,
+  slide,
+  countdown,
+}: HomeViewProps) {
+  const current = slides[slide] ?? slides[0];
+  const bestSelling = featured.slice(0, 3);
+  const onSale = featured.filter(
+    (p) => p.compareAtPrice != null && p.compareAtPrice > p.price,
+  );
+  const offerProducts = onSale.length > 0 ? onSale : featured;
+
+  return (
+    <>
+      {/* Hero */}
+      <section className="dk-container pt-8 lg:pt-12 pb-12 lg:pb-16 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="text-right space-y-6 order-2 lg:order-1">
+          <h1 className="text-[36px] lg:text-[50px] leading-[1.15] font-medium text-zh-ink">
+            {current?.title || 'مد خود را کشف کنید!'}
+          </h1>
+          <p className="text-[16px] lg:text-[18px] text-zh-600 leading-8 max-w-lg ms-auto">
+            {current?.subtitle ||
+              settings.tagline ||
+              'مجموعه‌ای منتخب از پوشاک و اکسسوری متناسب با سلیقه شما.'}
+          </p>
+          <Link
+            href={`/s/${storeSlug}/products`}
+            className="inline-flex items-center justify-center h-[74px] px-10 bg-zh-primary text-white text-[15px] font-medium uppercase hover:opacity-90 transition-opacity"
+            style={{ borderRadius: 'var(--zh-radius)' }}
+          >
+            مشاهده فروشگاه
+          </Link>
+        </div>
+        <div
+          className="relative min-h-[320px] lg:min-h-[480px] bg-zh-primarySoft overflow-hidden order-1 lg:order-2"
+          style={{ borderRadius: 'var(--zh-radius)' }}
+        >
+          {current?.imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={current.imageUrl}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-zh-primarySoft" />
+          )}
+        </div>
+      </section>
+
+      {/* Best selling */}
+      {bestSelling.length > 0 && (
+        <section className="dk-container py-12 lg:py-16">
+          <div className="text-center mb-10 space-y-3">
+            <h2 className="text-[36px] lg:text-[50px] font-medium text-zh-ink">
+              پرفروش‌ترین‌ها
+            </h2>
+            <p className="text-[16px] text-zh-600 max-w-xl mx-auto">
+              محبوب‌ترین محصولات فروشگاه را از همین‌جا ببینید.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {bestSelling.map((p) => (
+              <ProductCard key={p.id} storeSlug={storeSlug} product={p} />
+            ))}
+          </div>
+          <div className="mt-10 flex justify-center">
+            <Link
+              href={`/s/${storeSlug}/products`}
+              className="inline-flex items-center gap-3 text-[16px] text-zh-ink hover:text-zh-primary"
+            >
+              مشاهده همه
+              <span aria-hidden="true">←</span>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* Our products with category tabs */}
+      <section className="dk-container py-12 lg:py-16">
+        <h2 className="text-center text-[36px] lg:text-[50px] font-medium text-zh-ink mb-8">
+          محصولات ما
+        </h2>
+        <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-10 mb-10 text-[16px]">
+          <Link
+            href={`/s/${storeSlug}/products`}
+            className="pb-1 border-b-2 border-zh-primary text-zh-primary font-medium"
+          >
+            همه
+          </Link>
+          {categories.slice(0, 4).map((c) => (
+            <Link
+              key={c.id}
+              href={`/s/${storeSlug}/products?category=${c.slug}`}
+              className="pb-1 border-b-2 border-transparent text-zh-600 hover:text-zh-ink hover:border-zh-300 transition-colors"
+            >
+              {c.name}
+            </Link>
+          ))}
+        </div>
+        {featured.length === 0 ? (
+          <p className="py-16 text-center text-zh-600 text-[14px]">
+            هنوز محصول منتشرشده‌ای نیست.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {featured.slice(0, 8).map((p) => (
+              <ProductCard key={p.id} storeSlug={storeSlug} product={p} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Exclusive offer banner */}
+      {offerProducts.length > 0 && (
+        <section className="dk-container py-12 lg:py-16">
+          <div
+            className="bg-zh-primarySoft grid lg:grid-cols-2 gap-8 items-center overflow-hidden p-6 lg:p-10"
+            style={{ borderRadius: 'var(--zh-radius)' }}
+          >
+            <div className="relative min-h-[280px] lg:min-h-[400px]">
+              {offerProducts[0]?.images?.[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={offerProducts[0].images[0]}
+                  alt=""
+                  className="h-full w-full object-cover object-top"
+                  style={{ borderRadius: 'var(--zh-radius)' }}
+                />
+              ) : (
+                <div className="h-full bg-zh-200" style={{ borderRadius: 'var(--zh-radius)' }} />
+              )}
+            </div>
+            <div className="text-right space-y-6 px-2 lg:px-6">
+              <h2 className="text-[32px] lg:text-[46px] font-bold text-zh-ink">
+                پیشنهاد ویژه
+              </h2>
+              <p className="text-[18px] lg:text-[22px] text-zh-ink leading-8">
+                از جدیدترین محصولات با تخفیف ویژه دیدن کنید.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { label: 'ساعت', value: countdown.h },
+                  { label: 'دقیقه', value: countdown.m },
+                  { label: 'ثانیه', value: countdown.s },
+                ].map((unit) => (
+                  <div
+                    key={unit.label}
+                    className="size-[80px] lg:size-[100px] bg-white shadow-[0_7px_30px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center"
+                    style={{ borderRadius: 'var(--zh-radius)' }}
+                  >
+                    <span className="text-[24px] lg:text-[32px] font-semibold text-zh-ink tnum">
+                      {String(unit.value).padStart(2, '0')}
+                    </span>
+                    <span className="text-[14px] text-zh-ink">{unit.label}</span>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={`/s/${storeSlug}/products`}
+                className="inline-flex items-center justify-center h-[74px] px-10 bg-zh-primary text-white text-[15px] font-medium uppercase hover:opacity-90"
+                style={{ borderRadius: 'var(--zh-radius)' }}
+              >
+                خرید کنید
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Category showcase */}
+      {categories.length > 0 && (
+        <section className="dk-container py-12 lg:py-16 mb-8">
+          <div className="text-center mb-10 space-y-3">
+            <h2 className="text-[36px] lg:text-[50px] font-medium text-zh-ink">
+              دسته‌بندی‌های منتخب
+            </h2>
+            <p className="text-[16px] text-zh-600 max-w-2xl mx-auto">
+              {settings.tagline || 'مجموعه‌ای متنوع از پوشاک و اکسسوری برای هر سلیقه.'}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {categories.slice(0, 3).map((c) => (
+              <Link
+                key={c.id}
+                href={`/s/${storeSlug}/products?category=${c.slug}`}
+                className="group block text-right"
+              >
+                <div
+                  className="aspect-[3/4] bg-zh-primarySoft overflow-hidden mb-4"
+                  style={{ borderRadius: 'var(--zh-radius)' }}
+                >
+                  {c.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.imageUrl}
+                      alt=""
+                      className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="h-full grid place-items-center text-zh-600 text-[14px]">
+                      {c.name}
+                    </div>
+                  )}
+                </div>
+                <h3 className="text-[24px] lg:text-[32px] font-medium text-zh-ink mb-2">
+                  {c.name}
+                </h3>
+                <p className="text-[15px] text-zh-600 leading-7">
+                  مشاهده محصولات این دسته
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
 }

@@ -83,6 +83,7 @@ export function ThemeHeader(props: ChromeProps) {
   if (theme === 'icenter') return <IcenterHeader {...props} />;
   if (theme === 'noir') return <NoirHeader {...props} />;
   if (theme === 'exclusive') return <ExclusiveHeader {...props} />;
+  if (theme === 'rivo') return <RivoHeader {...props} />;
   return <ClassicHeader {...props} />;
 }
 
@@ -312,6 +313,69 @@ function ExclusiveHeader({
   );
 }
 
+function RivoHeader({
+  settings,
+  base,
+  pathname,
+  categories,
+}: ChromeProps) {
+  return (
+    <header className="sticky top-0 z-50 bg-zh-surface">
+      <div className="dk-container py-4 lg:py-5 flex items-center gap-4 lg:gap-8">
+        <Logo settings={settings} base={base} />
+        <nav className="hidden lg:flex flex-1 items-center justify-center gap-8 text-[15px] text-zh-800">
+          <Link href={base} className="hover:text-zh-primary">
+            خانه
+          </Link>
+          <Link href={`${base}/products`} className="hover:text-zh-primary">
+            فروشگاه
+          </Link>
+          {categories.slice(0, 3).map((c) => (
+            <Link
+              key={c.id}
+              href={`${base}/products?category=${c.slug}`}
+              className="hover:text-zh-primary"
+            >
+              {c.name}
+            </Link>
+          ))}
+          <Link href={`${base}/track`} className="hover:text-zh-primary">
+            تماس
+          </Link>
+        </nav>
+        <div className="flex items-center gap-3 ms-auto shrink-0">
+          <Link
+            href={`${base}/cart`}
+            className={`relative flex size-8 items-center justify-center text-zh-ink hover:text-zh-primary ${
+              pathname.includes('/cart') || pathname.includes('/checkout')
+                ? 'text-zh-primary'
+                : ''
+            }`}
+            aria-label="سبد خرید"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path
+                d="M7 4V2M17 4V2M3.5 7h17l-1.5 12H5L3.5 7z"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+          <Link
+            href={`${base}/products`}
+            className="hidden sm:flex h-[52px] items-center px-6 border border-zh-primary text-[15px] text-zh-primary hover:bg-zh-primary hover:text-white transition-colors"
+            style={{ borderRadius: 'var(--zh-radius)' }}
+          >
+            مشاهده فروشگاه
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 function NavRow({
   base,
   categories,
@@ -380,6 +444,10 @@ export function ThemeFooter({
   base: string;
   categories: Category[];
 }) {
+  const theme = settings.themeId ?? 'zi-home';
+  if (theme === 'rivo') {
+    return <RivoFooter settings={settings} base={base} categories={categories} />;
+  }
   return (
     <footer className="hidden lg:block mt-auto bg-zh-50 relative">
       <button
@@ -430,6 +498,107 @@ export function ThemeFooter({
                 </li>
               </ul>
             </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function RivoFooter({
+  settings,
+  base,
+  categories,
+}: {
+  settings: StoreSettings;
+  base: string;
+  categories: Category[];
+}) {
+  return (
+    <footer className="hidden lg:block mt-auto bg-zh-primary text-white relative">
+      <div className="dk-container pt-16 pb-8">
+        <div className="grid grid-cols-4 gap-10">
+          <div className="space-y-5">
+            <p className="text-[32px] font-bold tracking-tight">
+              {settings.storeName}
+            </p>
+            <p className="text-[14px] text-zh-primarySoft leading-7 capitalize">
+              {settings.tagline || 'فروشگاه آنلاین مد و پوشاک'}
+            </p>
+          </div>
+          <div className="space-y-4 text-right">
+            <p className="text-[22px] font-medium uppercase">فروشگاه</p>
+            <ul className="space-y-3 text-[20px] text-zh-primarySoft capitalize">
+              <li>
+                <Link href={`${base}/products`} className="hover:text-white">
+                  محصولات
+                </Link>
+              </li>
+              {categories.slice(0, 3).map((c) => (
+                <li key={c.id}>
+                  <Link
+                    href={`${base}/products?category=${c.slug}`}
+                    className="hover:text-white"
+                  >
+                    {c.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="space-y-4 text-right">
+            <p className="text-[22px] font-medium uppercase">شرکت</p>
+            <ul className="space-y-3 text-[20px] text-zh-primarySoft capitalize">
+              <li>
+                <Link href={`${base}/articles`} className="hover:text-white">
+                  مجله
+                </Link>
+              </li>
+              <li>
+                <Link href={`${base}/track`} className="hover:text-white">
+                  تماس
+                </Link>
+              </li>
+              <li>
+                <Link href={`${base}/cart`} className="hover:text-white">
+                  سبد خرید
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div className="space-y-4">
+            <p className="text-[22px] font-medium uppercase">خبرنامه</p>
+            <form
+              className="flex border-2 border-zh-pink overflow-hidden"
+              style={{ borderRadius: 'var(--zh-radius)' }}
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <input
+                type="email"
+                placeholder="ایمیل خود را وارد کنید"
+                className="flex-1 h-[57px] px-4 bg-transparent text-white placeholder:text-white/70 outline-none text-[16px]"
+                aria-label="ایمیل خبرنامه"
+              />
+              <button
+                type="submit"
+                className="h-[57px] px-6 bg-zh-pink text-zh-primary font-medium text-[16px] uppercase shrink-0 hover:opacity-90"
+              >
+                ارسال
+              </button>
+            </form>
+          </div>
+        </div>
+        <div className="mt-12 pt-6 border-t border-white/20 flex items-center justify-between text-[14px]">
+          <p className="text-white/70">
+            © {new Date().getFullYear()} {settings.storeName}
+          </p>
+          <div className="flex gap-6">
+            <Link href={`${base}/track`} className="hover:text-zh-primarySoft">
+              حریم خصوصی
+            </Link>
+            <Link href={`${base}/track`} className="hover:text-zh-primarySoft">
+              شرایط استفاده
+            </Link>
           </div>
         </div>
       </div>

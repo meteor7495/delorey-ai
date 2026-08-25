@@ -149,6 +149,27 @@ export const THEME_TOKENS: Record<string, ThemeTokens> = {
     surface: '#ffffff',
     radius: '4px',
   },
+  rivo: {
+    primary: '#224f34',
+    primaryHover: '#1a3d28',
+    primarySoft: '#c2efd4',
+    pink: '#a3f3be',
+    warning: '#224f34',
+    ink: '#224f34',
+    900: '#224f34',
+    800: '#224f34',
+    700: '#3d6b52',
+    600: '#6f6f6f',
+    500: '#8a8a8a',
+    400: '#a8a8a8',
+    300: '#c2efd4',
+    200: '#dffbea',
+    100: '#eef9f2',
+    50: '#f7fcf9',
+    bg: '#ffffff',
+    surface: '#ffffff',
+    radius: '3px',
+  },
 };
 
 export function resolveThemeTokens(themeId?: string | null): ThemeTokens {
