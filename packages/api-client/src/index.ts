@@ -1064,6 +1064,50 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'PUT',
         body: JSON.stringify(body),
       }),
+    shopPaymentSettings: () =>
+      request<{
+        mode: 'platform' | 'merchant';
+        provider: 'seloma' | 'zarinpal';
+        onlinePaymentEnabled: boolean;
+        codEnabled: boolean;
+        hasMerchantCredentials: boolean;
+        merchantCredentialHint: string | null;
+        availableModes: readonly string[];
+        availableProviders: {
+          platform: readonly string[];
+          merchant: readonly string[];
+        };
+      }>(opts, '/shop/payment-settings'),
+    updateShopPaymentSettings: (body: {
+      mode?: 'platform' | 'merchant';
+      provider?: 'seloma' | 'zarinpal';
+      onlinePaymentEnabled?: boolean;
+      codEnabled?: boolean;
+      merchantCredentials?: string | null;
+      clearMerchantCredentials?: boolean;
+    }) =>
+      request<{
+        mode: 'platform' | 'merchant';
+        provider: 'seloma' | 'zarinpal';
+        onlinePaymentEnabled: boolean;
+        codEnabled: boolean;
+        hasMerchantCredentials: boolean;
+        merchantCredentialHint: string | null;
+      }>(opts, '/shop/payment-settings', {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    testShopPaymentSettings: () =>
+      request<{
+        ok: boolean;
+        mode: string;
+        gateway: string;
+        providerId: string;
+        message: string;
+      }>(opts, '/shop/payment-settings/test', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      }),
     listShopCategories: () =>
       request<ShopCategory[]>(opts, '/shop/categories'),
     createShopCategory: (body: Record<string, unknown>) =>

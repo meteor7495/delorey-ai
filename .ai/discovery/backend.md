@@ -85,7 +85,7 @@ Important services (reuse these):
 
 Domain pure functions: `apps/api/src/modules/shop/domain/` (order-workflow, pricing, inventory, discounts, cart, sku, rule-engine, checkout-token, payment, commerce-events). **Prefer extending these with unit tests** over putting invariants only in controllers.
 
-Payments: `IPaymentProvider` implementations `payments/mock.payment-provider.ts` and `payments/zarinpal.payment-provider.ts` plus `payment-lock.service.ts`.
+Payments: `IPaymentProvider` (`request` / `verify`) with `MockPaymentProvider`, `ZarinpalPaymentProvider`, `PaymentProviderResolver` (platform vs merchant), and `payment-lock.service.ts`. Store payment config lives on `StorefrontSettings` (`paymentMode`, `paymentProvider`, encrypted `zarinpalMerchantId`). Merchant APIs: `GET|PUT /v1/shop/payment-settings`, `POST /v1/shop/payment-settings/test`.
 
 ## Runtime / AI
 

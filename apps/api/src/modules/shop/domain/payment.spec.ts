@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  maskCredentialHint,
   mockPayUrl,
+  normalizePaymentGateway,
+  normalizePaymentMode,
   parseZarinpalRequestBody,
   parseZarinpalVerifyBody,
   paymentLockKey,
@@ -17,6 +20,32 @@ describe('resolvePaymentProviderId', () => {
 
   it('uses zarinpal when a merchant id is set', () => {
     expect(resolvePaymentProviderId('abc-merchant')).toBe('zarinpal');
+  });
+});
+
+describe('payment modes', () => {
+  it('normalizes explicit modes', () => {
+    expect(normalizePaymentMode('platform', false)).toBe('platform');
+    expect(normalizePaymentMode('merchant', true)).toBe('merchant');
+  });
+
+  it('infers merchant from legacy credentials when mode missing', () => {
+    expect(normalizePaymentMode(null, true)).toBe('merchant');
+    expect(normalizePaymentMode(undefined, false)).toBe('platform');
+  });
+
+  it('forces seloma gateway for platform mode', () => {
+    expect(normalizePaymentGateway('platform', 'zarinpal')).toBe('seloma');
+    expect(normalizePaymentGateway('merchant', 'zarinpal')).toBe('zarinpal');
+    expect(normalizePaymentGateway('merchant', 'seloma')).toBe('zarinpal');
+  });
+});
+
+describe('maskCredentialHint', () => {
+  it('never returns the full secret', () => {
+    expect(maskCredentialHint('abcd-1234-wxyz')).toBe('************wxyz');
+    expect(maskCredentialHint('ab')).toBe('************');
+    expect(maskCredentialHint(null)).toBeNull();
   });
 });
 

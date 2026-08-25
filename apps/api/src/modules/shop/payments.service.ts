@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../platform/prisma.service';
@@ -6,15 +6,13 @@ import {
   canonicalizeOrderStatus,
   isPaidFulfillmentStatus,
   mockPayUrl,
-  resolvePaymentProviderId,
   zarinpalEndpoints,
   zarinpalPayUrl,
 } from './domain';
 import { OrderWorkflowService } from './order-workflow.service';
 import { MockPaymentProvider } from './payments/mock.payment-provider';
 import { PaymentLockService } from './payments/payment-lock.service';
-import type { IPaymentProvider } from './payments/payment-provider';
-import { ZarinpalPaymentProvider } from './payments/zarinpal.payment-provider';
+import { PaymentProviderResolver } from './payments/payment-provider-resolver.service';
 import { CommerceEventsService } from './commerce-events.service';
 import { NotificationService } from './notification.service';
 import { orderStatusNotifyBody } from './domain';
@@ -27,7 +25,7 @@ export class PaymentsService {
     private readonly workflow: OrderWorkflowService,
     private readonly lock: PaymentLockService,
     private readonly mock: MockPaymentProvider,
-    private readonly zarinpal: ZarinpalPaymentProvider,
+    private readonly resolver: PaymentProviderResolver,
     private readonly events: CommerceEventsService,
     private readonly notifications: NotificationService,
   ) {}
@@ -41,20 +39,6 @@ export class PaymentsService {
 
   private storefrontBase() {
     return this.config.get<string>('STOREFRONT_BASE_URL') ?? 'http://localhost:3020';
-  }
-
-  private merchantId(storeMerchant?: string | null) {
-    return (
-      storeMerchant?.trim() ||
-      this.config.get<string>('ZARINPAL_MERCHANT_ID')?.trim() ||
-      ''
-    );
-  }
-
-  private providerFor(merchant: string): IPaymentProvider {
-    return resolvePaymentProviderId(merchant) === 'zarinpal'
-      ? this.zarinpal
-      : this.mock;
   }
 
   async trackUrl(
@@ -76,18 +60,26 @@ export class PaymentsService {
     return `${this.storefrontBase()}/s/${settings?.storeSlug ?? 'shop'}/track?${q.toString()}`;
   }
 
+  /**
+   * Start (or resume) a gateway payment for an order.
+   * Amount is always taken from the authoritative StorefrontOrder row —
+   * never from the client.
+   */
   async startPayment(input: {
     tenantId: string;
     orderId: string;
-    amount: number;
     description: string;
-    storeMerchantId?: string | null;
   }) {
     return this.lock.withOrderLock(input.tenantId, input.orderId, async () => {
       const order = await this.prisma.storefrontOrder.findFirst({
         where: { id: input.orderId, tenantId: input.tenantId },
       });
       if (!order) throw new NotFoundException('سفارش پیدا نشد');
+
+      const amount = Number(order.totalAmount);
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new BadRequestException('مبلغ سفارش برای پرداخت معتبر نیست');
+      }
 
       const existing = await this.prisma.payment.findFirst({
         where: {
@@ -102,6 +94,7 @@ export class PaymentsService {
           authority: existing.authority,
           payUrl: this.payUrlFor(existing.provider, existing.authority, order.id),
           mocked: existing.provider === 'mock',
+          mode: existing.mode,
         };
       }
       if (existing?.status === 'pending' && existing.authority) {
@@ -109,17 +102,28 @@ export class PaymentsService {
           authority: existing.authority,
           payUrl: this.payUrlFor(existing.provider, existing.authority, order.id),
           mocked: existing.provider === 'mock',
+          mode: existing.mode,
         };
       }
 
-      const merchant = this.merchantId(input.storeMerchantId);
-      const provider = this.providerFor(merchant);
-      const requested = await provider.request({
+      const settings = await this.prisma.storefrontSettings.findUnique({
+        where: { tenantId: input.tenantId },
+      });
+      if (!settings) throw new NotFoundException('فروشگاه پیدا نشد');
+
+      const resolved = this.resolver.resolve({
+        tenantId: settings.tenantId,
+        paymentMode: settings.paymentMode,
+        paymentProvider: settings.paymentProvider,
+        zarinpalMerchantId: settings.zarinpalMerchantId,
+      });
+
+      const requested = await resolved.provider.request({
         orderId: input.orderId,
-        amount: input.amount,
+        amount,
         description: input.description,
-        merchantId: merchant,
-        callbackUrl: `${this.publicBase()}/v1/payments/zarinpal/callback`,
+        merchantId: resolved.merchantId,
+        callbackUrl: resolved.callbackUrl,
       });
 
       try {
@@ -127,9 +131,10 @@ export class PaymentsService {
           data: {
             tenantId: input.tenantId,
             orderId: input.orderId,
-            provider: provider.id,
+            provider: resolved.providerId,
+            mode: resolved.mode,
             status: 'pending',
-            amount: input.amount,
+            amount,
             currency: order.currency,
             authority: requested.authority,
           },
@@ -139,7 +144,7 @@ export class PaymentsService {
           paymentId: payment.id,
           kind: 'request',
           status: 'success',
-          provider: provider.id,
+          provider: resolved.providerId,
           paymentReference: requested.authority,
           payload: requested.raw,
         });
@@ -149,13 +154,17 @@ export class PaymentsService {
           err.code === 'P2002'
         ) {
           const dup = await this.prisma.payment.findFirst({
-            where: { provider: provider.id, authority: requested.authority },
+            where: {
+              provider: resolved.providerId,
+              authority: requested.authority,
+            },
           });
           if (dup) {
             return {
               authority: requested.authority,
               payUrl: requested.payUrl,
-              mocked: provider.id === 'mock',
+              mocked: resolved.providerId === 'mock',
+              mode: resolved.mode,
             };
           }
         }
@@ -176,7 +185,8 @@ export class PaymentsService {
       return {
         authority: requested.authority,
         payUrl: requested.payUrl,
-        mocked: provider.id === 'mock',
+        mocked: resolved.providerId === 'mock',
+        mode: resolved.mode,
       };
     });
   }
@@ -192,7 +202,7 @@ export class PaymentsService {
         where: { id: orderId },
       });
       if (!fresh) throw new NotFoundException('سفارش پیدا نشد');
-      const payment = await this.ensurePaymentRow(fresh, 'mock');
+      const payment = await this.ensurePaymentRow(fresh, 'mock', 'platform');
 
       if (result === 'fail') {
         await this.failPayment(payment, 'callback', fresh.paymentAuthority);
@@ -251,7 +261,12 @@ export class PaymentsService {
         where: { id: found.order.id },
       });
       if (!order) throw new NotFoundException('سفارش پیدا نشد');
-      const payment = await this.ensurePaymentRow(order, 'zarinpal', authority);
+      const payment = await this.ensurePaymentRow(
+        order,
+        'zarinpal',
+        found.payment?.mode ?? 'platform',
+        authority,
+      );
 
       await this.recordTx({
         tenantId: order.tenantId,
@@ -279,11 +294,22 @@ export class PaymentsService {
       const settings = await this.prisma.storefrontSettings.findUnique({
         where: { tenantId: order.tenantId },
       });
-      const merchant = this.merchantId(settings?.zarinpalMerchantId);
-      const verified = await this.zarinpal.verify({
+      if (!settings) throw new NotFoundException('فروشگاه پیدا نشد');
+
+      const resolved = this.resolver.resolve({
+        tenantId: settings.tenantId,
+        paymentMode: payment.mode || settings.paymentMode,
+        paymentProvider:
+          (payment.mode || settings.paymentMode) === 'merchant'
+            ? 'zarinpal'
+            : 'seloma',
+        zarinpalMerchantId: settings.zarinpalMerchantId,
+      });
+
+      const verified = await resolved.provider.verify({
         authority,
         amount: Number(order.totalAmount),
-        merchantId: merchant,
+        merchantId: resolved.merchantId,
       });
       if (!verified.ok) {
         await this.failPayment(payment, 'verify', authority, verified.raw);
@@ -372,6 +398,7 @@ export class PaymentsService {
       paymentAuthority: string | null;
     },
     provider: string,
+    mode: string,
     authority?: string,
   ) {
     const existing = await this.prisma.payment.findFirst({
@@ -388,6 +415,7 @@ export class PaymentsService {
         tenantId: order.tenantId,
         orderId: order.id,
         provider,
+        mode,
         status: 'pending',
         amount: order.totalAmount,
         currency: order.currency,

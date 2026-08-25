@@ -451,8 +451,10 @@ model Payment {
   id         String   @id @default(uuid())
   tenantId   String   @map("tenant_id")
   orderId    String   @map("order_id")
-  /// zarinpal | mock
+  /// zarinpal | mock — concrete gateway adapter used
   provider   String
+  /// platform | merchant — whose credentials were used
+  mode       String   @default("platform")
   /// pending | paid | failed | refunded
   status     String   @default("pending")
   amount     Decimal  @db.Decimal(18, 2)
@@ -589,6 +591,11 @@ model StorefrontSettings {
   tagline         String?
   codEnabled      Boolean  @default(true) @map("cod_enabled")
   onlinePaymentEnabled Boolean @default(false) @map("online_payment_enabled")
+  /// platform | merchant
+  paymentMode          String  @default("platform") @map("payment_mode")
+  /// seloma | zarinpal (configured label; concrete adapter may be mock|zarinpal)
+  paymentProvider      String  @default("seloma") @map("payment_provider")
+  /// AES-GCM cipher (or legacy plaintext during migration). Never return via API.
   zarinpalMerchantId   String? @map("zarinpal_merchant_id")
   supportPhone    String?  @map("support_phone")
   /// Commerce settings — defaults consumed by the Commerce Core domain layer

@@ -13,14 +13,21 @@ import {
   canonicalizeOrderStatus,
   initialOrderStatus,
   initialPaymentStatus,
+  isPaymentGatewayId,
+  isPaymentMode,
+  normalizePaymentGateway,
+  normalizePaymentMode,
   resolveEffectivePrice,
   toSlug,
+  type PaymentGatewayId,
+  type PaymentMode,
 } from './domain';
 import { DiscountsService } from './discounts.service';
 import { InventoryService } from './inventory.service';
 import { VariantsService } from './variants.service';
 import { CustomersService, type SalesChannel } from './customers.service';
 import { PaymentsService } from './payments.service';
+import { PaymentProviderResolver } from './payments/payment-provider-resolver.service';
 import { OrderWorkflowService } from './order-workflow.service';
 import { CartService } from './cart.service';
 import { CheckoutSessionService } from './checkout-session.service';
@@ -151,6 +158,7 @@ export class ShopService {
     private readonly discounts: DiscountsService,
     private readonly customers: CustomersService,
     private readonly payments: PaymentsService,
+    private readonly paymentResolver: PaymentProviderResolver,
     private readonly workflow: OrderWorkflowService,
     private readonly carts: CartService,
     private readonly checkoutSessions: CheckoutSessionService,
@@ -242,6 +250,7 @@ export class ShopService {
       lowStockThreshold?: number;
       allowNegativeInventory?: boolean;
       defaultProductStatus?: string;
+      /** @deprecated Prefer PUT /shop/payment-settings — encrypted on write. */
       zarinpalMerchantId?: string | null;
     },
   ) {
@@ -307,15 +316,172 @@ export class ShopService {
         lowStockThreshold: patch.lowStockThreshold,
         allowNegativeInventory: patch.allowNegativeInventory,
         defaultProductStatus: patch.defaultProductStatus,
-        zarinpalMerchantId:
-          'zarinpalMerchantId' in patch
-            ? patch.zarinpalMerchantId
-            : undefined,
+        zarinpalMerchantId: this.encryptIncomingMerchantId(patch),
       },
     });
     return {
       ...this.mapSettings(row),
       storefrontUrl: `${this.storefrontBase()}/s/${row.storeSlug}`,
+    };
+  }
+
+  async getPaymentSettings(tenantId: string) {
+    const settings = await this.store.ensureStorefrontSettings(tenantId);
+    return this.mapPaymentSettings(settings);
+  }
+
+  async updatePaymentSettings(
+    tenantId: string,
+    patch: {
+      mode?: PaymentMode;
+      provider?: PaymentGatewayId;
+      onlinePaymentEnabled?: boolean;
+      codEnabled?: boolean;
+      merchantCredentials?: string | null;
+      clearMerchantCredentials?: boolean;
+    },
+  ) {
+    await this.store.ensureStorefrontSettings(tenantId);
+    const current = await this.prisma.storefrontSettings.findUniqueOrThrow({
+      where: { tenantId },
+    });
+
+    const nextMode = patch.mode
+      ? patch.mode
+      : normalizePaymentMode(
+          current.paymentMode,
+          Boolean(
+            this.paymentResolver.decryptMerchantCredential(
+              current.zarinpalMerchantId,
+            ),
+          ),
+        );
+    if (patch.mode && !isPaymentMode(patch.mode)) {
+      throw new BadRequestException('حالت پرداخت نامعتبر است');
+    }
+
+    const nextGateway = patch.provider
+      ? patch.provider
+      : normalizePaymentGateway(nextMode, current.paymentProvider);
+    if (patch.provider && !isPaymentGatewayId(patch.provider)) {
+      throw new BadRequestException('درگاه پرداخت نامعتبر است');
+    }
+    if (nextMode === 'platform' && nextGateway !== 'seloma') {
+      throw new BadRequestException(
+        'در حالت سلومـا فقط درگاه پلتفرم قابل انتخاب است',
+      );
+    }
+    if (nextMode === 'merchant' && nextGateway === 'seloma') {
+      throw new BadRequestException(
+        'در حالت درگاه اختصاصی، یک پذیرنده مثل زرین‌پال را انتخاب کنید',
+      );
+    }
+
+    const nextCod = patch.codEnabled ?? current.codEnabled;
+    const nextOnline =
+      patch.onlinePaymentEnabled ?? current.onlinePaymentEnabled;
+    if (!nextCod && !nextOnline) {
+      throw new BadRequestException(
+        'حداقل یکی از روش‌های پرداخت (در محل یا آنلاین) باید فعال باشد',
+      );
+    }
+
+    let nextCipher: string | null | undefined = undefined;
+    if (patch.clearMerchantCredentials) {
+      nextCipher = null;
+    } else if (
+      patch.merchantCredentials !== undefined &&
+      patch.merchantCredentials !== null
+    ) {
+      const plain = String(patch.merchantCredentials).trim();
+      if (!plain) {
+        throw new BadRequestException('کد پذیرنده خالی است');
+      }
+      nextCipher = this.paymentResolver.encryptMerchantCredential(plain);
+    }
+
+    if (
+      nextMode === 'merchant' &&
+      nextCipher === null &&
+      !this.paymentResolver.decryptMerchantCredential(current.zarinpalMerchantId)
+    ) {
+      throw new BadRequestException(
+        'برای حالت درگاه اختصاصی باید کد پذیرنده را وارد کنید',
+      );
+    }
+    if (
+      nextMode === 'merchant' &&
+      nextCipher === undefined &&
+      !this.paymentResolver.decryptMerchantCredential(current.zarinpalMerchantId)
+    ) {
+      throw new BadRequestException(
+        'برای حالت درگاه اختصاصی باید کد پذیرنده را وارد کنید',
+      );
+    }
+
+    const row = await this.prisma.storefrontSettings.update({
+      where: { tenantId },
+      data: {
+        paymentMode: nextMode,
+        paymentProvider: nextMode === 'platform' ? 'seloma' : nextGateway,
+        onlinePaymentEnabled: patch.onlinePaymentEnabled,
+        codEnabled: patch.codEnabled,
+        zarinpalMerchantId: nextCipher,
+      },
+    });
+    return this.mapPaymentSettings(row);
+  }
+
+  async testPaymentSettings(tenantId: string) {
+    const settings = await this.store.ensureStorefrontSettings(tenantId);
+    return this.paymentResolver.testConnection({
+      tenantId: settings.tenantId,
+      paymentMode: settings.paymentMode,
+      paymentProvider: settings.paymentProvider,
+      zarinpalMerchantId: settings.zarinpalMerchantId,
+    });
+  }
+
+  private encryptIncomingMerchantId(patch: {
+    zarinpalMerchantId?: string | null;
+  }): string | null | undefined {
+    if (!('zarinpalMerchantId' in patch)) return undefined;
+    if (patch.zarinpalMerchantId == null || patch.zarinpalMerchantId === '') {
+      return null;
+    }
+    return this.paymentResolver.encryptMerchantCredential(
+      String(patch.zarinpalMerchantId),
+    );
+  }
+
+  private mapPaymentSettings(row: {
+    tenantId: string;
+    paymentMode?: string | null;
+    paymentProvider?: string | null;
+    zarinpalMerchantId?: string | null;
+    onlinePaymentEnabled?: boolean;
+    codEnabled: boolean;
+  }) {
+    const creds = this.paymentResolver.credentialPublicView(
+      row.zarinpalMerchantId,
+    );
+    const mode = normalizePaymentMode(
+      row.paymentMode,
+      creds.hasMerchantCredentials,
+    );
+    const provider = normalizePaymentGateway(mode, row.paymentProvider);
+    return {
+      mode,
+      provider,
+      onlinePaymentEnabled: row.onlinePaymentEnabled ?? false,
+      codEnabled: row.codEnabled,
+      hasMerchantCredentials: creds.hasMerchantCredentials,
+      merchantCredentialHint: creds.merchantCredentialHint,
+      availableModes: ['platform', 'merchant'] as const,
+      availableProviders: {
+        platform: ['seloma'] as const,
+        merchant: ['zarinpal'] as const,
+      },
     };
   }
 
@@ -1265,7 +1431,6 @@ export class ShopService {
       discountCode: body.discountCode,
       paymentMethod: body.paymentMethod,
       identityExternalId: body.sessionId,
-      storeMerchantId: settings.zarinpalMerchantId,
       codEnabled: settings.codEnabled,
       onlinePaymentEnabled: settings.onlinePaymentEnabled,
     });
@@ -1284,7 +1449,6 @@ export class ShopService {
     discountCode?: string;
     paymentMethod?: 'cod' | 'online';
     identityExternalId?: string | null;
-    storeMerchantId?: string | null;
     codEnabled: boolean;
     onlinePaymentEnabled: boolean;
   }) {
@@ -1508,9 +1672,7 @@ export class ShopService {
       const pay = await this.payments.startPayment({
         tenantId: input.tenantId,
         orderId: order.created.id,
-        amount: total,
         description: `سفارش ${orderNumber}`,
-        storeMerchantId: input.storeMerchantId,
       });
       payUrl = pay.payUrl;
       paymentHint = pay.mocked
@@ -1581,7 +1743,8 @@ export class ShopService {
       storeName: settings.storeName,
       codEnabled: settings.codEnabled,
       onlinePaymentEnabled: settings.onlinePaymentEnabled,
-      zarinpalMerchantId: settings.zarinpalMerchantId ?? null,
+      paymentMode: settings.paymentMode,
+      paymentProvider: settings.paymentProvider,
     };
   }
 
@@ -1738,7 +1901,10 @@ export class ShopService {
     allowNegativeInventory?: boolean;
     defaultProductStatus?: string;
     zarinpalMerchantId?: string | null;
+    paymentMode?: string | null;
+    paymentProvider?: string | null;
   }) {
+    const payment = this.mapPaymentSettings(row);
     return {
       id: row.id,
       tenantId: row.tenantId,
@@ -1751,7 +1917,12 @@ export class ShopService {
       tagline: row.tagline,
       codEnabled: row.codEnabled,
       onlinePaymentEnabled: row.onlinePaymentEnabled ?? false,
-      zarinpalMerchantId: row.zarinpalMerchantId ?? null,
+      paymentMode: payment.mode,
+      paymentProvider: payment.provider,
+      hasMerchantCredentials: payment.hasMerchantCredentials,
+      merchantCredentialHint: payment.merchantCredentialHint,
+      /** @deprecated Never returns the secret — use merchantCredentialHint. */
+      zarinpalMerchantId: null,
       supportPhone: row.supportPhone,
       defaultCurrency: row.defaultCurrency ?? 'IRR',
       lowStockThreshold: row.lowStockThreshold ?? 5,

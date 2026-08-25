@@ -30,6 +30,7 @@ import { NotificationService } from './notification.service';
 import { PaymentLockService } from './payments/payment-lock.service';
 import { MockPaymentProvider } from './payments/mock.payment-provider';
 import { ZarinpalPaymentProvider } from './payments/zarinpal.payment-provider';
+import { PaymentProviderResolver } from './payments/payment-provider-resolver.service';
 
 @Module({
   imports: [PlatformModule, AuditModule],
@@ -65,6 +66,7 @@ import { ZarinpalPaymentProvider } from './payments/zarinpal.payment-provider';
     PaymentLockService,
     MockPaymentProvider,
     ZarinpalPaymentProvider,
+    PaymentProviderResolver,
   ],
   exports: [
     ShopService,
@@ -83,6 +85,7 @@ import { ZarinpalPaymentProvider } from './payments/zarinpal.payment-provider';
     ChannelMenuService,
     CommerceEventsService,
     NotificationService,
+    PaymentProviderResolver,
   ],
 })
 export class ShopModule {}

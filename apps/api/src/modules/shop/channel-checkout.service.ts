@@ -331,7 +331,6 @@ export class ChannelCheckoutService {
         customerAddress: payload.address,
         paymentMethod: payload.paymentMethod,
         identityExternalId: input.externalThreadId,
-        storeMerchantId: options.zarinpalMerchantId,
         codEnabled: options.codEnabled,
         onlinePaymentEnabled: options.onlinePaymentEnabled,
       });

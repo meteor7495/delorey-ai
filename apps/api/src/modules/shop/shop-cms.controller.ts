@@ -238,6 +238,34 @@ class SettingsDto {
   defaultProductStatus?: string;
 }
 
+class PaymentSettingsDto {
+  @IsOptional()
+  @IsIn(['platform', 'merchant'])
+  mode?: 'platform' | 'merchant';
+
+  @IsOptional()
+  @IsIn(['seloma', 'zarinpal'])
+  provider?: 'seloma' | 'zarinpal';
+
+  @IsOptional()
+  @IsBoolean()
+  onlinePaymentEnabled?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  codEnabled?: boolean;
+
+  /** Write-only. Never returned by GET. */
+  @IsOptional()
+  @IsString()
+  @MinLength(4)
+  merchantCredentials?: string | null;
+
+  @IsOptional()
+  @IsBoolean()
+  clearMerchantCredentials?: boolean;
+}
+
 class BannerDto {
   @IsOptional()
   @IsString()
@@ -313,6 +341,35 @@ export class ShopCmsController {
       { storeSlug: row.storeSlug },
     );
     return row;
+  }
+
+  @Get('payment-settings')
+  paymentSettings(@CurrentAuth() auth: AuthContext) {
+    return this.shop.getPaymentSettings(auth.tenantId);
+  }
+
+  @Put('payment-settings')
+  async updatePaymentSettings(
+    @CurrentAuth() auth: AuthContext,
+    @Body() dto: PaymentSettingsDto,
+  ) {
+    const row = await this.shop.updatePaymentSettings(auth.tenantId, dto);
+    await this.audit.recordAdmin(
+      auth,
+      'shop.payment_settings.update',
+      'به‌روزرسانی تنظیمات پرداخت',
+      {
+        mode: row.mode,
+        provider: row.provider,
+        hasMerchantCredentials: row.hasMerchantCredentials,
+      },
+    );
+    return row;
+  }
+
+  @Post('payment-settings/test')
+  testPaymentSettings(@CurrentAuth() auth: AuthContext) {
+    return this.shop.testPaymentSettings(auth.tenantId);
   }
 
   @Get('categories')

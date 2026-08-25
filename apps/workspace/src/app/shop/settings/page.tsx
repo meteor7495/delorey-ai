@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+type PaymentMode = 'platform' | 'merchant';
+
 export default function ShopSettingsPage() {
   const [storeName, setStoreName] = useState('');
   const [storeSlug, setStoreSlug] = useState('');
@@ -17,7 +19,17 @@ export default function ShopSettingsPage() {
   const [supportPhone, setSupportPhone] = useState('');
   const [codEnabled, setCodEnabled] = useState(true);
   const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(false);
-  const [zarinpalMerchantId, setZarinpalMerchantId] = useState('');
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('platform');
+  const [paymentProvider, setPaymentProvider] = useState<'seloma' | 'zarinpal'>(
+    'seloma',
+  );
+  const [merchantCredentials, setMerchantCredentials] = useState('');
+  const [hasMerchantCredentials, setHasMerchantCredentials] = useState(false);
+  const [merchantCredentialHint, setMerchantCredentialHint] = useState<
+    string | null
+  >(null);
+  const [clearCredentials, setClearCredentials] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [storefrontUrl, setStorefrontUrl] = useState('');
   const [defaultCurrency, setDefaultCurrency] = useState('IRR');
   const [lowStockThreshold, setLowStockThreshold] = useState('5');
@@ -25,16 +37,20 @@ export default function ShopSettingsPage() {
   const [defaultProductStatus, setDefaultProductStatus] = useState('draft');
 
   useEffect(() => {
-    api
-      .shopSettings()
-      .then((s) => {
+    Promise.all([api.shopSettings(), api.shopPaymentSettings()])
+      .then(([s, p]) => {
         setStoreName(String(s.storeName ?? ''));
         setStoreSlug(String(s.storeSlug ?? ''));
         setTagline(String(s.tagline ?? ''));
         setSupportPhone(String(s.supportPhone ?? ''));
-        setCodEnabled(Boolean(s.codEnabled));
-        setOnlinePaymentEnabled(Boolean(s.onlinePaymentEnabled));
-        setZarinpalMerchantId(String(s.zarinpalMerchantId ?? ''));
+        setCodEnabled(Boolean(p.codEnabled ?? s.codEnabled));
+        setOnlinePaymentEnabled(
+          Boolean(p.onlinePaymentEnabled ?? s.onlinePaymentEnabled),
+        );
+        setPaymentMode(p.mode);
+        setPaymentProvider(p.provider);
+        setHasMerchantCredentials(Boolean(p.hasMerchantCredentials));
+        setMerchantCredentialHint(p.merchantCredentialHint);
         setStorefrontUrl(String(s.storefrontUrl ?? ''));
         setDefaultCurrency(String(s.defaultCurrency ?? 'IRR'));
         setLowStockThreshold(String(s.lowStockThreshold ?? 5));
@@ -52,19 +68,47 @@ export default function ShopSettingsPage() {
         storeSlug,
         tagline: tagline || null,
         supportPhone: supportPhone || null,
-        codEnabled,
-        onlinePaymentEnabled,
-        zarinpalMerchantId: zarinpalMerchantId || null,
         defaultCurrency,
         lowStockThreshold: Number(lowStockThreshold) || 0,
         allowNegativeInventory,
         defaultProductStatus,
       });
+      const paymentBody: Parameters<typeof api.updateShopPaymentSettings>[0] = {
+        mode: paymentMode,
+        provider: paymentMode === 'platform' ? 'seloma' : 'zarinpal',
+        onlinePaymentEnabled,
+        codEnabled,
+      };
+      if (clearCredentials) {
+        paymentBody.clearMerchantCredentials = true;
+      } else if (merchantCredentials.trim()) {
+        paymentBody.merchantCredentials = merchantCredentials.trim();
+      }
+      const p = await api.updateShopPaymentSettings(paymentBody);
       setStorefrontUrl(String(s.storefrontUrl ?? ''));
       setStoreSlug(String(s.storeSlug ?? storeSlug));
+      setPaymentMode(p.mode);
+      setPaymentProvider(p.provider);
+      setHasMerchantCredentials(Boolean(p.hasMerchantCredentials));
+      setMerchantCredentialHint(p.merchantCredentialHint);
+      setMerchantCredentials('');
+      setClearCredentials(false);
       toastSuccess('تنظیمات ذخیره شد');
     } catch (err) {
       toastFromError(err, 'ذخیره نشد');
+    }
+  }
+
+  async function onTestConnection() {
+    setTesting(true);
+    try {
+      const result = await api.testShopPaymentSettings();
+      if (result.ok) toastSuccess(result.message);
+      else toastFromError(new Error(result.message), result.message);
+    } catch (err) {
+      toastFromError(err, 'تست اتصال ناموفق بود');
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -73,7 +117,7 @@ export default function ShopSettingsPage() {
       <div className="space-y-6">
         <PageHeader
           title="تنظیمات فروشگاه"
-          description="اسلاگ عمومی، COD و اطلاعات تماس"
+          description="اسلاگ عمومی، پرداخت و اطلاعات تماس"
         />
 
         <Card>
@@ -109,35 +153,123 @@ export default function ShopSettingsPage() {
                   onChange={(e) => setSupportPhone(e.target.value)}
                 />
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={codEnabled}
-                  onChange={(e) => setCodEnabled(e.target.checked)}
-                />
-                پرداخت در محل (COD) فعال باشد
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={onlinePaymentEnabled}
-                  onChange={(e) => setOnlinePaymentEnabled(e.target.checked)}
-                />
-                پرداخت آنلاین (لینک درگاه زرین‌پال یا mock)
-              </label>
-              <div className="space-y-1.5">
-                <Label>کد پذیرنده زرین‌پال (اختیاری)</Label>
-                <Input
-                  value={zarinpalMerchantId}
-                  onChange={(e) => setZarinpalMerchantId(e.target.value)}
-                  placeholder="خالی = پرداخت آزمایشی mock"
-                  dir="ltr"
-                />
-                <p className="text-xs text-[var(--text-3)]">
-                  بدون کد پذیرنده، مشتری به صفحه پرداخت آزمایشی می‌رود و بعد به پیگیری سفارش برمی‌گردد.
-                  با Merchant ID واقعی، زرین‌پال باز می‌شود (برای تست از ZARINPAL_SANDBOX=1 استفاده کنید).
+
+              <div className="space-y-2 border-t border-[var(--border-color)] pt-4">
+                <p className="text-sm font-semibold text-[var(--text-1)]">
+                  تنظیمات پرداخت
                 </p>
+                <p className="text-xs text-[var(--text-3)]">
+                  انتخاب کنید پرداخت آنلاین از درگاه سلومـا انجام شود یا از درگاه
+                  اختصاصی فروشگاه.
+                </p>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="paymentMode"
+                    checked={paymentMode === 'platform'}
+                    onChange={() => {
+                      setPaymentMode('platform');
+                      setPaymentProvider('seloma');
+                    }}
+                  />
+                  سلومـا (درگاه پلتفرم)
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="paymentMode"
+                    checked={paymentMode === 'merchant'}
+                    onChange={() => {
+                      setPaymentMode('merchant');
+                      setPaymentProvider('zarinpal');
+                    }}
+                  />
+                  درگاه اختصاصی من
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={codEnabled}
+                    onChange={(e) => setCodEnabled(e.target.checked)}
+                  />
+                  پرداخت در محل (COD) فعال باشد
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={onlinePaymentEnabled}
+                    onChange={(e) => setOnlinePaymentEnabled(e.target.checked)}
+                  />
+                  پرداخت آنلاین فعال باشد
+                </label>
+
+                {paymentMode === 'merchant' && (
+                  <div className="space-y-2 rounded-md border border-[var(--border-color)] p-3">
+                    <div className="space-y-1.5">
+                      <Label>پذیرنده</Label>
+                      <select
+                        className="flex h-9 w-full rounded-md border border-[var(--border-color)] bg-[var(--surface)] px-3 text-sm"
+                        value={paymentProvider}
+                        onChange={() => setPaymentProvider('zarinpal')}
+                      >
+                        <option value="zarinpal">زرین‌پال</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>کد پذیرنده (محرمانه)</Label>
+                      {hasMerchantCredentials && !clearCredentials && (
+                        <p className="text-xs text-[var(--text-3)]" dir="ltr">
+                          ذخیره‌شده: {merchantCredentialHint ?? '************'}
+                        </p>
+                      )}
+                      <Input
+                        type="password"
+                        autoComplete="off"
+                        value={merchantCredentials}
+                        onChange={(e) => {
+                          setMerchantCredentials(e.target.value);
+                          setClearCredentials(false);
+                        }}
+                        placeholder={
+                          hasMerchantCredentials
+                            ? 'برای تغییر، کد جدید را وارد کنید'
+                            : 'Merchant ID زرین‌پال'
+                        }
+                        dir="ltr"
+                      />
+                      {hasMerchantCredentials && (
+                        <label className="flex items-center gap-2 text-xs text-[var(--text-3)]">
+                          <input
+                            type="checkbox"
+                            checked={clearCredentials}
+                            onChange={(e) => {
+                              setClearCredentials(e.target.checked);
+                              if (e.target.checked) setMerchantCredentials('');
+                            }}
+                          />
+                          حذف کد پذیرنده ذخیره‌شده
+                        </label>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={testing}
+                      onClick={() => void onTestConnection()}
+                    >
+                      {testing ? 'در حال تست…' : 'تست اتصال درگاه'}
+                    </Button>
+                  </div>
+                )}
+
+                {paymentMode === 'platform' && (
+                  <p className="text-xs text-[var(--text-3)]">
+                    در حالت سلومـا، پرداخت با درگاه پیکربندی‌شده پلتفرم انجام می‌شود.
+                    بدون تنظیم محیط، پرداخت آزمایشی (mock) استفاده می‌شود.
+                  </p>
+                )}
               </div>
+
               <div className="pt-2">
                 <p className="text-sm font-semibold text-[var(--text-1)]">
                   تنظیمات تجاری
