@@ -486,6 +486,8 @@ export function createApiClient(opts: ApiClientOptions) {
     updateEmployeeGuardrails: (body: {
       blockedTopics?: string[];
       discountCapPercent?: number;
+      cartAbandonHours?: number;
+      cartRecoveryMaxPerWeek?: number;
       escalationRules?: {
         onBlockedTopic?: boolean;
         onCustomerRequest?: boolean;
@@ -496,6 +498,79 @@ export function createApiClient(opts: ApiClientOptions) {
         method: 'PUT',
         body: JSON.stringify(body),
       }),
+    listEmployees: () =>
+      request<
+        Array<{
+          id: string;
+          role: string;
+          name: string;
+          status: string;
+          operatingMode: string;
+          permissions: string[];
+        }>
+      >(opts, '/employees'),
+    getEmployeeByRole: (role: string) =>
+      request<Record<string, unknown>>(opts, `/employees/${role}`),
+    updateEmployeeByRole: (role: string, body: Record<string, unknown>) =>
+      request(opts, `/employees/${role}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    updateEmployeeGuardrailsByRole: (
+      role: string,
+      body: Record<string, unknown>,
+    ) =>
+      request(opts, `/employees/${role}/guardrails`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
+    getEmployeeActivity: (role: string) =>
+      request<{
+        employee: Record<string, unknown>;
+        events: unknown[];
+        performance: Record<string, unknown>;
+      }>(opts, `/employees/${role}/activity`),
+    getCommandCenter: () =>
+      request<Record<string, unknown>>(opts, '/command-center'),
+    listOpportunities: (status = 'open') =>
+      request<unknown[]>(
+        opts,
+        `/opportunities?status=${encodeURIComponent(status)}`,
+      ),
+    executeOpportunity: (id: string) =>
+      request(opts, `/opportunities/${id}/execute`, {
+        method: 'POST',
+        body: '{}',
+      }),
+    recoverAbandonedCarts: () =>
+      request(opts, '/opportunities/recover-carts', {
+        method: 'POST',
+        body: '{}',
+      }),
+    listAiApprovals: (status = 'pending') =>
+      request<unknown[]>(
+        opts,
+        `/approvals?status=${encodeURIComponent(status)}`,
+      ),
+    decideAiApproval: (id: string, decision: 'approved' | 'rejected') =>
+      request(opts, `/approvals/${id}/decide`, {
+        method: 'POST',
+        body: JSON.stringify({ decision }),
+      }),
+    listAiActivity: (limit = 50) =>
+      request<unknown[]>(opts, `/ai-activity?limit=${limit}`),
+    getCustomerMemory: (customerId: string) =>
+      request<Record<string, unknown>>(
+        opts,
+        `/customers/${customerId}/memory`,
+      ),
+    listIntegrations: () =>
+      request<{ clients: unknown[]; toolOverrides: unknown[] }>(
+        opts,
+        '/integrations',
+      ),
+    listWorkflows: () => request<unknown[]>(opts, '/workflows'),
+    listExperiments: () => request<unknown[]>(opts, '/experiments'),
     getStore: () => request<Record<string, unknown>>(opts, '/store'),
     mockConnectStore: () =>
       request(opts, '/store/mock-connect', { method: 'POST', body: '{}' }),

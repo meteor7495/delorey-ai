@@ -58,7 +58,10 @@ const shopNav: NavLeaf[] = [
 ];
 
 const aiNav: NavLeaf[] = [
-  { href: '/employee', icon: Bot, label: 'کارمند فروش' },
+  { href: '/employees', icon: Bot, label: 'کارمندان AI' },
+  { href: '/opportunities', icon: Sparkles, label: 'فرصت‌های درآمد' },
+  { href: '/approvals', icon: ShieldCheck, label: 'تأییدها' },
+  { href: '/integrations', icon: Radio, label: 'یکپارچه‌سازی' },
   { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/knowledge', icon: BookOpen, label: 'دانش' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },

@@ -1,19 +1,22 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { z } from 'zod';
+import { v4 as uuid } from 'uuid';
+import { Prisma } from '@prisma/client';
 import { McpRegistry } from '../core/registry';
 import { McpPlatformError } from '../core/errors';
 import type { McpToolDefinition } from '../core/types';
 import { DiscountsService } from '../../shop/discounts.service';
+import { PrismaService } from '../../platform/prisma.service';
 
 /**
- * Marketing campaigns/segments do not exist in Seloma.
- * Discounts are the closest commerce-promotion capability.
+ * Marketing: discounts + campaign drafts (full campaign SoR is Phase 5+).
  */
 @Injectable()
 export class MarketingToolsRegistrar implements OnModuleInit {
   constructor(
     private readonly registry: McpRegistry,
     private readonly discounts: DiscountsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   onModuleInit() {
@@ -32,7 +35,9 @@ export class MarketingToolsRegistrar implements OnModuleInit {
         surface: 'internal',
         timeoutMs: 10_000,
         idempotent: true,
-        handler: async (ctx) => ({ items: await this.discounts.list(ctx.tenantId) }),
+        handler: async (ctx) => ({
+          items: await this.discounts.list(ctx.tenantId),
+        }),
       },
       {
         name: 'marketing_get_discount',
@@ -47,14 +52,104 @@ export class MarketingToolsRegistrar implements OnModuleInit {
         surface: 'internal',
         timeoutMs: 10_000,
         idempotent: true,
-        handler: async (ctx, input) => this.discounts.get(ctx.tenantId, input.discountId),
+        handler: async (ctx, input) =>
+          this.discounts.get(ctx.tenantId, input.discountId),
+      },
+      {
+        name: 'marketing_draft_campaign',
+        domain: 'marketing',
+        title: 'Draft campaign',
+        description:
+          'Create a campaign draft for merchant review. Does not send messages.',
+        version: '1.0.0',
+        inputSchema: z.object({
+          name: z.string().min(1),
+          message: z.string().min(1),
+          channel: z
+            .enum(['telegram', 'bale', 'instagram', 'website'])
+            .default('telegram'),
+          inactiveDays: z.number().int().min(1).max(365).optional(),
+          offerPercent: z.number().min(0).max(100).optional(),
+        }),
+        permissions: ['marketing.write'],
+        risk: 'MEDIUM',
+        auditClass: 'write',
+        surface: 'internal',
+        timeoutMs: 10_000,
+        approvalPolicy: 'approval_required',
+        handler: async (ctx, input) => {
+          const draft = await this.prisma.campaignDraft.create({
+            data: {
+              id: uuid(),
+              tenantId: ctx.tenantId,
+              name: input.name,
+              audienceRule: {
+                inactiveDays: input.inactiveDays ?? 90,
+              } as Prisma.InputJsonValue,
+              offer: input.offerPercent
+                ? ({ percent: input.offerPercent } as Prisma.InputJsonValue)
+                : undefined,
+              message: input.message,
+              channel: input.channel,
+              status: 'draft',
+            },
+          });
+          return {
+            id: draft.id,
+            status: draft.status,
+            name: draft.name,
+            note: 'Draft only — merchant must approve before send',
+          };
+        },
+      },
+      {
+        name: 'marketing_preview_segment',
+        domain: 'marketing',
+        title: 'Preview inactive segment',
+        description: 'Count customers with no paid order in N days.',
+        version: '1.0.0',
+        inputSchema: z.object({
+          inactiveDays: z.number().int().min(1).max(365).default(90),
+        }),
+        permissions: ['marketing.read'],
+        risk: 'READ',
+        auditClass: 'read',
+        surface: 'internal',
+        timeoutMs: 15_000,
+        idempotent: true,
+        handler: async (ctx, input) => {
+          const cutoff = new Date(
+            Date.now() - input.inactiveDays * 24 * 60 * 60 * 1000,
+          );
+          const customers = await this.prisma.customer.findMany({
+            where: { tenantId: ctx.tenantId },
+            include: {
+              orders: {
+                where: { paymentStatus: 'paid' },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+              },
+            },
+            take: 500,
+          });
+          const matched = customers.filter((c) => {
+            const last = c.orders[0];
+            return !last || last.createdAt < cutoff;
+          });
+          return {
+            inactiveDays: input.inactiveDays,
+            estimateLabel: 'estimate',
+            count: matched.length,
+          };
+        },
       },
       {
         name: 'marketing_create_campaign',
         domain: 'marketing',
         title: 'Create campaign',
-        description: 'Not available — Campaign entity does not exist. Create discounts instead via Workspace shop APIs.',
+        description: 'Deprecated — use marketing_draft_campaign.',
         version: '1.0.0',
+        deprecated: true,
         inputSchema: z.object({ name: z.string() }),
         permissions: ['marketing.write'],
         risk: 'HIGH',
@@ -65,7 +160,7 @@ export class MarketingToolsRegistrar implements OnModuleInit {
         handler: async () => {
           throw new McpPlatformError(
             'not_available',
-            'Marketing campaigns are not implemented; use DiscountsService / marketing_list_discounts',
+            'Use marketing_draft_campaign for drafts; mass send is not implemented',
           );
         },
       },
@@ -83,7 +178,10 @@ export class MarketingToolsRegistrar implements OnModuleInit {
         timeoutMs: 5_000,
         approvalPolicy: 'disabled',
         handler: async () => {
-          throw new McpPlatformError('not_available', 'Mass campaign send is not implemented');
+          throw new McpPlatformError(
+            'not_available',
+            'Mass campaign send is not implemented',
+          );
         },
       },
     ];

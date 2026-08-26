@@ -11,6 +11,9 @@ import { ChannelCheckoutService } from '../shop/channel-checkout.service';
 import { ShopService } from '../shop/shop.service';
 import { CustomersService } from '../shop/customers.service';
 import { McpClientService } from '../mcp/client/mcp-client.service';
+import { EmployeePermissionService } from '../ai-ops/employee-permission.service';
+import { AiActivityService } from '../ai-ops/ai-activity.service';
+import { CustomerMemoryService } from '../ai-ops/customer-memory.service';
 import {
   extractOrderNumber,
   isCancelOrderIntent,
@@ -117,14 +120,21 @@ export class RuntimeService {
     private readonly shop: ShopService,
     private readonly customers: CustomersService,
     private readonly mcp: McpClientService,
+    private readonly permissions: EmployeePermissionService,
+    private readonly activity: AiActivityService,
+    private readonly customerMemory: CustomerMemoryService,
   ) {}
 
   /**
    * Capability discovery for internal agents / future LLM tool-calling loops.
    * Filters by permission scopes; does not hardcode tool lists into executeTurn.
    */
-  discoverMcpTools(tenantId: string, employeeId?: string) {
-    const ctx = this.mcp.createContext({ tenantId, employeeId });
+  discoverMcpTools(tenantId: string, employeeId?: string, scopes?: string[]) {
+    const ctx = this.mcp.createContext({
+      tenantId,
+      employeeId,
+      scopes: scopes as import('../mcp/core/types').McpPermission[] | undefined,
+    });
     return this.mcp.discoverTools(ctx);
   }
 
@@ -133,12 +143,20 @@ export class RuntimeService {
     tenantId: string,
     toolName: string,
     args: unknown,
-    opts?: { userId?: string; employeeId?: string; idempotencyKey?: string },
+    opts?: {
+      userId?: string;
+      employeeId?: string;
+      idempotencyKey?: string;
+      scopes?: string[];
+    },
   ) {
     const ctx = this.mcp.createContext({
       tenantId,
       userId: opts?.userId,
       employeeId: opts?.employeeId,
+      scopes: opts?.scopes as
+        | import('../mcp/core/types').McpPermission[]
+        | undefined,
     });
     return this.mcp.callTool(ctx, toolName, args, {
       idempotencyKey: opts?.idempotencyKey,
@@ -162,10 +180,18 @@ export class RuntimeService {
     }
 
     const storeConn = await this.store.getStore(tenantId);
-    const employee = await this.store.employeeForTenant(tenantId);
+    const employee = await this.store.employeeForTenant(tenantId, 'sales');
     const guardrails: EmployeeGuardrails =
       employee?.guardrails ?? DEFAULT_GUARDRAILS;
     const syncHealth = storeConn?.syncHealth ?? 'never';
+
+    // Load customer memory when conversation is linked
+    const earlyConversation = await this.store.getConversation(conversationId);
+    if (earlyConversation?.customerId) {
+      await this.customerMemory
+        .recompute(tenantId, earlyConversation.customerId)
+        .catch(() => null);
+    }
 
     if (
       isHumanRequest(userText) &&
@@ -336,6 +362,88 @@ export class RuntimeService {
       this.knowledge.search(tenantId, normalizedText),
     ]);
 
+    // Permission-filtered MCP tool path (e.g. commerce_search_products) when
+    // grounded catalog is empty but employee may search via tools.
+    if (
+      employee &&
+      grounding.products.length === 0 &&
+      this.permissions.hasPermission(employee, 'products.read')
+    ) {
+      try {
+        const scopes = this.permissions.resolveScopes(employee);
+        const tools = this.discoverMcpTools(tenantId, employee.id, scopes);
+        const searchTool = tools.find((t) => t.name === 'commerce_search_products');
+        if (searchTool) {
+          const toolResult = await this.executeMcpTool(
+            tenantId,
+            'commerce_search_products',
+            { query: normalizedText, limit: 5 },
+            { employeeId: employee.id, scopes, idempotencyKey: uuid() },
+          );
+          await this.activity.record({
+            tenantId,
+            employeeId: employee.id,
+            actorType: 'employee',
+            action: 'runtime.mcp_search',
+            tool: 'commerce_search_products',
+            result: 'success',
+            inputSanitized: { query: normalizedText },
+          });
+          const items = (
+            toolResult as { items?: Array<{ sku: string; title: string; price?: number; finalPrice?: number }> }
+          )?.items;
+          if (Array.isArray(items) && items.length) {
+            const citations: Citation[] = items.slice(0, 3).map((m) => ({
+              type: 'product' as const,
+              sku: m.sku,
+              title: m.title,
+              price: Number(m.finalPrice ?? m.price ?? 0),
+            }));
+            const reply = items
+              .slice(0, 3)
+              .map((p) => {
+                const price = Number(p.finalPrice ?? p.price ?? 0).toLocaleString(
+                  'fa-IR',
+                );
+                return `• ${p.title}\n  کد: ${p.sku} — ${price}`;
+              })
+              .join('\n');
+            await this.store.addAudit({
+              id: uuid(),
+              tenantId,
+              conversationId,
+              decision: 'answer_mcp_tools',
+              citations,
+            });
+            return {
+              reply: `بر اساس ابزار کاتالوگ:\n${reply}\n\nبرای افزودن به سبد، کد کالا را بفرستید.`,
+              citations,
+              decision: 'answer_mcp_tools',
+              ownership: 'ai_owned',
+            };
+          }
+        }
+      } catch {
+        // Fall through to grounded reply — never invent data on tool failure
+      }
+    }
+
+    // Optional gateway planning (mock-safe): enrich tone only; prices stay from tools/grounding
+    if (employee?.instructions && grounding.products.length + knowledgeHits.length > 0) {
+      try {
+        await this.gateway.complete({
+          tenantId,
+          system: employee.instructions,
+          user: `Shopper: ${normalizedText}\nUse only provided catalog facts.`,
+          feature: 'runtime.plan',
+          conversationId,
+          maxTokens: 64,
+        });
+      } catch {
+        // Gateway optional — ignore failures in mock/billing edge cases
+      }
+    }
+
     const citations: Citation[] = [
       ...grounding.products.slice(0, 3).map(
         (m): Citation => ({
@@ -361,6 +469,18 @@ export class RuntimeService {
     let decision = 'answer_empty_catalog';
     if (grounding.products.length) decision = 'answer_grounded';
     else if (knowledgeHits.length) decision = 'answer_knowledge';
+
+    if (employee) {
+      await this.activity
+        .record({
+          tenantId,
+          employeeId: employee.id,
+          actorType: 'employee',
+          action: `runtime.${decision}`,
+          result: 'success',
+        })
+        .catch(() => undefined);
+    }
 
     await this.store.addAudit({
       id: uuid(),

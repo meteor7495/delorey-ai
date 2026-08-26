@@ -267,6 +267,15 @@ export interface CommerceSettings {
   defaultProductStatus: 'draft' | 'published';
 }
 
+export type EmployeeRole =
+  | 'sales'
+  | 'support'
+  | 'marketing'
+  | 'analyst'
+  | 'operations';
+
+export type EmployeeOperatingMode = 'copilot' | 'assistant' | 'autopilot';
+
 export interface EmployeeGuardrails {
   blockedTopics: string[];
   discountCapPercent: number;
@@ -279,6 +288,10 @@ export interface EmployeeGuardrails {
     onCustomerRequest: boolean;
     onDiscountAboveCap: boolean;
   };
+  /** Hours before an active cart is marked abandoned (default 2) */
+  cartAbandonHours?: number;
+  /** Max recovery messages per customer per 7 days */
+  cartRecoveryMaxPerWeek?: number;
 }
 
 export const DEFAULT_GUARDRAILS: EmployeeGuardrails = {
@@ -293,6 +306,8 @@ export const DEFAULT_GUARDRAILS: EmployeeGuardrails = {
     onCustomerRequest: true,
     onDiscountAboveCap: true,
   },
+  cartAbandonHours: 2,
+  cartRecoveryMaxPerWeek: 2,
 };
 
 export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
@@ -320,6 +335,8 @@ export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
       ? (src.escalationRules as Record<string, unknown>)
       : {};
   const cap = Number(src.discountCapPercent);
+  const abandonH = Number(src.cartAbandonHours);
+  const maxRec = Number(src.cartRecoveryMaxPerWeek);
   return {
     blockedTopics: normalizedTopics.length
       ? normalizedTopics
@@ -336,22 +353,33 @@ export function normalizeGuardrails(raw: unknown): EmployeeGuardrails {
       onCustomerRequest: rules.onCustomerRequest !== false,
       onDiscountAboveCap: rules.onDiscountAboveCap !== false,
     },
+    cartAbandonHours: Number.isFinite(abandonH)
+      ? Math.max(1, Math.min(168, abandonH))
+      : DEFAULT_GUARDRAILS.cartAbandonHours,
+    cartRecoveryMaxPerWeek: Number.isFinite(maxRec)
+      ? Math.max(0, Math.min(10, maxRec))
+      : DEFAULT_GUARDRAILS.cartRecoveryMaxPerWeek,
   };
 }
 
 export interface Employee {
   id: string;
   tenantId: string;
+  role: EmployeeRole;
   name: string;
   tone: string;
   language: string;
   status: AiEmployeeState;
+  operatingMode: EmployeeOperatingMode;
+  instructions: string | null;
   skills: {
     product_search: boolean;
     recommend: boolean;
     order_status: boolean;
     escalate: boolean;
   };
+  permissions: string[];
+  goals: string[];
   guardrails: EmployeeGuardrails;
 }
 

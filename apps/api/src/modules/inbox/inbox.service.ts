@@ -70,6 +70,11 @@ export class InboxService {
             address: customer.addresses[0]?.line ?? null,
           }
         : null,
+      memory: conversation.customerId
+        ? await this.prisma.customerMemory.findFirst({
+            where: { tenantId, customerId: conversation.customerId },
+          })
+        : null,
       cart: cart
         ? {
             itemCount: cart.items.length,

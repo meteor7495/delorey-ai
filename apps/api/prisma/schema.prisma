@@ -74,6 +74,14 @@ model Tenant {
   mcpToolOverrides       McpToolOverride[]
   mcpExecutions          McpExecution[]
   mcpApprovals           McpApproval[]
+  aiActivityEvents       AiActivityEvent[]
+  aiApprovals            AiApproval[]
+  revenueOpportunities   RevenueOpportunity[]
+  customerMemories       CustomerMemory[]
+  campaignDrafts         CampaignDraft[]
+  workflowDefinitions    WorkflowDefinition[]
+  experiments            Experiment[]
+  cartRecoveryRuns       CartRecoveryRun[]
 
   @@map("tenants")
 }
@@ -143,19 +151,32 @@ model Session {
 }
 
 model Employee {
-  id         String   @id @default(uuid())
-  tenantId   String   @map("tenant_id")
-  name       String
-  tone       String
-  language   String   @default("fa")
-  status     String   @default("inactive")
-  skills     Json
-  guardrails Json?
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  /// sales | support | marketing | analyst | operations
+  role          String   @default("sales")
+  name          String
+  tone          String
+  language      String   @default("fa")
+  status        String   @default("inactive")
+  /// copilot | assistant | autopilot
+  operatingMode String   @default("copilot") @map("operating_mode")
+  instructions  String?  @db.Text
+  skills        Json
+  /// JSON string[] of McpPermission allowlist
+  permissions   Json     @default("[]")
+  goals         Json?
+  guardrails    Json?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant             Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  activityEvents     AiActivityEvent[]
+  aiApprovals        AiApproval[]
+  revenueOpportunities RevenueOpportunity[]
+  cartRecoveryRuns   CartRecoveryRun[]
 
+  @@unique([tenantId, role])
   @@index([tenantId])
   @@map("employees")
 }
@@ -376,6 +397,9 @@ model Customer {
   orders     StorefrontOrder[]
   carts      Cart[]
   conversations Conversation[]
+  memory     CustomerMemory?
+  revenueOpportunities RevenueOpportunity[]
+  cartRecoveryRuns CartRecoveryRun[]
 
   @@unique([tenantId, phoneNormalized])
   @@index([tenantId])
@@ -1526,4 +1550,195 @@ model McpApproval {
 
   @@index([tenantId, status, createdAt])
   @@map("mcp_approvals")
+}
+
+/// ---------------------------------------------------------------------------
+/// AI Commerce OS — activity, approvals, opportunities, memory, stubs
+/// ---------------------------------------------------------------------------
+
+model AiActivityEvent {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  employeeId      String?  @map("employee_id")
+  /// employee | user | system | mcp | policy
+  actorType       String   @map("actor_type")
+  action          String
+  tool            String?
+  inputSanitized  Json?    @map("input_sanitized")
+  outputSanitized Json?    @map("output_sanitized")
+  /// success | error | pending_approval | skipped | info
+  result          String   @default("info")
+  approvalId      String?  @map("approval_id")
+  correlationId   String?  @map("correlation_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, employeeId, createdAt])
+  @@index([correlationId])
+  @@map("ai_activity_events")
+}
+
+model AiApproval {
+  id                String    @id @default(uuid())
+  tenantId          String    @map("tenant_id")
+  employeeId        String?   @map("employee_id")
+  /// tool | opportunity | recovery | campaign | workflow
+  kind              String    @default("tool")
+  title             String
+  description       String?
+  actionPayload     Json      @map("action_payload")
+  /// pending | approved | rejected | expired | executed
+  status            String    @default("pending")
+  mcpApprovalId     String?   @map("mcp_approval_id")
+  opportunityId     String?   @map("opportunity_id")
+  riskLevel         String?   @map("risk_level")
+  decidedByUserId   String?   @map("decided_by_user_id")
+  decidedAt         DateTime? @map("decided_at")
+  expiresAt         DateTime? @map("expires_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  tenant       Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee     Employee?           @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  opportunity  RevenueOpportunity? @relation(fields: [opportunityId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, createdAt])
+  @@map("ai_approvals")
+}
+
+model RevenueOpportunity {
+  id                 String   @id @default(uuid())
+  tenantId           String   @map("tenant_id")
+  employeeId         String?  @map("employee_id")
+  /// abandoned_cart | inactive_customer | low_stock | unpaid_order | upsell | repeat_purchase
+  type               String
+  estimatedValue     Decimal  @default(0) @map("estimated_value") @db.Decimal(18, 2)
+  currency           String   @default("IRT")
+  /// 0..1
+  confidence         Float    @default(0.5)
+  reason             String
+  recommendedAction  String   @map("recommended_action")
+  /// open | in_progress | done | dismissed
+  status             String   @default("open")
+  relatedCustomerId  String?  @map("related_customer_id")
+  relatedCartId      String?  @map("related_cart_id")
+  relatedProductId   String?  @map("related_product_id")
+  relatedOrderId     String?  @map("related_order_id")
+  metadata           Json?
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee?    @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  customer Customer?    @relation(fields: [relatedCustomerId], references: [id], onDelete: SetNull)
+  approvals AiApproval[]
+
+  @@index([tenantId, status, createdAt])
+  @@index([tenantId, type, status])
+  @@map("revenue_opportunities")
+}
+
+model CustomerMemory {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  customerId String   @unique @map("customer_id")
+  /// preferredCategories, typicalAov, purchaseFrequency, lastPurchaseAt, tags, notes
+  insights   Json     @default("{}")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, customerId])
+  @@index([tenantId])
+  @@map("customer_memories")
+}
+
+model CartRecoveryRun {
+  id            String   @id @default(uuid())
+  tenantId      String   @map("tenant_id")
+  cartId        String   @map("cart_id")
+  customerId    String?  @map("customer_id")
+  employeeId    String?  @map("employee_id")
+  /// pending | sent | skipped | failed | converted
+  status        String   @default("pending")
+  channel       String?
+  reminderIndex Int      @default(0) @map("reminder_index")
+  strategy      String?
+  messagePreview String? @map("message_preview")
+  errorMessage  String?  @map("error_message")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, cartId, createdAt])
+  @@index([tenantId, status])
+  @@map("cart_recovery_runs")
+}
+
+/// Marketing employee campaign drafts (full campaign SoR is Phase 5+)
+model CampaignDraft {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  audienceRule Json    @map("audience_rule")
+  offer       Json?
+  message     String
+  channel     String   @default("telegram")
+  scheduleAt  DateTime? @map("schedule_at")
+  /// draft | pending_approval | approved | sent | cancelled
+  status      String   @default("draft")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@map("campaign_drafts")
+}
+
+/// Phase 5 stub — no-code workflow definitions
+model WorkflowDefinition {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  /// JSON: trigger, conditions, actions
+  definition  Json     @default("{}")
+  /// draft | active | paused | archived
+  status      String   @default("draft")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@map("workflow_definitions")
+}
+
+/// Phase 7 stub — experimentation
+model Experiment {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  hypothesis  String?
+  /// control / variants JSON
+  variants    Json     @default("[]")
+  /// draft | running | completed | cancelled
+  status      String   @default("draft")
+  metrics     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@map("experiments")
 }

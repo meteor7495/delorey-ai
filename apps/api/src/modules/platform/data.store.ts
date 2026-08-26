@@ -24,8 +24,9 @@ import type {
   User,
 } from './types';
 import { DEFAULT_GUARDRAILS, normalizeGuardrails } from './types';
+import { EMPLOYEE_ROLE_SEEDS } from './employee-role-defaults';
 import { seedNativeShop } from './demo-catalog';
-import type { SyncHealth } from './types';
+import type { EmployeeRole, SyncHealth } from './types';
 type EmployeeSkills = Employee['skills'];
 
 /**
@@ -91,34 +92,7 @@ export class DataStore implements OnModuleInit {
       update: {},
     });
 
-    const existingEmployee = await this.prisma.employee.findFirst({
-      where: { tenantId },
-    });
-    if (!existingEmployee) {
-      await this.prisma.employee.create({
-        data: {
-          tenantId,
-          name: 'کارمند فروش',
-          tone: 'مودب و مستقیم',
-          language: 'fa',
-          status: 'active',
-          skills: {
-            product_search: true,
-            recommend: true,
-            order_status: true,
-            escalate: true,
-          } satisfies EmployeeSkills,
-          guardrails: DEFAULT_GUARDRAILS as unknown as Prisma.InputJsonValue,
-        },
-      });
-    } else if (existingEmployee.guardrails == null) {
-      await this.prisma.employee.update({
-        where: { id: existingEmployee.id },
-        data: {
-          guardrails: DEFAULT_GUARDRAILS as unknown as Prisma.InputJsonValue,
-        },
-      });
-    }
+    await this.ensureAllEmployeeRoles(tenantId);
 
     await this.prisma.storeConnection.upsert({
       where: { tenantId },
@@ -712,20 +686,93 @@ export class DataStore implements OnModuleInit {
     return rows.map((r) => this.mapProduct(r));
   }
 
-  async employeeForTenant(tenantId: string): Promise<Employee | null> {
-    const row = await this.prisma.employee.findFirst({ where: { tenantId } });
+  async ensureAllEmployeeRoles(tenantId: string) {
+    for (const seed of EMPLOYEE_ROLE_SEEDS) {
+      const existing = await this.prisma.employee.findUnique({
+        where: { tenantId_role: { tenantId, role: seed.role } },
+      });
+      if (!existing) {
+        await this.prisma.employee.create({
+          data: {
+            tenantId,
+            role: seed.role,
+            name: seed.name,
+            tone: seed.tone,
+            language: 'fa',
+            status: seed.role === 'sales' ? 'active' : 'inactive',
+            operatingMode: seed.operatingMode,
+            instructions: seed.instructions,
+            skills: seed.skills,
+            permissions: seed.permissions,
+            goals: seed.goals,
+            guardrails: seed.guardrails as unknown as Prisma.InputJsonValue,
+          },
+        });
+        continue;
+      }
+      const perms = Array.isArray(existing.permissions)
+        ? (existing.permissions as unknown[])
+        : [];
+      const needsBackfill =
+        existing.guardrails == null ||
+        perms.length === 0 ||
+        !existing.instructions;
+      if (needsBackfill) {
+        await this.prisma.employee.update({
+          where: { id: existing.id },
+          data: {
+            guardrails:
+              existing.guardrails ??
+              (DEFAULT_GUARDRAILS as unknown as Prisma.InputJsonValue),
+            permissions: perms.length > 0 ? (existing.permissions as Prisma.InputJsonValue) : seed.permissions,
+            operatingMode: existing.operatingMode || seed.operatingMode,
+            instructions: existing.instructions ?? seed.instructions,
+            goals: (existing.goals ?? seed.goals) as Prisma.InputJsonValue,
+          },
+        });
+      }
+    }
+  }
+
+  async employeesForTenant(tenantId: string): Promise<Employee[]> {
+    const rows = await this.prisma.employee.findMany({
+      where: { tenantId },
+      orderBy: { role: 'asc' },
+    });
+    return rows.map((r) => this.mapEmployee(r));
+  }
+
+  async employeeForTenant(
+    tenantId: string,
+    role: EmployeeRole = 'sales',
+  ): Promise<Employee | null> {
+    await this.ensureAllEmployeeRoles(tenantId);
+    const row = await this.prisma.employee.findUnique({
+      where: { tenantId_role: { tenantId, role } },
+    });
     return row ? this.mapEmployee(row) : null;
   }
 
   async updateEmployee(
     tenantId: string,
     patch: Partial<
-      Pick<Employee, 'name' | 'tone' | 'language' | 'status'> & {
+      Pick<
+        Employee,
+        | 'name'
+        | 'tone'
+        | 'language'
+        | 'status'
+        | 'operatingMode'
+        | 'instructions'
+        | 'permissions'
+        | 'goals'
+      > & {
         skills?: Partial<EmployeeSkills>;
       }
     >,
+    role: EmployeeRole = 'sales',
   ): Promise<Employee | null> {
-    const current = await this.employeeForTenant(tenantId);
+    const current = await this.employeeForTenant(tenantId, role);
     if (!current) return null;
     const skills = patch.skills
       ? { ...current.skills, ...patch.skills }
@@ -737,6 +784,13 @@ export class DataStore implements OnModuleInit {
         tone: patch.tone ?? current.tone,
         language: patch.language ?? current.language,
         status: patch.status ?? current.status,
+        operatingMode: patch.operatingMode ?? current.operatingMode,
+        instructions:
+          patch.instructions !== undefined
+            ? patch.instructions
+            : current.instructions,
+        permissions: patch.permissions ?? current.permissions,
+        goals: patch.goals ?? current.goals,
         skills,
       },
     });
@@ -746,8 +800,9 @@ export class DataStore implements OnModuleInit {
   async updateEmployeeGuardrails(
     tenantId: string,
     guardrails: EmployeeGuardrails,
+    role: EmployeeRole = 'sales',
   ): Promise<Employee | null> {
-    const current = await this.employeeForTenant(tenantId);
+    const current = await this.employeeForTenant(tenantId, role);
     if (!current) return null;
     const normalized = normalizeGuardrails(guardrails);
     const row = await this.prisma.employee.update({
@@ -2033,21 +2088,36 @@ export class DataStore implements OnModuleInit {
   private mapEmployee(row: {
     id: string;
     tenantId: string;
+    role?: string | null;
     name: string;
     tone: string;
     language: string;
     status: string;
+    operatingMode?: string | null;
+    instructions?: string | null;
     skills: Prisma.JsonValue;
+    permissions?: Prisma.JsonValue | null;
+    goals?: Prisma.JsonValue | null;
     guardrails?: Prisma.JsonValue | null;
   }): Employee {
+    const permissions = Array.isArray(row.permissions)
+      ? (row.permissions as string[])
+      : [];
+    const goals = Array.isArray(row.goals) ? (row.goals as string[]) : [];
     return {
       id: row.id,
       tenantId: row.tenantId,
+      role: (row.role as Employee['role']) || 'sales',
       name: row.name,
       tone: row.tone,
       language: row.language,
       status: row.status as Employee['status'],
+      operatingMode:
+        (row.operatingMode as Employee['operatingMode']) || 'copilot',
+      instructions: row.instructions ?? null,
       skills: row.skills as EmployeeSkills,
+      permissions,
+      goals,
       guardrails: normalizeGuardrails(row.guardrails),
     };
   }

@@ -55,6 +55,17 @@ export default function InboxClient() {
   } | null>(null);
   const [ownership, setOwnership] = useState('ai_owned');
   const [reply, setReply] = useState('');
+  const [context, setContext] = useState<{
+    customer?: { id: string; name: string; phone: string } | null;
+    memory?: { insights?: Record<string, unknown> } | null;
+    cart?: { itemCount: number; items: Array<{ title: string; quantity: number }> } | null;
+    orders?: Array<{
+      orderNumber: string;
+      status: string;
+      totalAmount: number;
+      currency: string;
+    }>;
+  } | null>(null);
 
   const loadList = useCallback(async () => {
     const list = await api.listInbox(filter ?? undefined);
@@ -65,6 +76,9 @@ export default function InboxClient() {
     const thread = await api.getInboxThread(id);
     setMessages(thread.messages);
     setOwnership(thread.conversation.ownership);
+    setContext(
+      (thread as { context?: typeof context }).context ?? null,
+    );
     setPacket(
       thread.conversation.handoffPacket
         ? {
@@ -74,6 +88,11 @@ export default function InboxClient() {
           }
         : null,
     );
+    const customerId = (thread as { context?: { customer?: { id?: string } } })
+      .context?.customer?.id;
+    if (customerId) {
+      api.getCustomerMemory(customerId).catch(() => undefined);
+    }
   }, []);
 
   useEffect(() => {
@@ -153,7 +172,7 @@ export default function InboxClient() {
           </Button>
         </div>
 
-        <div className="grid min-h-[60vh] gap-4 lg:grid-cols-[minmax(240px,320px)_1fr]">
+        <div className="grid min-h-[60vh] gap-4 lg:grid-cols-[minmax(240px,300px)_1fr_minmax(200px,280px)]">
           <Card className="overflow-hidden">
             <CardContent className="max-h-[70vh] overflow-auto p-0">
               {items.length === 0 && (
@@ -303,6 +322,65 @@ export default function InboxClient() {
                   )}
                 </>
               )}
+            </CardContent>
+          </Card>
+
+          <Card className="hidden lg:block">
+            <CardContent className="space-y-3 p-4 text-sm">
+              <p className="font-semibold text-[var(--text-1)]">مشتری و حافظه</p>
+              {context?.customer ? (
+                <div className="space-y-1 text-[var(--text-2)]">
+                  <p>{context.customer.name}</p>
+                  <p className="text-xs text-[var(--text-3)]">
+                    {context.customer.phone}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-[var(--text-3)]">مشتری لینک نشده</p>
+              )}
+              {context?.memory?.insights ? (
+                <div className="space-y-1 text-xs text-[var(--text-3)]">
+                  <p>
+                    میانگین سفارش:{' '}
+                    {Number(
+                      (context.memory.insights as { typicalAov?: number })
+                        .typicalAov ?? 0,
+                    ).toLocaleString('fa-IR')}
+                  </p>
+                  <p>
+                    تعداد سفارش:{' '}
+                    {String(
+                      (context.memory.insights as { orderCount?: number })
+                        .orderCount ?? 0,
+                    )}
+                  </p>
+                </div>
+              ) : null}
+              {context?.cart ? (
+                <div>
+                  <p className="font-medium">سبد ({context.cart.itemCount})</p>
+                  <ul className="mt-1 space-y-0.5 text-xs text-[var(--text-3)]">
+                    {context.cart.items.map((i, idx) => (
+                      <li key={idx}>
+                        {i.title} × {i.quantity}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {context?.orders?.length ? (
+                <div>
+                  <p className="font-medium">سفارش‌های اخیر</p>
+                  <ul className="mt-1 space-y-0.5 text-xs text-[var(--text-3)]">
+                    {context.orders.map((o) => (
+                      <li key={o.orderNumber}>
+                        {o.orderNumber} · {o.status} ·{' '}
+                        {o.totalAmount.toLocaleString('fa-IR')} {o.currency}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>

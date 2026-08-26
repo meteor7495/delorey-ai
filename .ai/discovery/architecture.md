@@ -72,12 +72,13 @@ There is **no** separate repository layer folder. Many services call Prisma/`Dat
 | Module | Path | Role |
 |--------|------|------|
 | platform | `modules/platform/` | Prisma, DataStore, Redis lock, auth guard, webhook events |
-| jobs | `modules/jobs/` | BullMQ `batch.sync` |
+| jobs | `modules/jobs/` | BullMQ `batch.sync` + `ai.ops` |
 | identity | `modules/identity/` | Signup/login, sessions |
 | access | `modules/access/` | Public access requests (landing) |
 | billing | `modules/billing/` | Wallet, PAYG, auto-recharge, admin billing |
 | workspace | `modules/workspace/` | `GET /v1/workspace/me` |
-| employee | `modules/employee/` | Sales Employee + guardrails |
+| employee | `modules/employee/` | Multi-role AI Employees (`/employee` = sales alias) |
+| ai-ops | `modules/ai-ops/` | Decision engine, Command Center, opportunities, memory, cart recovery |
 | commerce | `modules/commerce/` | External store connect/sync (Shopify/Woo path) |
 | shop | `modules/shop/` | Native catalog, CMS, cart, orders, payments, storefront, channel checkout |
 | knowledge | `modules/knowledge/` | FAQ / policy docs |
@@ -88,9 +89,10 @@ There is **no** separate repository layer folder. Many services call Prisma/`Dat
 | telegram | `modules/adapters/telegram/` | Bot webhook + simulate |
 | bale | `modules/adapters/bale/` | Bot webhook + simulate |
 | instagram | `modules/adapters/instagram/` | Production-shaped adapter + BoxAPI spike |
-| runtime | `modules/runtime/` | `executeTurn` |
+| runtime | `modules/runtime/` | `executeTurn` + permission-filtered MCP tools |
 | ai-gateway | `modules/ai-gateway/` | Complete/embed, routing, circuits |
-| inbox | `modules/inbox/` | Takeover / release / operator reply |
+| inbox | `modules/inbox/` | Takeover / release / operator reply + customer memory panel data |
+| mcp | `modules/mcp/` | Tool registry, Streamable HTTP, admin |
 
 Shopify and WooCommerce **adapter modules exist** (`adapters/shopify`, `adapters/woocommerce`) and are wired through `commerce`. `.env.example` states they are **disabled for Iran native shop**; do not revive them as the primary catalog.
 

@@ -22,6 +22,7 @@ import { AccessModule } from './modules/access/access.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { HealthController } from './health.controller';
 import { McpModule } from './modules/mcp/mcp.module';
+import { AiOpsModule } from './modules/ai-ops/ai-ops.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { McpModule } from './modules/mcp/mcp.module';
     BaleAdapterModule,
     InstagramSpikeModule,
     McpModule,
+    AiOpsModule,
   ],
   controllers: [HealthController],
 })
