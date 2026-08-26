@@ -11,6 +11,7 @@ import {
 } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
+import { AiEmployeeEntitlementGuard } from '../platform/ai-employee-entitlement.guard';
 import { AuditService } from '../audit/audit.service';
 import { EmployeeService } from './employee.service';
 
@@ -70,7 +71,7 @@ class UpdateGuardrailsDto {
 }
 
 @Controller('employee')
-@UseGuards(SessionAuthGuard)
+@UseGuards(SessionAuthGuard, AiEmployeeEntitlementGuard)
 export class EmployeeController {
   constructor(
     private readonly employees: EmployeeService,

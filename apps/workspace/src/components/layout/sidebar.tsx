@@ -57,14 +57,17 @@ const shopNav: NavLeaf[] = [
   { href: '/shop/settings', icon: Settings, label: 'تنظیمات فروشگاه' },
 ];
 
-const aiNav: NavLeaf[] = [
+const aiFeatureNav: NavLeaf[] = [
   { href: '/employees', icon: Bot, label: 'کارمندان AI' },
   { href: '/opportunities', icon: Sparkles, label: 'فرصت‌های درآمد' },
   { href: '/approvals', icon: ShieldCheck, label: 'تأییدها' },
   { href: '/integrations', icon: Radio, label: 'یکپارچه‌سازی' },
-  { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/knowledge', icon: BookOpen, label: 'دانش' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },
+];
+
+const sharedOpsNav: NavLeaf[] = [
+  { href: '/inbox', icon: Inbox, label: 'صندوق ورودی' },
   { href: '/billing', icon: Wallet, label: 'اعتبار سلومـا' },
 ];
 
@@ -100,11 +103,19 @@ function NavLink({ item, pathname }: { item: NavLeaf; pathname: string }) {
 interface SidebarProps {
   tenantName: string;
   employeeStatus: string;
+  aiEmployeeEntitled?: boolean;
 }
 
-export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
+export function Sidebar({
+  tenantName,
+  employeeStatus,
+  aiEmployeeEntitled = false,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const aiNav = aiEmployeeEntitled
+    ? [...aiFeatureNav, ...sharedOpsNav]
+    : sharedOpsNav;
   const aiOpenDefault = aiNav.some((i) => isActivePath(pathname, i.href));
   const [aiOpen, setAiOpen] = useState(aiOpenDefault);
 
@@ -149,9 +160,11 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
             <div className="text-[10.5px] text-white/40">فضای کاری فروش</div>
           </div>
         </div>
-        <div className="mt-2.5 px-1">
-          <AiStateChip state={employeeStatus} />
-        </div>
+        {aiEmployeeEntitled ? (
+          <div className="mt-2.5 px-1">
+            <AiStateChip state={employeeStatus} />
+          </div>
+        ) : null}
       </div>
 
       <nav className="px-2.5 flex flex-col gap-0.5 flex-1 overflow-y-auto pb-3">
@@ -175,7 +188,9 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
             onClick={() => setAiOpen((v) => !v)}
             className="flex w-full items-center gap-2 px-[12px] pb-2 text-[10.5px] font-bold tracking-[0.1em] text-white/30 uppercase hover:text-white/50"
           >
-            <span className="flex-1 text-start">کارمند هوش مصنوعی</span>
+            <span className="flex-1 text-start">
+              {aiEmployeeEntitled ? 'کارمند هوش مصنوعی' : 'عملیات'}
+            </span>
             <ChevronDown
               size={14}
               className={cn('transition-transform', aiOpen && 'rotate-180')}
@@ -185,6 +200,11 @@ export function Sidebar({ tenantName, employeeStatus }: SidebarProps) {
             aiNav.map((item) => (
               <NavLink key={item.href} item={item} pathname={pathname} />
             ))}
+          {aiOpen && !aiEmployeeEntitled ? (
+            <p className="px-3 py-2 text-[11px] leading-relaxed text-white/35">
+              کارمند AI با بستهٔ جداگانه فعال می‌شود.
+            </p>
+          ) : null}
         </div>
       </nav>
 

@@ -7,6 +7,7 @@ import {
 import { IdentityService } from '../identity/identity.service';
 import { PrismaService } from '../platform/prisma.service';
 import { BillingService } from '../billing/billing.service';
+import { hasAiEmployeeEntitlement } from '../platform/entitlements';
 
 const PLANS = [
   'site-starter',
@@ -127,6 +128,18 @@ export class AccessService {
       request.plan,
       requestId,
     );
+
+    if (hasAiEmployeeEntitlement(request.plan)) {
+      await this.prisma.employee.updateMany({
+        where: { tenantId: request.tenantId, role: 'sales' },
+        data: { status: 'active' },
+      });
+    } else {
+      await this.prisma.employee.updateMany({
+        where: { tenantId: request.tenantId },
+        data: { status: 'inactive' },
+      });
+    }
 
     const workspaceBase = (
       process.env.WORKSPACE_BASE_URL ?? 'http://localhost:3010'

@@ -20,6 +20,7 @@ import {
 } from 'class-validator';
 import { CurrentAuth, SessionAuthGuard } from '../platform/auth.guard';
 import type { AuthContext } from '../platform/auth.guard';
+import { AiEmployeeEntitlementGuard } from '../platform/ai-employee-entitlement.guard';
 import { AuditService } from '../audit/audit.service';
 import type { EmployeeRole } from '../platform/types';
 import { EmployeeService } from '../employee/employee.service';
@@ -131,7 +132,7 @@ function parseRole(role: string): EmployeeRole | null {
 }
 
 @Controller()
-@UseGuards(SessionAuthGuard)
+@UseGuards(SessionAuthGuard, AiEmployeeEntitlementGuard)
 export class AiOpsController {
   constructor(
     private readonly employees: EmployeeService,

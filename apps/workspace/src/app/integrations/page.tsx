@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function IntegrationsPage() {
@@ -26,6 +27,10 @@ export default function IntegrationsPage() {
 
   return (
     <AppShell>
+      <RequireAiEmployee
+        title="یکپارچه‌سازی / MCP"
+        description="کلاینت‌ها و overrides ابزار — بازارچه کامل در فازهای بعدی"
+      >
       <div className="space-y-6">
         <PageHeader
           title="یکپارچه‌سازی / MCP"
@@ -77,6 +82,7 @@ export default function IntegrationsPage() {
           </CardContent>
         </Card>
       </div>
+      </RequireAiEmployee>
     </AppShell>
   );
 }

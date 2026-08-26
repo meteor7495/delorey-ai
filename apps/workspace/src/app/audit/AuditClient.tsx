@@ -15,6 +15,7 @@ import {
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -129,6 +130,10 @@ export default function AuditClient() {
 
   return (
     <AppShell>
+      <RequireAiEmployee
+        title="ممیزی"
+        description="نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت"
+      >
       <div className="space-y-4">
         <PageHeader
           title="ممیزی"
@@ -356,6 +361,7 @@ export default function AuditClient() {
           </Card>
         </div>
       </div>
+      </RequireAiEmployee>
     </AppShell>
   );
 }

@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Topbar } from '@/components/layout/topbar';
 import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav';
@@ -24,6 +24,7 @@ const titleMap: Record<string, string> = {
   '/shop/settings': 'تنظیمات فروشگاه',
   '/shop': 'فروشگاه بومی',
   '/employee': 'کارمند فروش',
+  '/employees': 'کارمندان AI',
   '/channels': 'کانال‌ها',
   '/inbox': 'صندوق ورودی',
   '/knowledge': 'دانش',
@@ -34,12 +35,25 @@ const titleMap: Record<string, string> = {
   '/billing/ops': 'عملیات مالی',
 };
 
+type WorkspaceEntitlements = {
+  aiEmployeeEntitled: boolean;
+};
+
+const EntitlementsContext = createContext<WorkspaceEntitlements>({
+  aiEmployeeEntitled: false,
+});
+
+export function useWorkspaceEntitlements() {
+  return useContext(EntitlementsContext);
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState('inactive');
   const [tenantName, setTenantName] = useState('فضای کاری');
+  const [aiEmployeeEntitled, setAiEmployeeEntitled] = useState(false);
 
   useEffect(() => {
     if (!getToken()) {
@@ -50,6 +64,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       .workspaceMe()
       .then((me) => {
         setStatus(String(me.employeeStatus ?? 'inactive'));
+        setAiEmployeeEntitled(Boolean(me.aiEmployeeEntitled));
         const tenant = me.tenant as { name?: string } | undefined;
         if (tenant?.name) setTenantName(tenant.name);
         setReady(true);
@@ -76,19 +91,25 @@ export function AppShell({ children }: { children: ReactNode }) {
     )?.[1] ?? 'فضای کاری';
 
   return (
-    <div className="flex h-[100dvh] overflow-hidden bg-[var(--bg)] app-shell">
-      <Sidebar tenantName={tenantName} employeeStatus={status} />
+    <EntitlementsContext.Provider value={{ aiEmployeeEntitled }}>
+      <div className="flex h-[100dvh] overflow-hidden bg-[var(--bg)] app-shell">
+        <Sidebar
+          tenantName={tenantName}
+          employeeStatus={status}
+          aiEmployeeEntitled={aiEmployeeEntitled}
+        />
 
-      <main className="flex flex-1 min-w-0 flex-col overflow-hidden">
-        <Topbar title={title} tenantName={tenantName} />
-        <div className="flex-1 overflow-y-auto bg-[var(--bg)] overscroll-contain mobile-content-pad pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
-          <div className="mx-auto w-full max-w-[1100px] p-4 sm:p-6 fade-up">
-            {children}
+        <main className="flex flex-1 min-w-0 flex-col overflow-hidden">
+          <Topbar title={title} tenantName={tenantName} />
+          <div className="flex-1 overflow-y-auto bg-[var(--bg)] overscroll-contain mobile-content-pad pb-[calc(4.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+            <div className="mx-auto w-full max-w-[1100px] p-4 sm:p-6 fade-up">
+              {children}
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
 
-      <MobileBottomNav />
-    </div>
+        <MobileBottomNav />
+      </div>
+    </EntitlementsContext.Provider>
   );
 }

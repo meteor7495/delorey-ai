@@ -8,6 +8,7 @@ From `docs/02-product/product-principles.md` (2026-08-10) and root README:
 
 - Primary product: **native storefront + unified merchant ops**
 - **AI Sales Employee** is an optional add-on (Website, Telegram, Bale; Instagram adapter exists)
+- Entitlement gate: `hasAiEmployeeEntitlement(tenant.plan)` — unlocks for `ai-sales` / `ai-business` (+ `trial` / legacy). Site-builder plans do not unlock AI APIs, Runtime turns, or Workspace AI surfaces.
 - Not a chatbot builder, CRM, helpdesk, or drag-drop page IDE
 
 Older `docs/03-architecture/system-architecture.md` (2026-07-25) still says the Runtime is the center of gravity. Treat that as historical for conversation paths. Commerce truth lives in native shop tables.

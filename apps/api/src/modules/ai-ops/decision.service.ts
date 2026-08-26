@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../platform/prisma.service';
 import { DataStore } from '../platform/data.store';
 import type { Employee, EmployeeRole } from '../platform/types';
+import { hasAiEmployeeEntitlement } from '../platform/entitlements';
 import type { McpRiskLevel } from '../mcp/core/types';
 import { EmployeePermissionService } from './employee-permission.service';
 import { OperatingModeService } from './operating-mode.service';
@@ -64,6 +65,14 @@ export class DecisionService {
     forceApprove?: boolean;
   }): Promise<DecisionResult> {
     const correlationId = uuid();
+    const tenant = await this.store.findTenant(params.tenantId);
+    if (!hasAiEmployeeEntitlement(tenant?.plan)) {
+      return {
+        status: 'rejected',
+        reason: 'ai_employee_not_entitled',
+        correlationId,
+      };
+    }
     const employee = await this.store.employeeForTenant(
       params.tenantId,
       params.role,

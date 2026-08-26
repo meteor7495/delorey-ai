@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DataStore } from '../platform/data.store';
+import { hasAiEmployeeEntitlement } from '../platform/entitlements';
 
 @Injectable()
 export class WorkspaceService {
@@ -7,6 +8,7 @@ export class WorkspaceService {
 
   async getHome(tenantId: string, email: string) {
     const tenant = await this.store.findTenant(tenantId);
+    const aiEmployeeEntitled = hasAiEmployeeEntitlement(tenant?.plan);
     const store = await this.store.getStore(tenantId);
     const employee = await this.store.employeeForTenant(tenantId);
     const channel = await this.store.websiteChannel(tenantId);
@@ -56,7 +58,9 @@ export class WorkspaceService {
       catalogReady: publishedCount > 0,
       storeConnected: publishedCount > 0,
       syncHealthy: publishedCount > 0,
-      employeeConfigured: Boolean(employee && employee.status === 'active'),
+      employeeConfigured: Boolean(
+        aiEmployeeEntitled && employee && employee.status === 'active',
+      ),
       channelConnected: messagingConnected,
       firstOrderDone: orderCount > 0,
       knowledgeReady: path.activeKnowledge > 0,
@@ -70,7 +74,10 @@ export class WorkspaceService {
     return {
       email,
       tenant,
-      employeeStatus: employee?.status ?? 'inactive',
+      aiEmployeeEntitled,
+      employeeStatus: aiEmployeeEntitled
+        ? (employee?.status ?? 'inactive')
+        : 'inactive',
       syncHealth: publishedCount > 0 ? 'healthy' : (store?.syncHealth ?? 'never'),
       websiteChannelStatus: channel?.status ?? 'disconnected',
       productCount: publishedCount,

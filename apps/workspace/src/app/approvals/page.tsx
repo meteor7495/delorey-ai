@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toastFromError, toastSuccess } from '@/lib/notify';
@@ -19,6 +20,19 @@ type Approval = {
 };
 
 export default function ApprovalsPage() {
+  return (
+    <AppShell>
+      <RequireAiEmployee
+        title="تأییدهای AI"
+        description="اقدامات پرریسک در انتظار تصمیم شما"
+      >
+        <ApprovalsContent />
+      </RequireAiEmployee>
+    </AppShell>
+  );
+}
+
+function ApprovalsContent() {
   const [items, setItems] = useState<Approval[]>([]);
 
   async function load() {
@@ -41,47 +55,45 @@ export default function ApprovalsPage() {
   }
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        <PageHeader
-          title="تأییدهای AI"
-          description="اقدامات پرریسک در انتظار تصمیم شما"
-        />
-        <div className="space-y-3">
-          {items.map((a) => (
-            <Card key={a.id}>
-              <CardContent className="space-y-3 p-5">
-                <div>
-                  <p className="font-semibold">{a.title}</p>
-                  <p className="text-sm text-[var(--text-3)]">
-                    {a.kind} · {a.riskLevel ?? '—'} ·{' '}
-                    {new Date(a.createdAt).toLocaleString('fa-IR')}
+    <div className="space-y-6">
+      <PageHeader
+        title="تأییدهای AI"
+        description="اقدامات پرریسک در انتظار تصمیم شما"
+      />
+      <div className="space-y-3">
+        {items.map((a) => (
+          <Card key={a.id}>
+            <CardContent className="space-y-3 p-5">
+              <div>
+                <p className="font-semibold">{a.title}</p>
+                <p className="text-sm text-[var(--text-3)]">
+                  {a.kind} · {a.riskLevel ?? '—'} ·{' '}
+                  {new Date(a.createdAt).toLocaleString('fa-IR')}
+                </p>
+                {a.description ? (
+                  <p className="mt-2 text-sm text-[var(--text-2)]">
+                    {a.description}
                   </p>
-                  {a.description ? (
-                    <p className="mt-2 text-sm text-[var(--text-2)]">
-                      {a.description}
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex gap-2">
-                  <Button onClick={() => void decide(a.id, 'approved')}>
-                    تأیید
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => void decide(a.id, 'rejected')}
-                  >
-                    رد
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {!items.length ? (
-            <p className="text-sm text-[var(--text-3)]">تأییدی در صف نیست.</p>
-          ) : null}
-        </div>
+                ) : null}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => void decide(a.id, 'approved')}>
+                  تأیید
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => void decide(a.id, 'rejected')}
+                >
+                  رد
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        {!items.length ? (
+          <p className="text-sm text-[var(--text-3)]">تأییدی در صف نیست.</p>
+        ) : null}
       </div>
-    </AppShell>
+    </div>
   );
 }

@@ -165,6 +165,7 @@ export const decisionLabels: Record<string, string> = {
   order_lookup_skill_disabled: 'مهارت پیگیری سفارش غیرفعال',
   paused_human_owned: 'متوقف — در اختیار اپراتور',
   refuse_paused: 'رد پاسخ — کارمند متوقف',
+  refuse_no_entitlement: 'رد پاسخ — بسته AI فعال نیست',
   released_to_ai: 'بازگشت به کارمند فروش',
   'escalated:*': 'ارجاع به انسان (همه)',
   'guardrail_block:*': 'مسدود توسط محدودیت (همه)',

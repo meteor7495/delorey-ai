@@ -26,6 +26,7 @@ import type {
 import { DEFAULT_GUARDRAILS, normalizeGuardrails } from './types';
 import { EMPLOYEE_ROLE_SEEDS } from './employee-role-defaults';
 import { seedNativeShop } from './demo-catalog';
+import { hasAiEmployeeEntitlement } from './entitlements';
 import type { EmployeeRole, SyncHealth } from './types';
 type EmployeeSkills = Employee['skills'];
 
@@ -687,6 +688,11 @@ export class DataStore implements OnModuleInit {
   }
 
   async ensureAllEmployeeRoles(tenantId: string) {
+    const tenant = await this.prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { plan: true },
+    });
+    const aiEntitled = hasAiEmployeeEntitlement(tenant?.plan);
     for (const seed of EMPLOYEE_ROLE_SEEDS) {
       const existing = await this.prisma.employee.findUnique({
         where: { tenantId_role: { tenantId, role: seed.role } },
@@ -699,7 +705,8 @@ export class DataStore implements OnModuleInit {
             name: seed.name,
             tone: seed.tone,
             language: 'fa',
-            status: seed.role === 'sales' ? 'active' : 'inactive',
+            status:
+              seed.role === 'sales' && aiEntitled ? 'active' : 'inactive',
             operatingMode: seed.operatingMode,
             instructions: seed.instructions,
             skills: seed.skills,

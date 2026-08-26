@@ -54,18 +54,23 @@ export default function OnboardingPage() {
   const [steps, setSteps] = useState<Record<string, boolean> | null>(null);
   const [partnerReady, setPartnerReady] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
+  const [aiEmployeeEntitled, setAiEmployeeEntitled] = useState(false);
 
   useEffect(() => {
     Promise.all([api.workspaceMe(), api.getWebsiteChannel().catch(() => null)])
       .then(([me, ch]) => {
         setSteps((me.onboarding as Record<string, boolean>) ?? null);
         setPartnerReady(Boolean(me.partnerReady));
+        setAiEmployeeEntitled(Boolean(me.aiEmployeeEntitled));
         setPublicKey(ch?.publicKey ?? null);
       })
       .catch(console.error);
   }, []);
 
-  const doneCount = ITEMS.filter((i) => Boolean(steps?.[i.key])).length;
+  const visibleItems = ITEMS.filter(
+    (i) => i.key !== 'employeeConfigured' || aiEmployeeEntitled,
+  );
+  const doneCount = visibleItems.filter((i) => Boolean(steps?.[i.key])).length;
 
   return (
     <AppShell>
@@ -77,14 +82,14 @@ export default function OnboardingPage() {
             <Badge variant={partnerReady ? 'default' : 'secondary'}>
               {partnerReady
                 ? 'مسیر اصلی آماده'
-                : `${doneCount} از ${ITEMS.length}`}
+                : `${doneCount} از ${visibleItems.length}`}
             </Badge>
           }
         />
 
         <Card>
           <CardContent className="divide-y divide-[var(--border-color)] p-0">
-            {ITEMS.map((item) => {
+            {visibleItems.map((item) => {
               const done = Boolean(steps?.[item.key]);
               return (
                 <div

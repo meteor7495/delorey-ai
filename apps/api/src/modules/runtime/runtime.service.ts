@@ -30,6 +30,7 @@ import type {
   EmployeeGuardrails,
 } from '../platform/types';
 import { DEFAULT_GUARDRAILS } from '../platform/types';
+import { hasAiEmployeeEntitlement } from '../platform/entitlements';
 
 export type TurnResult = {
   reply: string;
@@ -180,6 +181,14 @@ export class RuntimeService {
     }
 
     const storeConn = await this.store.getStore(tenantId);
+    const tenant = await this.store.findTenant(tenantId);
+    if (!hasAiEmployeeEntitlement(tenant?.plan)) {
+      return {
+        reply: 'کارمند فروش برای این فروشگاه فعال نیست.',
+        citations: [],
+        decision: 'refuse_no_entitlement',
+      };
+    }
     const employee = await this.store.employeeForTenant(tenantId, 'sales');
     const guardrails: EmployeeGuardrails =
       employee?.guardrails ?? DEFAULT_GUARDRAILS;

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toastFromError, toastSuccess } from '@/lib/notify';
@@ -20,6 +21,19 @@ type Opp = {
 };
 
 export default function OpportunitiesPage() {
+  return (
+    <AppShell>
+      <RequireAiEmployee
+        title="فرصت‌های درآمد"
+        description="برآوردها با برچسب estimate از داده واقعی محاسبه می‌شوند"
+      >
+        <OpportunitiesContent />
+      </RequireAiEmployee>
+    </AppShell>
+  );
+}
+
+function OpportunitiesContent() {
   const [items, setItems] = useState<Opp[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -46,36 +60,33 @@ export default function OpportunitiesPage() {
   }
 
   return (
-    <AppShell>
-      <div className="space-y-6">
-        <PageHeader
-          title="فرصت‌های درآمد"
-          description="برآوردها با برچسب estimate از داده واقعی محاسبه می‌شوند"
-        />
-        <div className="space-y-3">
-          {items.map((o) => (
-            <Card key={o.id}>
-              <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-semibold">{o.reason}</p>
-                  <p className="text-sm text-[var(--text-3)]">
-                    {o.type} · برآورد:{' '}
-                    {Number(o.estimatedValue).toLocaleString('fa-IR')}{' '}
-                    {o.currency} · اطمینان:{' '}
-                    {(o.confidence * 100).toFixed(0)}%
-                  </p>
-                </div>
-                <Button disabled={busy} onClick={() => void execute(o.id)}>
-                  بسپار به AI
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-          {!items.length ? (
-            <p className="text-sm text-[var(--text-3)]">فرصت بازی نیست.</p>
-          ) : null}
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="فرصت‌های درآمد"
+        description="برآوردها با برچسب estimate از داده واقعی محاسبه می‌شوند"
+      />
+      <div className="space-y-3">
+        {items.map((o) => (
+          <Card key={o.id}>
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold">{o.reason}</p>
+                <p className="text-sm text-[var(--text-3)]">
+                  {o.type} · برآورد:{' '}
+                  {Number(o.estimatedValue).toLocaleString('fa-IR')}{' '}
+                  {o.currency} · اطمینان: {(o.confidence * 100).toFixed(0)}%
+                </p>
+              </div>
+              <Button disabled={busy} onClick={() => void execute(o.id)}>
+                بسپار به AI
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+        {!items.length ? (
+          <p className="text-sm text-[var(--text-3)]">فرصت بازی نیست.</p>
+        ) : null}
       </div>
-    </AppShell>
+    </div>
   );
 }

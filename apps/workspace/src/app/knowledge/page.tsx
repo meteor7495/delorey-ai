@@ -6,6 +6,7 @@ import { knowledgeDocTypeLabel, knowledgeStatusLabel } from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
+import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { EmptyState } from '@/components/shared/empty-state';
 import { FormDialog } from '@/components/shared/form-dialog';
 import { Button } from '@/components/ui/button';
@@ -113,6 +114,10 @@ export default function KnowledgePage() {
 
   return (
     <AppShell>
+      <RequireAiEmployee
+        title="دانش فروشگاه"
+        description="پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای"
+      >
       <div className="space-y-6">
         <PageHeader
           title="دانش فروشگاه"
@@ -266,6 +271,7 @@ export default function KnowledgePage() {
           </CardContent>
         </Card>
       </div>
+      </RequireAiEmployee>
     </AppShell>
   );
 }
