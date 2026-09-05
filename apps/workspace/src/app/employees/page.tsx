@@ -2,6 +2,11 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import {
+  employeeRoleLabel,
+  employeeStatusLabel,
+  operatingModeLabel,
+} from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
@@ -9,20 +14,12 @@ import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
-const ROLE_FA: Record<string, string> = {
-  sales: 'فروش',
-  support: 'پشتیبانی',
-  marketing: 'بازاریابی',
-  analyst: 'تحلیل',
-  operations: 'عملیات',
-};
-
 export default function EmployeesPage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="کارمندان AI"
-        description="تیم هوش مصنوعی فروشگاه شما"
+        title="دستیارهای هوشمند"
+        description="دستیارهایی که بخشی از کارهای روزمره فروشگاه را انجام می‌دهند"
       >
         <EmployeesContent />
       </RequireAiEmployee>
@@ -51,8 +48,8 @@ function EmployeesContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="کارمندان AI"
-        description="تیم هوش مصنوعی فروشگاه شما"
+        title="دستیارهای هوشمند"
+        description="دستیارهایی که بخشی از کارهای روزمره فروشگاه را انجام می‌دهند"
       />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((e) => (
@@ -61,11 +58,12 @@ function EmployeesContent() {
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-[var(--text-1)]">{e.name}</h3>
                 <span className="text-xs text-[var(--text-3)]">
-                  {ROLE_FA[e.role] ?? e.role}
+                  {employeeRoleLabel(e.role)}
                 </span>
               </div>
               <p className="text-sm text-[var(--text-2)]">
-                وضعیت: {e.status} · حالت: {e.operatingMode}
+                وضعیت: {employeeStatusLabel(e.status)} · حالت:{' '}
+                {operatingModeLabel(e.operatingMode)}
               </p>
               <Button asChild variant="outline" className="w-full">
                 <Link href={`/employees/${e.role}`}>جزئیات</Link>

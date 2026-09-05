@@ -7,7 +7,7 @@ import './globals.css';
 export const metadata = {
   title: 'سِلوما — فضای کاری',
   applicationName: 'Seloma',
-  description: 'کنترل‌پنل کارمند فروش هوش مصنوعی سِلوما',
+  description: 'پنل مدیریت فروشگاه و دستیار هوشمند سِلوما',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

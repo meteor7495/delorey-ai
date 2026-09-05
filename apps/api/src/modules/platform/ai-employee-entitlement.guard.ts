@@ -21,7 +21,7 @@ export class AiEmployeeEntitlementGuard implements CanActivate {
     const tenant = await this.store.findTenant(req.auth.tenantId);
     if (!hasAiEmployeeEntitlement(tenant?.plan)) {
       throw new ForbiddenException(
-        'بسته کارمند هوش مصنوعی برای این فروشگاه فعال نیست',
+        'بسته دستیار هوشمند برای این فروشگاه فعال نیست',
       );
     }
     return true;

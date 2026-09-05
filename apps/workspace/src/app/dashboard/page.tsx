@@ -72,7 +72,7 @@ export default function DashboardPage() {
     <AppShell>
       <div className="space-y-6">
         <PageHeader
-          title="داشبورد"
+          title="پیشخوان"
           description="نتایج واقعی از گفتگو و ممیزی — بدون امتیاز وانیته"
           actions={
             <div className="flex gap-1.5">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         {revenue && (
           <div className="grid gap-3 kpi-grid-responsive">
             <StatCard
-              title="GMV فروشگاه"
+              title="حجم فروش"
               value={formatMoney(revenue.store.gmv, revenue.store.currency)}
               description={revenue.store.note}
               icon={ShoppingBag}

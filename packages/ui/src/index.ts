@@ -30,6 +30,18 @@ export {
   knowledgeStatusLabels,
   knowledgeDocTypeLabel,
   knowledgeStatusLabel,
+  employeeStatusLabels,
+  operatingModeLabels,
+  employeeRoleLabels,
+  integrationStatusLabels,
+  toolOverrideStateLabels,
+  approvalPolicyLabels,
+  employeeStatusLabel,
+  operatingModeLabel,
+  employeeRoleLabel,
+  integrationStatusLabel,
+  toolOverrideStateLabel,
+  approvalPolicyLabel,
   type AiState,
 } from './tokens';
 export { AiStateChip } from './ai-state-chip';

@@ -1,6 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import {
+  approvalPolicyLabel,
+  integrationStatusLabel,
+  toolOverrideStateLabel,
+} from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
@@ -28,17 +33,17 @@ export default function IntegrationsPage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="یکپارچه‌سازی / MCP"
-        description="کلاینت‌ها و overrides ابزار — بازارچه کامل در فازهای بعدی"
+        title="اتصال سرویس"
+        description="سرویس‌های متصل و تنظیمات دسترسی دستیار"
       >
       <div className="space-y-6">
         <PageHeader
-          title="یکپارچه‌سازی / MCP"
-          description="کلاینت‌ها و overrides ابزار — بازارچه کامل در فازهای بعدی"
+          title="اتصال سرویس"
+          description="سرویس‌های متصل و تنظیمات دسترسی دستیار"
         />
         <Card>
           <CardHeader>
-            <CardTitle>کلاینت‌های MCP</CardTitle>
+            <CardTitle>سرویس‌های متصل</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {(data?.clients ?? []).map((c) => (
@@ -48,20 +53,20 @@ export default function IntegrationsPage() {
               >
                 <span>{String(c.name)}</span>
                 <span className="text-[var(--text-3)]">
-                  {String(c.kind)} · {String(c.status)}
+                  {String(c.kind)} · {integrationStatusLabel(String(c.status))}
                 </span>
               </div>
             ))}
             {!data?.clients?.length ? (
               <p className="text-sm text-[var(--text-3)]">
-                هنوز کلاینت خارجی ثبت نشده. ابزارهای داخلی Runtime در دسترس‌اند.
+                هنوز سرویس خارجی متصل نشده. ابزارهای پیش‌فرض فروشگاه در دسترس‌اند.
               </p>
             ) : null}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Tool overrides</CardTitle>
+            <CardTitle>تنظیمات دسترسی ابزارها</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {(data?.toolOverrides ?? []).map((t) => (
@@ -71,13 +76,15 @@ export default function IntegrationsPage() {
               >
                 <span>{String(t.toolName)}</span>
                 <span className="text-[var(--text-3)]">
-                  {t.enabled ? 'enabled' : 'disabled'} ·{' '}
-                  {String(t.approvalPolicy ?? 'default')}
+                  {toolOverrideStateLabel(Boolean(t.enabled))} ·{' '}
+                  {approvalPolicyLabel(String(t.approvalPolicy ?? 'default'))}
                 </span>
               </div>
             ))}
             {!data?.toolOverrides?.length ? (
-              <p className="text-sm text-[var(--text-3)]">بدون override.</p>
+              <p className="text-sm text-[var(--text-3)]">
+                تنظیم سفارشی ثبت نشده — همه ابزارها با پیش‌فرض کار می‌کنند.
+              </p>
             ) : null}
           </CardContent>
         </Card>

@@ -80,11 +80,11 @@ const OPERATIONS_PERMISSIONS = [
 export const EMPLOYEE_ROLE_SEEDS: EmployeeRoleSeed[] = [
   {
     role: 'sales',
-    name: 'کارمند فروش',
+    name: 'دستیار هوشمند فروش',
     tone: 'مودب و مستقیم',
     operatingMode: 'assistant',
     instructions:
-      'شما کارمند فروش هستید. فقط از ابزارهای تأییدشده برای قیمت، موجودی و سفارش استفاده کنید. هرگز داده تجاری را حدس نزنید.',
+      'شما دستیار هوشمند فروش هستید. فقط از ابزارهای تأییدشده برای قیمت، موجودی و سفارش استفاده کنید. هرگز داده تجاری را حدس نزنید.',
     skills: {
       product_search: true,
       recommend: true,
@@ -97,11 +97,11 @@ export const EMPLOYEE_ROLE_SEEDS: EmployeeRoleSeed[] = [
   },
   {
     role: 'support',
-    name: 'کارمند پشتیبانی',
+    name: 'دستیار هوشمند پشتیبانی',
     tone: 'آرام و همدل',
     operatingMode: 'copilot',
     instructions:
-      'شما کارمند پشتیبانی هستید. وضعیت سفارش و سیاست‌ها را از ابزارها بخوانید. بازپرداخت و لغو را بدون تأیید انسانی انجام ندهید.',
+      'شما دستیار هوشمند پشتیبانی هستید. وضعیت سفارش و سیاست‌ها را از ابزارها بخوانید. بازپرداخت و لغو را بدون تأیید انسانی انجام ندهید.',
     skills: {
       product_search: true,
       recommend: false,
@@ -114,11 +114,11 @@ export const EMPLOYEE_ROLE_SEEDS: EmployeeRoleSeed[] = [
   },
   {
     role: 'marketing',
-    name: 'کارمند بازاریابی',
+    name: 'دستیار هوشمند بازاریابی',
     tone: 'خلاق و مختصر',
     operatingMode: 'copilot',
     instructions:
-      'شما کارمند بازاریابی هستید. کمپین‌ها را به‌صورت پیش‌نویس بسازید؛ ارسال انبوه فقط پس از تأیید.',
+      'شما دستیار هوشمند بازاریابی هستید. کمپین‌ها را به‌صورت پیش‌نویس بسازید؛ ارسال انبوه فقط پس از تأیید.',
     skills: {
       product_search: false,
       recommend: false,
@@ -131,11 +131,11 @@ export const EMPLOYEE_ROLE_SEEDS: EmployeeRoleSeed[] = [
   },
   {
     role: 'analyst',
-    name: 'تحلیل‌گر کسب‌وکار',
+    name: 'دستیار هوشمند تحلیل',
     tone: 'دقیق و مبتنی بر داده',
     operatingMode: 'copilot',
     instructions:
-      'شما تحلیل‌گر هستید. فقط از داده‌های analytics و commerce خواندنی استفاده کنید و اقدامات اجرایی پیشنهاد دهید.',
+      'شما دستیار هوشمند تحلیل هستید. فقط از داده‌های فروش و گزارش‌های خواندنی استفاده کنید و اقدامات اجرایی پیشنهاد دهید.',
     skills: {
       product_search: true,
       recommend: false,
@@ -148,11 +148,11 @@ export const EMPLOYEE_ROLE_SEEDS: EmployeeRoleSeed[] = [
   },
   {
     role: 'operations',
-    name: 'کارمند عملیات',
+    name: 'دستیار هوشمند عملیات',
     tone: 'عملیاتی و شفاف',
     operatingMode: 'assistant',
     instructions:
-      'شما کارمند عملیات هستید. موجودی و سفارش‌ها را پایش کنید؛ تغییرات پرریسک نیاز به تأیید دارند.',
+      'شما دستیار هوشمند عملیات هستید. موجودی و سفارش‌ها را پایش کنید؛ تغییرات پرریسک نیاز به تأیید دارند.',
     skills: {
       product_search: true,
       recommend: false,

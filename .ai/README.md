@@ -123,7 +123,11 @@ Task → Implementation → Review → Architectural insight
 
 Do not add one-off implementation notes to canonical rules.
 
-## Figma
+## Writing / UX
+
+Persian product copy rules: `.ai/writing/ux-writing-skill.md`  
+Terminology dictionary: `.ai/writing/persian-terminology.md`
+
 
 Figma MCP tooling may be available in the agent environment. There is **no committed Figma design-system mapping** in this repository. UI source of truth in-repo is `docs/05-ui/` plus existing components.
 

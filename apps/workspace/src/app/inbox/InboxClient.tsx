@@ -168,7 +168,7 @@ export default function InboxClient() {
             variant={filter === 'ai_owned' ? 'default' : 'outline'}
             onClick={() => setFilter('ai_owned')}
           >
-            پاسخ‌گوی AI
+            پاسخ‌گوی دستیار
           </Button>
         </div>
 
@@ -251,7 +251,7 @@ export default function InboxClient() {
                           await loadList();
                         }}
                       >
-                        بازگشت به AI
+                        بازگشت به دستیار
                       </Button>
                       <Button size="sm" variant="outline" asChild>
                         <a href={`/audit?c=${selectedId}`}>ممیزی</a>

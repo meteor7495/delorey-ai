@@ -117,7 +117,7 @@ export default function StoreHomePage({
       <main className="dk-container py-20 text-center">
         <p className="text-zh-pink mb-3 text-[14px] font-semibold">{error}</p>
         <p className="text-zh-600 text-[14px]">
-          اسلاگ فروشگاه را از Workspace → تنظیمات بررسی کنید.
+          اسلاگ فروشگاه را از فضای کاری → تنظیمات بررسی کنید.
         </p>
       </main>
     );

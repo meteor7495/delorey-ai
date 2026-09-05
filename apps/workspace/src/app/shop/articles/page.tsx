@@ -316,7 +316,7 @@ export default function ShopArticlesPage() {
           <EmptyState
             icon={FileText}
             title="هنوز مقاله‌ای نیست"
-            description="مقالات به کارمند AI کمک می‌کنند به سوال‌های محتوایی هم پاسخ بدهد"
+            description="مقالات به دستیار هوشمند کمک می‌کنند به سؤال‌های محتوایی هم پاسخ بدهد"
             action={
               <Button onClick={openCreate}>
                 <Plus className="ms-1 h-4 w-4" />

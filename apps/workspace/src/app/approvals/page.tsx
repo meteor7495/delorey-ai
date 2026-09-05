@@ -23,7 +23,7 @@ export default function ApprovalsPage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="تأییدهای AI"
+        title="درخواست‌های تأیید"
         description="اقدامات پرریسک در انتظار تصمیم شما"
       >
         <ApprovalsContent />
@@ -57,7 +57,7 @@ function ApprovalsContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="تأییدهای AI"
+        title="درخواست‌های تأیید"
         description="اقدامات پرریسک در انتظار تصمیم شما"
       />
       <div className="space-y-3">

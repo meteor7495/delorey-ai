@@ -38,7 +38,7 @@ type NavLeaf = { href: string; icon: typeof Home; label: string };
 
 const primaryNav: NavLeaf[] = [
   { href: '/home', icon: Home, label: 'خانه' },
-  { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'پیشخوان' },
   { href: '/onboarding', icon: ListChecks, label: 'شروع کار' },
 ];
 
@@ -58,11 +58,11 @@ const shopNav: NavLeaf[] = [
 ];
 
 const aiFeatureNav: NavLeaf[] = [
-  { href: '/employees', icon: Bot, label: 'کارمندان AI' },
+  { href: '/employees', icon: Bot, label: 'دستیارهای هوشمند' },
   { href: '/opportunities', icon: Sparkles, label: 'فرصت‌های درآمد' },
-  { href: '/approvals', icon: ShieldCheck, label: 'تأییدها' },
-  { href: '/integrations', icon: Radio, label: 'یکپارچه‌سازی' },
-  { href: '/knowledge', icon: BookOpen, label: 'دانش' },
+  { href: '/approvals', icon: ShieldCheck, label: 'درخواست‌های تأیید' },
+  { href: '/integrations', icon: Radio, label: 'اتصال سرویس' },
+  { href: '/knowledge', icon: BookOpen, label: 'اطلاعات فروشگاه' },
   { href: '/audit', icon: ShieldCheck, label: 'ممیزی' },
 ];
 
@@ -142,7 +142,7 @@ export function Sidebar({
               سِلوما
             </div>
             <div className="text-[9.5px] tracking-[0.18em] text-white/45 font-semibold">
-              COMMERCE
+              تجارت هوشمند
             </div>
           </div>
         </div>
@@ -189,7 +189,7 @@ export function Sidebar({
             className="flex w-full items-center gap-2 px-[12px] pb-2 text-[10.5px] font-bold tracking-[0.1em] text-white/30 uppercase hover:text-white/50"
           >
             <span className="flex-1 text-start">
-              {aiEmployeeEntitled ? 'کارمند هوش مصنوعی' : 'عملیات'}
+              {aiEmployeeEntitled ? 'دستیارهای هوشمند' : 'عملیات'}
             </span>
             <ChevronDown
               size={14}
@@ -202,7 +202,7 @@ export function Sidebar({
             ))}
           {aiOpen && !aiEmployeeEntitled ? (
             <p className="px-3 py-2 text-[11px] leading-relaxed text-white/35">
-              کارمند AI با بستهٔ جداگانه فعال می‌شود.
+              دستیار هوشمند با بستهٔ جداگانه فعال می‌شود.
             </p>
           ) : null}
         </div>

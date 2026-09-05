@@ -41,7 +41,7 @@ export class WebsiteAdapterService {
     const employee = await this.store.employeeForTenant(channel.tenantId);
     return {
       conversationId: conversation.id,
-      employee: employee?.name ?? 'کارمند فروش',
+      employee: employee?.name ?? 'دستیار هوشمند',
       status: employee?.status ?? 'inactive',
     };
   }

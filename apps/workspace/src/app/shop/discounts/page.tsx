@@ -193,7 +193,7 @@ export default function ShopDiscountsPage() {
       <div className="space-y-6">
         <PageHeader
           title="تخفیف‌ها"
-          description="قوانین تخفیف که هم ویترین و هم کارمند AI از همین‌جا قیمت نهایی را می‌گیرند"
+          description="قوانین تخفیف که هم ویترین و هم دستیار هوشمند از همین‌جا قیمت نهایی را می‌گیرند"
           actions={
             <Button onClick={openCreate}>
               <Plus className="ms-1 h-4 w-4" />
@@ -359,7 +359,7 @@ export default function ShopDiscountsPage() {
           <EmptyState
             icon={Percent}
             title="هنوز تخفیفی ثبت نشده"
-            description="اولین قانون تخفیف را بسازید تا در ویترین و پاسخ‌های AI اعمال شود"
+            description="اولین قانون تخفیف را بسازید تا در ویترین و پاسخ‌های دستیار اعمال شود"
             action={
               <Button onClick={openCreate}>
                 <Plus className="ms-1 h-4 w-4" />

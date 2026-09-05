@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 const tabs = [
   { href: '/home', icon: Home, label: 'خانه', exact: true },
-  { href: '/dashboard', icon: LayoutDashboard, label: 'داشبورد' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'پیشخوان' },
   { href: '/shop', icon: ShoppingBag, label: 'فروشگاه' },
   { href: '/inbox', icon: Inbox, label: 'صندوق' },
   { href: '/onboarding', icon: MoreHorizontal, label: 'بیشتر' },

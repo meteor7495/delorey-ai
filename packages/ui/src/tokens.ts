@@ -77,17 +77,87 @@ export const channelLabels: Record<string, string> = {
 
 export const messageRoleLabels: Record<string, string> = {
   shopper: 'مشتری',
-  assistant: 'کارمند فروش',
-  ai: 'کارمند فروش',
-  employee: 'کارمند فروش',
-  operator: 'اپراتور',
+  assistant: 'دستیار هوشمند',
+  ai: 'دستیار هوشمند',
+  employee: 'دستیار هوشمند',
+  operator: 'همکار فروشگاه',
   system: 'سیستم',
 };
 
 export const ownershipLabels: Record<string, string> = {
-  ai_owned: 'پاسخ‌گوی AI',
-  human_owned: 'در اختیار اپراتور',
+  ai_owned: 'پاسخ‌گوی دستیار',
+  human_owned: 'در اختیار همکار',
 };
+
+/** Employee lifecycle — map API enums to merchant FA */
+export const employeeStatusLabels: Record<string, string> = {
+  active: 'فعال',
+  paused: 'متوقف',
+  inactive: 'غیرفعال',
+};
+
+export const operatingModeLabels: Record<string, string> = {
+  copilot: 'همراه (پیشنهاد می‌دهد)',
+  assistant: 'دستیار (پاسخ می‌دهد)',
+  autopilot: 'خودکار (بدون تأیید)',
+};
+
+export const employeeRoleLabels: Record<string, string> = {
+  sales: 'فروش',
+  support: 'پشتیبانی',
+  marketing: 'بازاریابی',
+  analyst: 'تحلیل',
+  operations: 'عملیات',
+  product: 'محصول',
+  commerce: 'تجارت',
+};
+
+export const integrationStatusLabels: Record<string, string> = {
+  connected: 'متصل',
+  disconnected: 'قطع',
+  pending: 'در انتظار',
+  error: 'خطا',
+};
+
+export const toolOverrideStateLabels: Record<string, string> = {
+  enabled: 'فعال',
+  disabled: 'غیرفعال',
+  default: 'پیش‌فرض',
+  override: 'سفارشی',
+};
+
+export const approvalPolicyLabels: Record<string, string> = {
+  default: 'پیش‌فرض',
+  always: 'همیشه نیاز به تأیید',
+  never: 'بدون تأیید',
+};
+
+export function employeeStatusLabel(status: string): string {
+  return employeeStatusLabels[status] ?? status;
+}
+
+export function operatingModeLabel(mode: string): string {
+  return operatingModeLabels[mode] ?? mode;
+}
+
+export function employeeRoleLabel(role: string): string {
+  return employeeRoleLabels[role] ?? role;
+}
+
+export function integrationStatusLabel(status: string): string {
+  return integrationStatusLabels[status] ?? status;
+}
+
+export function toolOverrideStateLabel(state: string | boolean): string {
+  if (typeof state === 'boolean') {
+    return state ? 'فعال' : 'غیرفعال';
+  }
+  return toolOverrideStateLabels[state] ?? state;
+}
+
+export function approvalPolicyLabel(policy: string): string {
+  return approvalPolicyLabels[policy] ?? policy;
+}
 
 export function escalationLabel(code: string | null | undefined): string {
   if (!code) return '';
@@ -165,8 +235,8 @@ export const decisionLabels: Record<string, string> = {
   order_lookup_skill_disabled: 'مهارت پیگیری سفارش غیرفعال',
   paused_human_owned: 'متوقف — در اختیار اپراتور',
   refuse_paused: 'رد پاسخ — کارمند متوقف',
-  refuse_no_entitlement: 'رد پاسخ — بسته AI فعال نیست',
-  released_to_ai: 'بازگشت به کارمند فروش',
+  refuse_no_entitlement: 'رد پاسخ — دستیار فعال نیست',
+  released_to_ai: 'بازگشت به دستیار هوشمند',
   'escalated:*': 'ارجاع به انسان (همه)',
   'guardrail_block:*': 'مسدود توسط محدودیت (همه)',
   'guardrail_block:refund': 'مسدود — درخواست استرداد',
@@ -177,9 +247,9 @@ export const decisionLabels: Record<string, string> = {
 };
 
 export const adminActionLabels: Record<string, string> = {
-  'employee.update': 'به‌روزرسانی کارمند',
+  'employee.update': 'به‌روزرسانی دستیار',
   'employee.guardrails': 'به‌روزرسانی محدودیت‌ها',
-  'employee.*': 'کارمند (همه)',
+  'employee.*': 'دستیار (همه)',
   'knowledge.create': 'ایجاد دانش',
   'knowledge.update': 'ویرایش دانش',
   'knowledge.delete': 'حذف دانش',

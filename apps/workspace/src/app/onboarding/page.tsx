@@ -36,7 +36,7 @@ const ITEMS: Array<{
   },
   {
     key: 'employeeConfigured',
-    label: 'کارمند فروش فعال (اختیاری)',
+    label: 'دستیار هوشمند فعال (اختیاری)',
     hint: 'پاسخ گفتگو روی همان کاتالوگ',
     href: '/employee',
   },
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">پرامپت‌های smoke</CardTitle>
+            <CardTitle className="text-base">نمونه سؤالات آزمایشی</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {publicKey && (
@@ -146,7 +146,7 @@ export default function OnboardingPage() {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  باز کردن harness ویجت
+                  باز کردن پیش‌نمایش ویجت
                 </a>
               </p>
             )}
@@ -156,7 +156,7 @@ export default function OnboardingPage() {
               ))}
             </ul>
             <p className="text-xs text-[var(--text-3)]">
-              جزئیات کامل: docs/06-build/vertical-slice-19.md
+              این سؤالات را در ویجت گفتگو امتحان کنید تا پاسخ دستیار را ببینید.
             </p>
           </CardContent>
         </Card>

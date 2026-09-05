@@ -555,7 +555,7 @@ export default function ShopProductsPage() {
           <EmptyState
             icon={Package}
             title="هنوز محصولی نیست"
-            description="اولین محصول را بسازید تا ویترین و کارمند AI grounded شوند"
+            description="اولین محصول را بسازید تا ویترین و دستیار هوشمند بتوانند بر اساس اطلاعات واقعی پاسخ دهند"
             action={
               <Button onClick={openCreate}>
                 <Plus className="ms-1 h-4 w-4" />

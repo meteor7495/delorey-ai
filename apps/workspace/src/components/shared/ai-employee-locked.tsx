@@ -17,16 +17,18 @@ export function AiEmployeeLocked() {
         </div>
         <div className="space-y-2">
           <h2 className="text-lg font-bold text-[var(--text-1)]">
-            کارمند هوش مصنوعی در پلن شما نیست
+            دستیار هوشمند در پلن شما فعال نیست
           </h2>
           <p className="max-w-md text-sm text-[var(--text-2)] leading-relaxed">
-            فروشگاه‌ساز به‌تنهایی شامل ویترین، سفارش و کانال‌هاست. برای فعال‌شدن
-            کارمند فروش AI بستهٔ جداگانه را تهیه کنید.
+            فروشگاه‌ساز به‌تنهایی شامل ویترین، سفارش و کانال‌هاست. برای پاسخ
+            خودکار به مشتریان، بستهٔ دستیار هوشمند را فعال کنید.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild>
-            <a href={`${WEB_URL}/request?plan=ai-sales`}>درخواست بسته AI</a>
+            <a href={`${WEB_URL}/request?plan=ai-sales`}>
+              درخواست فعال‌سازی دستیار
+            </a>
           </Button>
           <Button asChild variant="outline">
             <Link href="/shop">بازگشت به فروشگاه</Link>

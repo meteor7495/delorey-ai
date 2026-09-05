@@ -115,12 +115,12 @@ export default function KnowledgePage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="دانش فروشگاه"
-        description="پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای"
+        title="اطلاعات فروشگاه"
+        description="پرسش‌های متداول و سیاست‌ها — منبع پاسخ دستیار"
       >
       <div className="space-y-6">
         <PageHeader
-          title="دانش فروشگاه"
+          title="اطلاعات فروشگاه"
           description="پرسش‌های متداول و سیاست‌ها با ذکر منبع — ایندکس کلیدواژه‌ای"
           actions={
             <Button onClick={openCreate}>

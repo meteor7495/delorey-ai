@@ -184,7 +184,7 @@ export class RuntimeService {
     const tenant = await this.store.findTenant(tenantId);
     if (!hasAiEmployeeEntitlement(tenant?.plan)) {
       return {
-        reply: 'کارمند فروش برای این فروشگاه فعال نیست.',
+        reply: 'دستیار هوشمند برای این فروشگاه فعال نیست.',
         citations: [],
         decision: 'refuse_no_entitlement',
       };
@@ -233,7 +233,7 @@ export class RuntimeService {
       await this.audit(tenantId, conversationId, 'guardrail_block:topic', []);
       return {
         reply:
-          'این موضوع خارج از محدوده مجاز کارمند فروش است؛ شما را به همکار انسانی وصل می‌کنم.',
+          'این موضوع خارج از محدوده مجاز دستیار است؛ شما را به همکار انسانی وصل می‌کنم.',
         citations: [],
         decision: 'escalated:blocked_topic',
         ownership: 'human_owned',
@@ -311,7 +311,7 @@ export class RuntimeService {
 
     if (employee && employee.status === 'paused') {
       return {
-        reply: 'کارمند فروش فعلاً متوقف است.',
+        reply: 'دستیار هوشمند فعلاً متوقف است.',
         citations: [],
         decision: 'refuse_paused',
       };

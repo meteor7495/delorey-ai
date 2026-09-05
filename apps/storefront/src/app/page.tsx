@@ -11,7 +11,7 @@ export default function HomePage() {
           فروشگاه آنلاین سِلوما
         </h1>
         <p className="text-[13px] text-dk-muted max-w-md mx-auto leading-7 mb-6">
-          برای ورود به ویترین، اسلاگ فروشگاه را از Workspace → تنظیمات فروشگاه
+          برای ورود به ویترین، اسلاگ فروشگاه را از فضای کاری → تنظیمات فروشگاه
           کپی کنید.
         </p>
         <Link

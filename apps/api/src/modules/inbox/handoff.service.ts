@@ -117,7 +117,7 @@ export class HandoffService {
       tenantId,
       conversationId,
       role: 'system',
-      content: 'گفتگو به کارمند فروش AI بازگردانده شد.',
+      content: 'گفتگو به دستیار هوشمند بازگردانده شد.',
     });
     await this.store.addAudit({
       id: uuid(),

@@ -61,7 +61,7 @@ export default function LoginPage() {
               سِلوما
             </h1>
             <p className="mt-1 text-[13px] text-[var(--text-4)]">
-              کارمند فروش هوش مصنوعی برای فروشگاه شما
+              دستیار هوشمند برای فروشگاه آنلاین شما
             </p>
           </div>
         </div>

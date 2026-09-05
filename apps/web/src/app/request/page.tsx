@@ -74,8 +74,8 @@ function RequestForm() {
           </Link>
           <h1 className="mt-4 text-3xl font-black">ثبت درخواست دسترسی</h1>
           <p className="mt-2 text-white/65 max-w-xl leading-7">
-            حساب Workspace ساخته می‌شود؛ برای سایت‌ساز به فعال‌سازی می‌روید و
-            برای کارمند AI هماهنگی قیمت انجام می‌شود.
+            حساب فضای کاری ساخته می‌شود؛ برای سایت‌ساز به فعال‌سازی می‌روید و
+            برای دستیار هوشمند هماهنگی قیمت انجام می‌شود.
           </p>
         </div>
       </div>
@@ -99,7 +99,7 @@ function RequestForm() {
                   </option>
                 ))}
               </optgroup>
-              <optgroup label="کارمند فروش AI (هماهنگی)">
+              <optgroup label="دستیار هوشمند (هماهنگی)">
                 {AI_EMPLOYEE_PLANS.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} — {p.price}
@@ -185,10 +185,10 @@ function RequestForm() {
             <li>ثبت درخواست و ساخت خودکار حساب</li>
             <li>
               {selected.consultative
-                ? 'هماهنگی قیمت کارمند فروش AI'
+                ? 'هماهنگی قیمت دستیار هوشمند'
                 : 'فعال‌سازی اشتراک سایت‌ساز'}
             </li>
-            <li>ورود به Workspace و راه‌اندازی</li>
+            <li>ورود به فضای کاری و راه‌اندازی</li>
           </ol>
         </aside>
       </div>

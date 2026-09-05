@@ -227,3 +227,174 @@ input[type='checkbox'],
 input[type='radio'] {
   accent-color: var(--color-primary);
 }
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.65s var(--ease),
+    transform 0.65s var(--ease);
+}
+
+.reveal--visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Problem cards */
+.problem-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--surface);
+  padding: 1.5rem;
+  transition:
+    transform 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+.problem-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(108, 77, 255, 0.18);
+  box-shadow: 0 16px 36px rgba(26, 22, 37, 0.06);
+}
+
+.problem-card__icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: var(--color-primary-soft);
+  font-size: 1.1rem;
+  margin-bottom: 0.85rem;
+}
+
+/* Workflow cards */
+.workflow-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--surface);
+  padding: 1.25rem;
+  transition: border-color 0.25s var(--ease);
+}
+
+.workflow-card:hover {
+  border-color: rgba(108, 77, 255, 0.2);
+}
+
+.workflow-card__trigger,
+.workflow-card__action {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+}
+
+.workflow-card__trigger {
+  background: var(--color-primary-soft);
+}
+
+.workflow-card__action {
+  background: rgba(4, 120, 87, 0.08);
+}
+
+.workflow-card__arrow {
+  text-align: center;
+  color: var(--color-primary);
+  font-weight: 900;
+  transform: rotate(-90deg);
+}
+
+@media (min-width: 640px) {
+  .workflow-card__arrow {
+    transform: none;
+  }
+}
+
+/* Use case cards */
+.use-case-card {
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--surface);
+  padding: 1.25rem;
+  transition:
+    transform 0.25s var(--ease),
+    border-color 0.25s var(--ease);
+}
+
+.use-case-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(108, 77, 255, 0.18);
+}
+
+/* Impact cards */
+.impact-card {
+  border-radius: 1.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--surface);
+  padding: 1.75rem 1.25rem;
+}
+
+/* Floating product cards */
+.floating-card {
+  max-width: 220px;
+  border-radius: 0.85rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.5;
+  animation: floatCard 4s ease-in-out infinite;
+}
+
+.floating-card--success {
+  background: rgba(4, 120, 87, 0.15);
+  border: 1px solid rgba(4, 120, 87, 0.3);
+  color: #6ee7b7;
+}
+
+.floating-card--info {
+  background: rgba(59, 108, 181, 0.15);
+  border: 1px solid rgba(59, 108, 181, 0.3);
+  color: #93c5fd;
+}
+
+.floating-card--primary {
+  background: rgba(108, 77, 255, 0.15);
+  border: 1px solid rgba(108, 77, 255, 0.3);
+  color: #c4b5fd;
+}
+
+.floating-card--warning {
+  background: rgba(180, 83, 9, 0.15);
+  border: 1px solid rgba(180, 83, 9, 0.3);
+  color: #fcd34d;
+}
+
+@keyframes floatCard {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* FAQ */
+.faq-item__trigger:focus-visible {
+  outline: 2px solid var(--brand-400);
+  outline-offset: -2px;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

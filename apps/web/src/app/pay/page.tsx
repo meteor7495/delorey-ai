@@ -81,7 +81,7 @@ function PayInner() {
           <p className="mt-2 text-white/65">
             حساب ساخته شد{email ? ` برای ${email}` : ''}.
             {plan.consultative
-              ? ' قیمت کارمند AI بعداً هماهنگ می‌شود.'
+              ? ' قیمت دستیار هوشمند بعداً هماهنگ می‌شود.'
               : ' درگاه واقعی به‌زودی؛ فعلاً فعال‌سازی آزمایشی.'}
           </p>
         </div>
@@ -92,7 +92,7 @@ function PayInner() {
           <div className="flex items-baseline justify-between gap-3">
             <div>
               <p className="text-sm text-ink/50">
-                {plan.category === 'ai' ? 'بسته AI' : 'پلن سایت‌ساز'}
+                {plan.category === 'ai' ? 'بسته دستیار' : 'پلن سایت‌ساز'}
               </p>
               <p className="text-xl font-extrabold">{plan.name}</p>
             </div>
@@ -103,13 +103,13 @@ function PayInner() {
           </div>
           <p className="text-sm leading-7 text-ink/60 rounded-2xl bg-sand p-4">
             {plan.consultative
-              ? 'درخواست شما ثبت شد. تیم سِلوما برای تعیین قیمت و بستهٔ مناسب با شما هماهنگ می‌کند. فعلاً می‌توانید وارد Workspace شوید و فروشگاه را آماده کنید.'
-              : 'پس از اتصال درگاه (زرین‌پال / مشابه)، همین صفحه به پرداخت واقعی هدایت می‌شود. تا آن موقع با دکمهٔ زیر اشتراک سالیانه را فعال و وارد Workspace شوید.'}
+              ? 'درخواست شما ثبت شد. تیم سِلوما برای تعیین قیمت و بستهٔ مناسب با شما هماهنگ می‌کند. فعلاً می‌توانید وارد فضای کاری شوید و فروشگاه را آماده کنید.'
+              : 'پس از اتصال درگاه (زرین‌پال / مشابه)، همین صفحه به پرداخت واقعی هدایت می‌شود. تا آن موقع با دکمهٔ زیر اشتراک سالیانه را فعال و وارد فضای کاری شوید.'}
           </p>
           {error && <p className="text-sm text-red-600">{error}</p>}
           {done ? (
             <a href={`${WORKSPACE_URL}/login`} className="btn btn-primary w-full">
-              ورود به Workspace
+              ورود به فضای کاری
             </a>
           ) : (
             <button
@@ -121,7 +121,7 @@ function PayInner() {
               {loading
                 ? 'در حال فعال‌سازی…'
                 : plan.consultative
-                  ? 'ثبت درخواست و ورود به Workspace'
+                  ? 'ثبت درخواست و ورود به فضای کاری'
                   : 'فعال‌سازی آزمایشی و ورود'}
             </button>
           )}

@@ -8,6 +8,10 @@ import {
   Sparkles,
   TrendingUp,
 } from 'lucide-react';
+import {
+  employeeStatusLabel,
+  operatingModeLabel,
+} from '@seloma/ui';
 import { AppShell } from '@/shared/AppShell';
 import { api } from '@/shared/api';
 import { PageHeader } from '@/components/shared/page-header';
@@ -45,8 +49,8 @@ export default function HomePage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="مرکز فرمان AI"
-        description="با بسته کارمند هوش مصنوعی فعال می‌شود"
+        title="پیشخوان فروش"
+        description="با فعال‌سازی دستیار هوشمند در دسترس است"
       >
         <HomeContent />
       </RequireAiEmployee>
@@ -105,7 +109,7 @@ function HomeContent() {
     setBusy(true);
     try {
       await api.executeOpportunity(id);
-      toastSuccess('اقدام AI ثبت شد');
+      toastSuccess('اقدام دستیار ثبت شد');
       await load();
     } catch (e) {
       toastFromError(e);
@@ -117,8 +121,8 @@ function HomeContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="مرکز فرمان AI"
-        description="چه چیزی نیاز به توجه دارد و تیم AI چه می‌کند؟"
+        title="پیشخوان فروش"
+        description="چه چیزی نیاز به توجه دارد و دستیارهای شما چه می‌کنند؟"
       />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -133,12 +137,12 @@ function HomeContent() {
           icon={Sparkles}
         />
         <StatCard
-          title="وظایف موفق AI"
+          title="کارهای انجام‌شده"
           value={String(cc?.aiTasksCompleted ?? 0)}
           icon={Bot}
         />
         <StatCard
-          title="برآورد فرصت (IRT)"
+          title="برآورد فرصت (تومان)"
           value={Number(opportunities?.estimatedTotal ?? 0).toLocaleString(
             'fa-IR',
           )}
@@ -164,7 +168,7 @@ function HomeContent() {
                 <div className="flex flex-wrap gap-2">
                   {item.executableAction === 'recover_abandoned_carts' ? (
                     <Button disabled={busy} onClick={() => void runRecover()}>
-                      بسپار به AI
+                      واگذار به دستیار
                     </Button>
                   ) : null}
                   <Button variant="outline" asChild>
@@ -178,7 +182,7 @@ function HomeContent() {
       ) : (
         <Card>
           <CardContent className="p-5 text-sm text-[var(--text-2)]">
-            مورد فوری نیست. فرصت‌ها و کارمندان AI را بررسی کنید.
+            مورد فوری نیست. فرصت‌ها و دستیارهای هوشمند را بررسی کنید.
           </CardContent>
         </Card>
       )}
@@ -188,7 +192,7 @@ function HomeContent() {
           <CardHeader>
             <CardTitle className="text-base">فرصت‌های درآمد</CardTitle>
             <p className="text-xs text-[var(--text-3)]">
-              مقادیر برچسب estimate دارند
+              مقادیر برآوردی هستند و تضمین درآمد نیستند
             </p>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -201,7 +205,7 @@ function HomeContent() {
                   <p className="text-sm font-semibold">{o.reason}</p>
                   <p className="text-xs text-[var(--text-3)]">
                     برآورد:{' '}
-                    {Number(o.estimatedValue).toLocaleString('fa-IR')} IRT
+                    {Number(o.estimatedValue).toLocaleString('fa-IR')} تومان
                   </p>
                 </div>
                 <Button
@@ -209,7 +213,7 @@ function HomeContent() {
                   disabled={busy}
                   onClick={() => void runOpportunity(o.id)}
                 >
-                  بسپار به AI
+                  واگذار به دستیار
                 </Button>
               </div>
             ))}
@@ -221,7 +225,7 @@ function HomeContent() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">کارمندان AI</CardTitle>
+            <CardTitle className="text-base">دستیارهای هوشمند</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {employees.map((e) => (
@@ -234,12 +238,13 @@ function HomeContent() {
                   {e.name}
                 </span>
                 <span className="text-xs text-[var(--text-3)]">
-                  {e.status} · {e.operatingMode}
+                  {employeeStatusLabel(e.status)} ·{' '}
+                  {operatingModeLabel(e.operatingMode)}
                 </span>
               </Link>
             ))}
             <Button variant="outline" asChild className="mt-2 w-full">
-              <Link href="/employees">مدیریت تیم</Link>
+              <Link href="/employees">مدیریت دستیارها</Link>
             </Button>
           </CardContent>
         </Card>
@@ -247,7 +252,7 @@ function HomeContent() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">فعالیت اخیر AI</CardTitle>
+          <CardTitle className="text-base">فعالیت اخیر</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           {recentActivity.slice(0, 8).map((a) => (

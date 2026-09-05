@@ -132,12 +132,12 @@ export default function AuditClient() {
     <AppShell>
       <RequireAiEmployee
         title="ممیزی"
-        description="نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت"
+        description="نوبت‌های دستیار هوشمند و اقدامات مدیر — فقط‌افزودنی · شفافیت"
       >
       <div className="space-y-4">
         <PageHeader
           title="ممیزی"
-          description="نوبت‌های کارمند فروش و اقدامات ادمین — فقط‌افزودنی · شفافیت"
+          description="نوبت‌های دستیار هوشمند و اقدامات مدیر — فقط‌افزودنی · شفافیت"
         />
 
         <div className="flex flex-wrap gap-1.5">
@@ -146,7 +146,7 @@ export default function AuditClient() {
             variant={tab === 'turns' ? 'default' : 'outline'}
             onClick={() => setTab('turns')}
           >
-            نوبت‌های کارمند
+            نوبت‌های دستیار
           </Button>
           <Button
             size="sm"

@@ -8,14 +8,21 @@ import { PageHeader } from '@/components/shared/page-header';
 import { RequireAiEmployee } from '@/components/shared/require-ai-employee';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  employeeRoleLabel,
+  employeeStatusLabel,
+  employeeStatusLabels,
+  operatingModeLabel,
+  operatingModeLabels,
+} from '@seloma/ui';
 import { toastFromError, toastSuccess } from '@/lib/notify';
 
 export default function EmployeeDetailPage() {
   return (
     <AppShell>
       <RequireAiEmployee
-        title="کارمند AI"
-        description="جزئیات و پیکربندی کارمند"
+        title="دستیار هوشمند"
+        description="جزئیات و تنظیمات دستیار"
       >
         <EmployeeDetailContent />
       </RequireAiEmployee>
@@ -74,14 +81,14 @@ function EmployeeDetailContent() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={String(employee?.name ?? 'کارمند AI')}
-        description={`نقش: ${role}`}
+        title={String(employee?.name ?? 'دستیار هوشمند')}
+        description={`نقش: ${employeeRoleLabel(role)}`}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>پیکربندی</CardTitle>
+            <CardTitle>تنظیمات دستیار</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <label className="block text-sm">
@@ -91,9 +98,11 @@ function EmployeeDetailContent() {
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
               >
-                <option value="active">active</option>
-                <option value="paused">paused</option>
-                <option value="inactive">inactive</option>
+                {Object.entries(employeeStatusLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </label>
             <label className="block text-sm">
@@ -103,9 +112,11 @@ function EmployeeDetailContent() {
                 value={mode}
                 onChange={(e) => setMode(e.target.value)}
               >
-                <option value="copilot">copilot</option>
-                <option value="assistant">assistant</option>
-                <option value="autopilot">autopilot</option>
+                {Object.entries(operatingModeLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
               </select>
             </label>
             <p className="text-xs text-[var(--text-3)]">
@@ -124,7 +135,7 @@ function EmployeeDetailContent() {
             <p>ناموفق: {String(perf.failedActions ?? 0)}</p>
             <p>در انتظار تأیید: {String(perf.pendingApprovals ?? 0)}</p>
             <p>
-              نرخ اتوماسیون:{' '}
+              نرخ خودکارسازی:{' '}
               {Number(perf.automationRate ?? 0).toLocaleString('fa-IR', {
                 style: 'percent',
                 maximumFractionDigits: 0,

@@ -147,7 +147,7 @@ export function ChatWidget({
 
   const [open, setOpen] = useState(!launcher);
   const [conversationId, setConversationId] = useState<string | null>(null);
-  const [employeeName, setEmployeeName] = useState('کارمند فروش');
+  const [employeeName, setEmployeeName] = useState('دستیار هوشمند');
   const [aiState, setAiState] = useState('inactive');
   const [text, setText] = useState('');
   const [messages, setMessages] = useState<ChatMsg[]>([]);
